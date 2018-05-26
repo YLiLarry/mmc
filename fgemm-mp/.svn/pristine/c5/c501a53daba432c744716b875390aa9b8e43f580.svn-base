@@ -1,0 +1,68 @@
+@book{GaGe03,
+ author = {Gathen, Joachim Von Zur and Gerhard, Jurgen},
+ title = {Modern Computer Algebra},
+ year = 2003,
+ edition = 3,
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+}
+
+@book{BrZi10,
+ author = {Brent, Richard and Zimmermann, Paul},
+ title = {Modern Computer Arithmetic},
+ year = 2010,
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+}
+
+@InBook{Bernstein08,
+  author = 	 {D. J. Bernstein},
+  title = 	 {Algorithmic Number Theory},
+  chapter = 	 {Fast multiplication and its applications},
+  publisher = 	 {{MSRI} Publications},
+  year = 	 2008,
+  volume = 	 44,
+  pages = 	 {325--384}
+}
+
+@InProceedings{Barrett86,
+  author = 	 {P. Barrett},
+  title = 	 {Implementing the {Rivest} {Shamir} and {Adleman} public key encryption algorithm on a standard digital signal processor},
+  booktitle =	 {Advances in Cryptology, {CRYPTO'86}},
+  pages =	 {311--326},
+  year =	 1986,
+  volume =	 263,
+  series =	 {LNCS},
+  publisher =	 {Springer}
+}
+
+@Article{Montgomery85,
+  author = 	 {P. L. Montgomery},
+  title = 	 {Modular Multiplication Without Trial Division},
+  journal = 	 {Mathematics of Computation},
+  year = 	 1985,
+  volume =	 44,
+  number =	 170,
+  pages =	 {519--521},
+  month =	 Apr
+}
+
+@Misc{GnuMP,
+  author =	 {T. Granlund},
+  title =	 {{GMP}, The {GNU} Multiple Precision Arithmetic Library},
+  note =	 {\url{http://www.swox.com/gmp/}}
+}
+
+@inproceedings{LeGall:2014,
+ author = {Le Gall, Fran\c{c}ois},
+ title = {Powers of Tensors and Fast Matrix Multiplication},
+ booktitle = {Proceedings of the 39th International Symposium on Symbolic and Algebraic Computation},
+ series = {ISSAC '14},
+ year = 2014,
+ location = {Kobe, Japan},
+ pages = {296--303},
+ url = {http://doi.acm.org/10.1145/2608628.2608664},
+ doi = {10.1145/2608628.2608664},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+} 

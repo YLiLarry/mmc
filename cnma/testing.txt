@@ -1,0 +1,44 @@
+Enter testing mode? [y/n] y
+Enter numbers as following:
+num
+num
+mod
+Then choose an operation:
+'+' = additon (gmp lib used)
+'-' = subtraction (gmp)
+'*' = multiplication (gmp)
+'+min' = addition (2^n-1)
+
+6543234567876543
+45678765432345
+2047
++min
+
+Results: 1365
+The numbers reduced with dc_reduce_minus algorithm are 510 and 855 respectively
+Do you want to quit?[y/n] y
+
+********************
+
+Enter testing mode? [y/n] n
+
+dc_reduce_minus function testing
+Number before reduction: 140723035314496
+After reduction: 1235
+
+	***
+
+Multiplication Times:
+                        Method       Time (s)
+           AxB = C, then mod C       0.000005
+    mod A, mod B, then AxB = D       0.000013
+
+Conversion Times
+           AxB = C, then mod C       0.000004
+    mod A, mod B, then AxB = D       0.000003
+
+matrices C and D are identical
+
+
+
+

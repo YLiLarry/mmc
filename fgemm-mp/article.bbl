@@ -1,0 +1,321 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{00}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{{\tt DOI:}\penalty0{#1}\ }
+  \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       #1{#1}          \fi
+
+\bibitem[\protect\citeauthoryear{Barrett}{Barrett}{1986}]%
+        {Barrett86}
+{P. Barrett}. 1986.
+\newblock \showarticletitle{Implementing the {Rivest} {Shamir} and {Adleman}
+  public key encryption algorithm on a standard digital signal processor}. In
+  {\em Advances in Cryptology, {CRYPTO'86}} {\em (LNCS)}, Vol. 263. Springer,
+  311--326.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bernstein}{Bernstein}{2008}]%
+        {Bernstein08}
+{D.~J. Bernstein}. 2008.
+\newblock {\em Algorithmic Number Theory}. Vol.~44.
+\newblock {MSRI} Publications, Chapter Fast multiplication and its
+  applications, 325--384.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Borodin and Moenck}{Borodin and
+  Moenck}{1974}]%
+        {Borodin1974}
+{Allan Borodin} {and} {Robert Moenck}. 1974.
+\newblock \showarticletitle{Fast modular transforms}.
+\newblock {\it J. Comput. System Sci.} {8}, 3 (1974), 366--386.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bosma, Cannon, and Playoust}{Bosma
+  et~al\mbox{.}}{1997}]%
+        {BoCaPl97}
+{W. Bosma}, {J. Cannon}, {and} {C. Playoust}. 1997.
+\newblock \showarticletitle{The {M}agma algebra system. {I}. {T}he user
+  language}.
+\newblock {\em J. Symbolic Comput.\/} {24}, 3-4 (1997), 235--265.
+\newblock
+\showISSN{0747-7171}
+\showDOI{%
+\url{http://dx.doi.org/10.1006/jsco.1996.0125}}
+\newblock
+\shownote{Computational algebra and number theory (London, 1993).}
+
+
+\bibitem[\protect\citeauthoryear{Brent and Zimmermann}{Brent and
+  Zimmermann}{2010}]%
+        {BrZi10}
+{Richard Brent} {and} {Paul Zimmermann}. 2010.
+\newblock {\em Modern Computer Arithmetic}.
+\newblock Cambridge University Press, New York, NY, USA.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Brent and Kung}{Brent and Kung}{1978}]%
+        {BrKu78}
+{R.~P. Brent} {and} {H.~T. Kung}. 1978.
+\newblock \showarticletitle{Fast algorithms for manipulating formal power
+  series}.
+\newblock {\em Journal of the Association for Computing Machinery\/} {25}, 4
+  (1978), 581--595.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cantor and Kaltofen}{Cantor and
+  Kaltofen}{1991}]%
+        {CaKa91}
+{D.~G. Cantor} {and} {E. Kaltofen}. 1991.
+\newblock \showarticletitle{On Fast Multiplication of Polynomials over
+  Arbitrary Algebras}.
+\newblock {\em Acta Informatica\/} {28}, 7 (1991), 693--701.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cantor and Zassenhaus}{Cantor and
+  Zassenhaus}{1981}]%
+        {Cantor1981}
+{David~G Cantor} {and} {Hans Zassenhaus}. 1981.
+\newblock \showarticletitle{A new algorithm for factoring polynomials over
+  finite fields}.
+\newblock {\it Math. Comp.} (1981), 587--592.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Dongarra, Hammarling, Du~Croz, and
+  Hanson}{Dongarra et~al\mbox{.}}{1988}]%
+        {Dongarra1988}
+{J Dongarra}, {S Hammarling}, {J Du~Croz}, {and} {R Hanson}. 1988.
+\newblock \showarticletitle{An extended set of Fortran Basic Linear Algebra
+  Subprograms}.
+\newblock {\it ACM Trans. Math. Software} {14}, 1 (1988), 1--32.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Frigo and Johnson}{Frigo and Johnson}{2005}]%
+        {FFTW05}
+{Matteo Frigo} {and} {Steven~G. Johnson}. 2005.
+\newblock \showarticletitle{The Design and Implementation of {FFTW3}}.
+\newblock {\it Proc. IEEE} {93}, 2 (2005), 216--231.
+\newblock
+\newblock
+\shownote{Special issue on ``Program Generation, Optimization, and Platform
+  Adaptation''.}
+
+
+\bibitem[\protect\citeauthoryear{Gathen and Gerhard}{Gathen and
+  Gerhard}{2003}]%
+        {GaGe03}
+{Joachim Von~Zur Gathen} {and} {Jurgen Gerhard}. 2003.
+\newblock {\em Modern Computer Algebra\/} (3 ed.).
+\newblock Cambridge University Press, New York, NY, USA.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Gathen and Gerhard}{Gathen and
+  Gerhard}{2013}]%
+        {GaGe13}
+{Joachim Von~Zur Gathen} {and} {Jurgen Gerhard}. 2013.
+\newblock {\em Modern Computer Algebra\/} (3 ed.).
+\newblock Cambridge University Press, New York, NY, USA.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Giorgi, Imbert, and Izard}{Giorgi
+  et~al\mbox{.}}{2013}]%
+        {GII13}
+{P. Giorgi}, {L. Imbert}, {and} {T. Izard}. 2013.
+\newblock \showarticletitle{Parallel Modular Multiplication on Multi-core
+  Processors}. In {\em Computer Arithmetic (ARITH), 2013 21st IEEE Symposium
+  on}. 135--142.
+\newblock
+\showISSN{1063-6889}
+\showDOI{%
+\url{http://dx.doi.org/10.1109/ARITH.2013.20}}
+
+
+\bibitem[\protect\citeauthoryear{GMP-Team}{GMP-Team}{2015}]%
+        {GNU-GMP}
+{GMP-Team}. 2015.
+\newblock Multiple precision arithmetic library.
+\newblock   (2015).
+\newblock
+\newblock
+\shownote{\url{https://gmplib.org/}.}
+
+
+\bibitem[\protect\citeauthoryear{Goto and Van De~Geijn}{Goto and Van
+  De~Geijn}{2008}]%
+        {Goto2008}
+{Kazushige Goto} {and} {Robert Van De~Geijn}. 2008.
+\newblock \showarticletitle{High-performance implementation of the level-3
+  BLAS}.
+\newblock {\em ACM Transactions on Mathematical Software (TOMS)\/} {35}, 1
+  (2008), 4.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Hart}{Hart}{2010}]%
+        {Hart2010}
+{William~B Hart}. 2010.
+\newblock \showarticletitle{Fast library for number theory: an introduction}.
+\newblock In {\em Mathematical Software--ICMS 2010}. Springer, 88--91.
+\newblock
+\newblock
+\shownote{\url{http://www.flintlib.org/}.}
+
+
+\bibitem[\protect\citeauthoryear{Intel}{Intel}{2007}]%
+        {IntelMKL2007}
+{MKL Intel}. 2007.
+\newblock Intel math kernel library.
+\newblock   (2007).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Linbox-Team}{Linbox-Team}{2015}]%
+        {fflas-ffpack}
+{Linbox-Team}. 2015.
+\newblock Finite Field Linear Algebra Subroutines/Package.
+\newblock   (2015).
+\newblock
+\newblock
+\shownote{\url{https://github.com/linbox-team/fflas-ffpack}.}
+
+
+\bibitem[\protect\citeauthoryear{Montgomery}{Montgomery}{1985}]%
+        {Montgomery85}
+{P.~L. Montgomery}. 1985.
+\newblock \showarticletitle{Modular Multiplication Without Trial Division}.
+\newblock {\it Math. Comp.} {44}, 170 (April 1985), 519--521.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Pollard}{Pollard}{1971}]%
+        {Pollard1971}
+{John~M Pollard}. 1971.
+\newblock \showarticletitle{The fast Fourier transform in a finite field}.
+\newblock {\em Mathematics of computation\/} {25}, 114 (1971), 365--374.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{P{\"u}schel, Moura, Johnson, Padua, Veloso,
+  Singer, Xiong, Franchetti, Gacic, Voronenko, Chen, Johnson, and
+  Rizzolo}{P{\"u}schel et~al\mbox{.}}{2005}]%
+        {Pueschel:05}
+{Markus P{\"u}schel}, {Jos{\'e} M.~F. Moura}, {Jeremy Johnson}, {David Padua},
+  {Manuela Veloso}, {Bryan Singer}, {Jianxin Xiong}, {Franz Franchetti}, {Aca
+  Gacic}, {Yevgen Voronenko}, {Kang Chen}, {Robert~W. Johnson}, {and} {Nicholas
+  Rizzolo}. 2005.
+\newblock \showarticletitle{{SPIRAL}: Code Generation for {DSP} Transforms}.
+\newblock {\em Proceedings of the IEEE, special issue on ``Program Generation,
+  Optimization, and Adaptation''\/} {93}, 2 (2005), 232-- 275.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Sch\"{o}nhage and Strassen}{Sch\"{o}nhage and
+  Strassen}{1971}]%
+        {Schonhage1971}
+{A. Sch\"{o}nhage} {and} {V. Strassen}. 1971.
+\newblock \showarticletitle{Schnelle {M}ultiplikation grosser {Z}ahlen}.
+\newblock {\em Computing\/}  {7} (1971), 281--292.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Shoup}{Shoup}{1995}]%
+        {Shoup95}
+{V. Shoup}. 1995.
+\newblock \showarticletitle{A New Polynomial Factorization Algorithm and its
+  Implementation}.
+\newblock {\em J. Symb. Comp.\/} {20}, 4 (1995), 363--397.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Shoup}{Shoup}{1999}]%
+        {Shoup1999}
+{Victor Shoup}. 1999.
+\newblock \showarticletitle{Efficient Computation of Minimal Polynomials in
+  Algebraic Extensions of Finite Fields}. In {\em ISSAC}. 53--58.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Shoup et~al\mbox{.}}{Shoup
+  et~al\mbox{.}}{2015}]%
+        {ntl2015}
+{Victor Shoup} {and} {others}. 2015.
+\newblock NTL: A library for doing number theory.
+\newblock   (2015).
+\newblock
+\newblock
+\shownote{\url{http://www.shoup.net/ntl/}.}
+
+
+\bibitem[\protect\citeauthoryear{van~der Hoeven, Lecerf, Mourrain,
+  Tr{\'e}buchet, Berthomieu, Diatta, and Mantzaflaris}{van~der Hoeven
+  et~al\mbox{.}}{2012}]%
+        {Van2012}
+{Joris van~der Hoeven}, {Gr{\'e}goire Lecerf}, {Bernard Mourrain}, {Philippe
+  Tr{\'e}buchet}, {J{\'e}r{\'e}my Berthomieu}, {Daouda~Niang Diatta}, {and}
+  {Angelos Mantzaflaris}. 2012.
+\newblock \showarticletitle{Mathemagix: the quest of modularity and efficiency
+  for symbolic and certified numeric computation?}
+\newblock {\em ACM Communications in Computer Algebra\/} {45}, 3/4 (2012),
+  186--188.
+\newblock
+\newblock
+\shownote{\url{http://www.mathemagix.org/}.}
+
+
+\bibitem[\protect\citeauthoryear{Von Zur~Gathen and Shoup}{Von Zur~Gathen and
+  Shoup}{1992}]%
+        {von1992}
+{Joachim Von Zur~Gathen} {and} {Victor Shoup}. 1992.
+\newblock \showarticletitle{Computing Frobenius maps and factoring
+  polynomials}.
+\newblock {\em Computational complexity\/} {2}, 3 (1992), 187--224.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Whaley, Petitet, and Dongarra}{Whaley
+  et~al\mbox{.}}{2001}]%
+        {Whaley2001}
+{R~Clint Whaley}, {Antoine Petitet}, {and} {Jack~J Dongarra}. 2001.
+\newblock \showarticletitle{Automated empirical optimizations of software and
+  the ATLAS project}.
+\newblock {\it Parallel Comput.} {27}, 1 (2001), 3--35.
+\newblock
+
+
+\end{thebibliography}

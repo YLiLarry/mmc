@@ -1,0 +1,662 @@
+\documentclass[acmtoms,acmnow]{acmtrans2m} 
+\usepackage{amsmath,amsfonts,amssymb,bbm}
+\usepackage{graphicx,url} 
+\usepackage{color}
+\usepackage[ruled,vlined]{algorithm2e}
+        
+%% Our definition
+\def\K{\mathbb{K}} \def\N{\mathbb{N}} \def\Z{\mathbb{Z}} \def\F{\mathbb{F}}
+\def\M{\mathsf{M}} \def\I{\mathsf{I}} \def\R{\mathsf{R}} \def\Q{\mathbb{Q}}
+\def\Mat{\mathcal{M}}
+%\def\bigO{{\ensuremath{\operatorname{O}}}} 
+\def\bigO{{\ensuremath{\mathcal{O}}}}
+%\markboth{}{}
+
+%% TeXmacs macros
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\assign}{:=} 
+\newcommand{\rem}{\tmop{rem}}
+
+\title{
+Simultaneous conversions with the Residue Number System using linear algebra \\
+Application to integer matrix multiplication over integers or polynomials
+% Integer Matrix Multiplication using Chinese Remainder Theorem
+}
+            
+\author{...
+ % Pascal Giorgi - LIRMM CNRS - University of Montpellier \\
+ % Romain Lebreton - LIRMM CNRS - University of Montpellier \\
+}
+           
+\begin{abstract} 
+  Matrix multiplication with exact results (i.e. integers, finite fields,
+  polynomials) is important in computer algebra.  Since today's processors do
+  not provide such structures, careful implementation must be done to get high
+  performance. 
+
+  In this paper, we focus on matrix multiplication over integers and polynomials
+  over a finite field.  We will discuss the use of CRT and Kronecker
+  substitution to reduce to multiplication with small entries.
+
+  Our contribution is an algorithm that reduces most of the computations of a
+  conversion with the Residue Number System to linear algebra. This allows us to
+  benefit from the peak performance of linear algebra implementations to speed
+  up simultaneous conversions with the Residue Number System on a wide range of
+  input sizes. Note that we do not improve the best asymptotic complexity of
+  conversions but dramatically improve the constant of a sub-optimal algorithm.
+
+  Our main application is matrix multiplication over integers and polynomials
+  over a finite field. Our speed-up of the conversions to and from the Residue
+  Number System improves significantly the overall time of matrix
+  multiplication. 
+\end{abstract}
+      
+\category{G.4}{Mathematical Software}{Algorithm design and analysis} 
+\category{F.2.1}{Analysis of Algorithms and Problem Complexity}{Numerical Algorithms and Problems}[computations in finite fields.]
+\terms{Algorithms, Experimentation, Performance.}
+\keywords{}
+            
+\begin{document}
+            
+% \begin{bottomstuff}
+% \end{bottomstuff}
+            
+\maketitle
+
+\section{Introduction}
+biblio ? checker Bernstein - quel papier ?
+
+Talk about mixed radices litterature ? Who discovered quasi-linear conversions to RNS ?
+
+Importance of matrix multiplication in computer algebra as a source of
+implementations at peak performances.
+
+We will use the bit complexity model throughout this paper. The integer $\beta$
+will represent the bit-length of a machine word in the complexities. We will
+attribute a unit cost to operations such as addition, subtraction,
+multiplication, quotient and remainder between single precision integers.
+
+In this paper, we are interested in the latter kind of computation, in the context of multiple
+precision arithmetic: we work with matrices or polynomials with coefficients that are
+multi-precision integers, or lie in a finite ring $\Z/N\Z$, for some large $N$, and we consider a
+basic operation such as the multiplication of these matrices or polynomials. There exist multiple
+applications to this fundamental operation; we illustrate this in the last section of this paper
+with a discussion of polynomial factorization.
+
+To perform a matrix or polynomial multiplication in such a context, several possibilities exist. A
+first approach consists in applying known algorithms, such as Strassen's, Karatsuba's, \dots
+directly over our coefficient ring, relying {\it in fine} on fast algorithms for multiplication of
+multi-precision integers. Another large class of algorithms relies on {\em modular techniques}, or
+{\em residue number systems}, computing the required result modulo many small primes before
+recovering the output by Chinese Remaindering.  One should not expect either of these approaches to
+be superior in all circumstances. For instance, in extreme cases such as the product of matrices of
+size $1$ or $2$ with large integer entries, the modular approach highlighted above is most likely
+not competitive with a direct implementation. On the other hand, for the product of larger matrices
+or polynomials, residue number systems often perform better than direct implementations, and as
+such, they are used in libraries or systems such as NTL, FFLAS-FFPACK, Magma, \dots
+
+In this paper, we present new techniques for residue number systems that are applicable in a wide
+range of situations. In many cases, the bottlenecks in such an approach is the reduction of the
+inputs modulo many small primes, and the reconstruction of the output from its modular images by
+means of Chinese Remaindering; by contrast, operations modulo the small primes are often quite
+efficient.
+
+Algorithms of quasi-linear complexity have been known for long for both modular reduction and
+Chinese Remaindering~\cite[Chapter~10]{GaGe13}, based on so-called subproduct tree techniques;
+however, their practical performance remains somewhat lagging. Our algorithm offers an alternative
+to this approach, for those cases where we have several coefficients to convert; it relies on
+matrix multiplication to perform these tasks, with matrices that are integer analogues of
+Vandermonde matrices and their inverses. As a result, while its complexity is inferior to that of
+asymptotically fast methods, our algorithm behaves extremely well in practice, as it allows us to
+rely on high-performance libraries for matrix multiplication.
+
+\paragraph{Notations}
+
+%$\M (n)$ polynomial arithmetic and $\I (n)$
+Let $\M (n)$ denotes the bit complexity of the multiplication of two $n$-bits integers.
+In order to provide a fair etimate of practical complexities, we will consider that we are able to
+perform any arithmetic operations on $t$-bits integers at a constant cost. Therefore, let $n=st$ we will consider that the complexity of multiplying $n$-bits integer is $\M(s)\M(t)$ and thus $\M(s)$.
+
+We denote resp. by $(a \rem p)$ and $(a \tmop{quo} p)$ the
+remainder and quotient of the Euclidean division of $a \in \mathbbm{Z}$ by
+$p \in \N$ where $0 \leqslant (a \rem b) < b$.  We extend the
+notation $(a \rem p)$ to any rational $a=n/d \in \Q$ such that
+$\gcd (d,p) = 1$ to be the unique residue of $(a \bmod p)$ satisfying
+$0 \leqslant (a \rem b) < b$.
+
+For any $a = n / d$ with $d$ coprime to $p$, we let $[a]_p$ be the
+unique representative in $\{ 0, \ldots, p - 1 \}$ of $a$ modulo $p$.
+
+We call informally a pseudo-reduction of $a$ modulo $p$ the computation
+of $b$ such that $a = b \bmod p$ and $b$ ``not too big'' compared to $p$. In
+practice, we often will have that $b =\bigO (p^2)$.
+
+Say that our complexity model is bit complexity.
+
+Should we take $\beta$ (\emph{e.g.} $2^{32}$ or $2^{64}$) as a constant and simplify complexity ?
+Yes and no : we will give complexities in
+$\bigO( \dots\I(\log \beta) )$ and then specify that the term $\I(\log \beta))$
+can be removed when $\beta$ is a constant.
+
+Only give costs for the typical case $p_i \simeq \beta, s \simeq B, r
+\gg s$ because of $\beta^B < p_1 \cdots p_s$, which implies that $B < s$ ?
+
+Assume that $n,s \leqslant \beta$ !  Indeed we can assume that
+we won't have integers of more than $\beta$ machine words since it
+is the typical memory limit for a system whose address are encoded
+on a single precision integer. 
+
+We make this restriction to ensure the number of primes $s$
+necessary to encode the product of two $N \times N$ matrices of
+integers of size $n$ is still $\Theta(n)$ (the equation is
+$N \beta^{2n} \leqslant \beta^s$).
+
+Introduce $\M\M(n,k,m)$ as the cost of unbalanced matrix multiplication.
+
+\paragraph{Bibliography} Bibliography on reductions and pseudo-reductions.
+Recall Barett, Montgomery results ?
+
+\paragraph{Complexity results}
+
+Let $a \in\Z$ and $p \in \N$ such that $|a|<2^n$ and $p<2^m$.
+Cost of $a \tmop{mod} p$ when :
+
+\begin{enumerate}
+  \item $n = \Theta (m)$. **Cas classique, on en a vraiment besoin
+    -- 
+    \begin{equation}\label{eq:complexityReduction1} 
+      \bigO \left( \M (m) \right)
+    \end{equation}
+  
+  \item $n \gg \Theta (m)$ **Servira {\`a} prouver l'algo na{\"i}f
+    de multi-r{\'e}duction -- 
+    \begin{equation}\label{eq:complexityReduction2} 
+      \bigO \left( \frac{n}{m} \M(m) \right)
+    \end{equation}
+  
+  \item $n-m \ll \Theta (m)$ **Sert {\`a} montrer que la
+    finalisation des pseudos-r{\'e}ductions est peu couteuse**
+  
+  **Polynomial analog suggests 
+\begin{equation}\label{eq:complexityReduction3} 
+\bigO \left( \M (n-m) \frac{m}{n-m}
+  \right)
+\end{equation}
+
+\end{enumerate}
+
+
+
+\section{Conversions with Residue Number System}
+\label{sec:ConvRNS}
+
+A classic way to represent a positive integer is to use a positional number
+system according to a base $\beta$.  Indeed, any integer $a\in\N$ can be encoded
+as $(a_{n-1},\hdots,a_1,a_0)_\beta$ since it is uniquely determined by
+$a=\sum_{i=0}^{n-1} a_i\beta^i$ assuming $0\leq a_i < \beta$. One advantage of
+such a representation is that it allows to represent infinitely many integers
+and compare or add/subtract integers in $\bigO(n)$ operations on the digits,
+where $n$ is the number of digits of the operands.
+
+However, multiplication with this representation is more complex and requires
+$\bigO(n^2)$ operations on the digits. Many other number systems allow to
+improve the complexity of the multiplication but most of them loose the benefit
+to represent infinitely many integers.
+
+In this article, we do not intend to present all possible representations and
+let the reader refer to \cite{BrZi10,Bernstein08} for a survey on fast
+integer arithmetic.  Instead, we only present the multi-modular representation
+that will allow linear complexity for addition and multiplication of integers
+and then describe our method to multiply integer matrices.
+
+\subsection{Residue Number System}
+
+The Residue Number System is non-positional number system that allow to
+represent a finite subset of integers.  Let
+$M=m_1\times m_2 \times \hdots \times m_s \in \N$ where $m_i\in\N$ such that
+$\forall i\neq j,\, m_i\perp m_j$, then any integers $a\in [0,\hdots,M-1]$ can
+be uniquely determined by its residue
+$( [a]_{m_1}, [a]_{m_2}, \dots, [a]_{m_s})$. The uniqueness of this residual
+representation is ensured by the the ring isomorphism
+\begin{equation}\label{eq:crt} 
+\Z_M \simeq \Z_{m_1}\times \dots \times \Z_{m_s}
+\end{equation} 
+when the $m_i$'s are coprime. This ring isomorphism is often
+called the Chinese Remainder Theorem (CRT)\cite[Section 5.4]{GaGe03}.
+ 
+This residual representation, also called Residue Number System (RNS), provides
+groups isomorphism for addition and multiplication which allow to perform these
+operations individually on each residual. If the $m_i$ are fixed, let us note
+$[a]_i \assign [a]_{m_i}$ so that $([a]_1,[a]_2,\dots,[a]_s)_{RNS}$ is the
+representation of the integer $a \in \N$.\\
+
+Let $a,b,c,d \in \N$ such that $c\equiv a + b \bmod M$ and $d \equiv a \times b
+\bmod M$ then
+\begin{eqnarray}
+([c]_1,[c]_2,\dots,[c]_s)_{RNS} &=& ([a]_1+[b]_1 \bmod m_1,\dots, [a]_s+[b]_s \bmod
+  m_s)_{RNS} \label{addrns}\\ ([d]_1,[d]_2,\dots,[d]_s)_{RNS} &=& ([a]_1\times [b]_1 \bmod
+  m_1,\dots, [a]_s\times [b]_s \bmod m_s)_{RNS} \label{mulrns}
+\end{eqnarray}
+It is obvious from equations \ref{addrns} and \ref{mulrns} that addition and
+multiplication in RNS require $\bigO(s)$ operations on the residuals. One may
+note that division in RNS is possible in the same way (individually on each
+residual) only when the division is exact.
+
+In order to benefit from RNS representation, one often need to convert back and
+forth between classic positional number system and RNS. Of course, these
+conversions are costly and must be avoided when possible. However, when the
+number of operations in RNS is high enough, these conversions can be neglected
+and the RNS approach yields the most efficient solution.
+
+\subsection{Naive approach}
+
+\subsubsection{Conversion to RNS}\label{sssec:naivetoRNS}
+In order to convert an integer $a$ to a residue number system
+$(m_1,\hdots m_s)$, one can of course apply Euclidean division of $a$ by $m_i$
+for $i\in \{1,\hdots,s\}$. In this section, we want to reduce an integer
+$a\in\Z$ modulo each $m_1,\dots,m_s\in\N$. Let us assume the particular case
+when $m_1,\dots,m_s<\beta$ and $a<\beta^n$, where $n=\Theta(s)$ and $\beta=2^t$ with $t$ related to machine wordsize. 
+Indeed, this case is representative of computations that takes advantage of RNS arithmetic on nowadays computers.
+Remark: if $n\gg\Theta(s)$, it suffices to compute $\tilde{a}=a \bmod M$ where $M=\Pi_{i=1}^s m_i$ to get back to the case $n=\Theta(s)$. This will add $\bigO(\frac{n}{s}\M(s)\M(t))$ bit
+operations to the complexity.
+\smallskip
+
+\begin{algorithm}[H]
+%\DontPrintSemicolon  
+\KwIn{$a=\sum_{i=0}^{n-1}a_i\beta^i, m_j \in \N$} \KwOut{$a \bmod m_j$}
+$c=a_{n-1}$\\ \For{$i=n-2$ \textbf{to} $0$} { $r=c\beta \bmod
+  m_j$\\ $c=r+a_i$\\ } \Return{$c \bmod m_j$}\;
+\caption{Modular reduction}\label{alg:modred}
+\end{algorithm}
+ 
+\smallskip
+Algorithm \ref{alg:modred} presents the naive approach to perform a modular reduction.
+The bit complexity for computing $a \bmod m_j$ is $\bigO(n \M(t))$.
+Therefore, conversion to a RNS basis with $s$ moduli costs $\bigO(sn\M(t))$ bit operations.
+When $t$ is a constant the cost becomes $\bigO(sn)$.\\ 
+
+
+The case when the $m_j$'s are almost of the same size as $a$,
+i.e. $m_1,\dots,m_s \in \beta^{\Theta(n)}$, is more classical and can be handled
+through integer multiplications using Barrett or Montgomery algorithms
+\cite{Barrett86,Montgomery85}. Then, the cost of modular reduction becomes
+$\bigO(\M(nt)$ bit operations and the cost of conversion to RNS is
+$\bigO(s\M(nt))$.  This boils down to $\bigO(s\M(n))$ when $t$ is
+fixed.
+
+\subsubsection{Conversion from RNS}
+
+Assuming that an integer $a$ is given by its RNS representation
+$([a]_1, \dots, [a]_s)$ with the base $(m_1,\dots,m_s)$. In order to retrieve
+the value of $a$ written in base $\beta$, i.e. $a=\sum_{i=0}^{n-1}a_i\beta^i$,
+one need to solve the following congruence equations in the $a_i$'s:
+
+\begin{eqnarray}
+ \left[a\right]_1 &\equiv& \sum_{i=0}^{n-1}a_i\beta^i \bmod m_1\nonumber \\ 
+ & \vdots & \\ 
+ \left[a\right]_s & \equiv & \sum_{i=0}^{n-1}a_i\beta^i \bmod m_s \nonumber
+\end{eqnarray}
+A solution to this system of congruence is given by the Chinese Remainder
+Theorem recalled in Equation \ref{eq:crt}.  Let us denote $M=\Pi_{i=1}^sm_i$ and
+$M_i=M/m_i$. The solution can be computed using the following
+equation
+\begin{equation}\label{eq:cra}
+a \equiv \sum_{i=1}^s M_i ([a]_iM_i^{-1} \bmod m_i) \bmod M 
+\end{equation}
+
+Let us assume, without loss of genericity, that $M$, the $M_i$ and the $M_i^{-1} \bmod m_i$ are precomputed.  
+Recalling that $m_i <\beta=2^t$, then each multiplication $a'_i \assign ([a]_i M_i^{-1} \bmod m_i)$ costs
+$\bigO(\M(t))$ and each unbalanced multiplication $M_i a'_i$ costs
+$\bigO(s \M(t))$.
+Since $a'_i < m_i$, by definition of $M_i$ we have $M_ia'_i<M<\beta^s$.
+This implies the following bound on the sum 
+\[
+\sum_{i=1}^s M_i a'_i < s\beta^s
+\]
+and its reduction cost is $\bigO(t s \log s)$ (using formula
+\eqref{eq:complexityReduction3}), which is not dominant. Therefore the total
+cost is $\bigO(s^2\M(t))$ bit operations.\\
+
+Concerning the precomputation costs, $M$ can be computed with $s$ unbalanced multiplications at a cost of $\bigO(s^2 \M(t))$ bit operations. Then each unbalanced exact division $M/m_i$ has bit complexity $\bigO(s \M(t))$,
+and its corresponding reduction modulo $m_i$ also costs
+$\bigO( s \M(t))$ using formula
+\eqref{eq:complexityReduction2}. Finally, computing  each $M_i^{-1} \bmod m_i$ cost $\bigO(\M(t)\log t)$. Altogether, the precomputation costs
+$\bigO( s^2 \M(t))$ bit operations.
+
+\subsection{Quasi-linear approach}
+
+In this section, we briefly recall the quasi-linear algorithm based on binary
+multiplication tree to convert to RNS. We follow the exposition given in 
+\cite{GaGe03}[Section 10.3].
+
+\subsubsection{Conversion to RNS}\label{sec:tornsfast}
+
+The first step of the algorithm is a computation of the binary multiplication
+tree of the moduli $m_i$. Assume for the sake of simplicity that $s= 2^\kappa$.
+Starting from $m_1,\dots,m_s$, we compute the first level of the tree made of
+the products $m_1 m_2, m_3 m_4, \dots, m_{s-1} m_s$, then the second level made
+of the products $m_1 m_2 m_3 m_4, \dots, m_{s-3} \cdots m_s$ from the first level. And
+so on up to the last level of height $\kappa$ made of the full product
+$M=m_1 m_2 \cdots m_s$.
+
+The cost of computing this binary multiplication tree is $\bigO(\M(s) \log s~\M(t))$ bit operations.
+This boils down to $\bigO(\M(s) \log s)$ when $t$ is a constant.
+
+\medskip
+
+The second step of the algorithm is recursive and use a divide-and-conquer
+scheme. In order to reduce an integer $a$ modulo $m_1,\dots,m_s$, one need to compute
+\[a_l = a \bmod (m_1 \cdots m_{s/2}) \mbox{ and } a_h = a \bmod (m_{s/2+1} \cdots m_s).\]
+ Then recursively reduce $a_l$ modulo $m_1,\dots,m_{s/2}$ and $a_h$ modulo $m_{s/2+1},\dots,m_s$ and you are
+done. Note that the products $m_1 \cdots m_{s/2}$ and $m_{s/2+1} \cdots m_s$
+were precomputed, and this holds for every products required in the recursive calls.
+
+The cost $C(s)$ of the reduction then satisfies
+$C(s) = 2 C(s/2) + \bigO(\M(s) \M(t))$ which yields
+$C(s) = \bigO( \M(s) \log s~\M(t))$ as before.
+
+Therefore, the complexity of this approach for conversion to RNS is $\bigO( \M(s) \log s~\M(t))$ bit operations and this becomes $\bigO( \M(s) \log s)$ when $t$ is constant.
+
+\subsubsection{Conversion from RNS}
+
+The backwards conversion is a bit trickier. It still follows Formula
+\eqref{eq:cra} together with a divide-and-conquer approach.
+
+The first step is to precompute $M_i^{-1} \bmod m_i$ for all
+$1 \leqslant i \leqslant s$. This can be achieved in time $\bigO( \M(s) \log s~\M(t))$. For
+this matter, it suffices to use the quasi-linear conversion to RNS of previous section to
+compute $M$ modulo $m_1^2,\dots,m_s^2$. Then one can recover
+$M_i \bmod m_i = \left(M \bmod m_i^2 \right)/m_i$ with an exact integer
+division. It remains to perform the inversions of $(M_i \mod m_i)$ modulo $m_i$
+which amounts to $\bigO(s \M(t)\log t)$ bit operations.
+
+Now let $a'_i \assign [a]_iM_i^{-1} \bmod m_i$.  Formula
+\eqref{eq:cra} gives $a \equiv \sum_{i=1}^s a'_i (M/m_i) \bmod M$ which can be
+computed recursively on the number $s$ of moduli as follow.
+
+Let $M_l \assign m_1 \cdots m_{s/2}$ and $M_h \assign m_{s/2+1} \cdots m_s$.
+Compute recursively 
+\begin{eqnarray*}
+a_l & \assign & \sum_{i=1}^{s/2} a'_i (M_l/m_i) \bmod M\\
+a_h & \assign & \sum_{i=s/2+1}^{s} a'_i (M_h/m_i) \bmod M
+\end{eqnarray*}
+and finally recover $a$ using $a = M_h \cdot a_l + M_l \cdot a_h$. \\
+This recursive algorithm costs $C(s) = 2 C(s/2) + \bigO(\M(s) \M(t))$
+which yields $C(s) = \bigO( \M(s) \log s~\M(t))$ as before.
+
+
+\subsection{Summary of complexities}
+
+In the following table, we recall all the complexities for conversions with RNS representation. We assume that the RNS basis is given as $(m_1,\dots,m_s)$ such that each $m_i<2^t$ and integers to
+convert have $n$-bits with $n=\Theta(st)$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|r|r|}
+\hline
+               & conversion from RNS & conversion to RNS\\
+\hline
+naive approach & $\bigO(s^2\M(t))$ & $\bigO(s^2\M(t))$\\
+fast approach  & $\bigO(\M(s)\log s~\M(t))$ & $\bigO(\M(s)\log s~\M(t))$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Simultaneous RNS conversions}
+
+In this section, we want to simultaneously reduce the integers
+$a_1, \ldots, a_r \in \Z$ modulo each of the positive coprime integers
+$m_1, \ldots, m_s \in \N$.
+As before, we assume that $m_1, \ldots, m_s < 2^t$ and that $a_j < 2^{nt}$ with $n=\Theta(s)$. In order to simplify the notations and the complexity estimate, we will use $\beta=2^t$ and $n=s$ throughout this section.
+
+\subsection{Straightforward}
+
+The previous algorithms of Section~\ref{sec:ConvRNS} directly apply to
+simultaneous conversions with RNS. Of course, the precomputations of these
+algorithms are independent of the integer $a$ to reduce. Therefore, they are
+done once and for all. The bit complexity of simultaneous conversions with RNS is
+$\bigO \left( rs^2 \M (t)\right)$ for the naive approach and
+$\bigO \left( r \M(s) \log s \M(t)\right)$ for the quasi-linear
+approach.
+
+Note that, in term of implementation, simultaneous reductions using the naive
+algorithms can benefit from vectorized (SIMD) instructions to lower the constant
+and can be easily parallelized. On the other hand, simultaneous reductions using
+the quasi-linear approach do not benefit from SIMD instructions (or at least not
+straightforwardly).
+
+\subsection{Linear Algebra}
+When one convert an integer $a$ given in base $\beta$ (i.e. $a=\sum_{i=0}^{s-1} a_i\beta^i$, ) to its RNS representation in base $(m_1,\dots,m_s)$, we cannot take benefit of precomputing every
+$\beta^i \bmod m_j$ since each precomputations will be used only once per moduli. However, this is not the case when reducing many integers with the same moduli. Indeed, in such case,  the
+precomputations can serve for every integer you need to reduce. In this section, we provide a novel way to simultaneously convert to and from RNS that take advantage of such precomputations and
+introduce matrix multiplication into the complexity. In particular, we will achieve a complexity of $\bigO(rs^{\omega-1}\M(t))$ bit operations where $\omega$ is the exponent in the complexity of
+matrix multiplication, best value being $\omega=2.3729$ \cite{LeGall:2014}
+
+
+\subsubsection{Conversions to RNS}
+
+
+The conversion to RNS is split up into three phases. 
+\begin{itemize}
+\item  First, one need to compute all the $|\beta^i|_{m_j}=\beta^i \bmod m_j$ for $1\leq i,j\leq s$ and group them into the following matrix 
+\[
+B=
+\begin{bmatrix}
+1 & |\beta|_{m_1} & |\beta^2|_{m_1} & \dots & |\beta^{s-1}|_{m_1} \\
+\vdots & \vdots & \vdots & \ddots  & \vdots \\
+1 & |\beta|_{m_s} & |\beta^2|_{m_s} & \dots & |\beta^{s-1}|_{m_s} \\
+\end{bmatrix}\in \Mat_{s \times s} (\Z) .
+\]
+\item Then, use this matrix to pseudo-reduce the $r$ integers $[a_1,\dots, a_r]$ modulo the $m_i$'s. Here, pseudo-reduction means that we reduce integers of bitsize $\bigO(s)$ to bitsize $\bigO(\log
+  s)$. For this purpose, we write the expansion in base $\beta$ of 
+\[ a_i = \sum_{j = 0}^{s - 1} \alpha_{i,j} \beta^j \mbox{\quad for } 1 \leqslant i \leqslant r\]
+and group them into the following matrix
+
+\[
+C=
+\begin{bmatrix}
+\alpha_{1,0} & \alpha_{2,0} & \alpha_{3,0} & \dots & \alpha_{r,0} \\
+\vdots & \vdots & \vdots & \ddots  & \vdots \\
+\alpha_{1,s-1} & \alpha_{2,s-1} & \alpha_{3,s-1} & \dots & \alpha_{r,s-1} \\
+\end{bmatrix} \in \Mat_{s \times r} (\Z) 
+\]
+From the definition of matrices $B$ and $C$ we have 
+\begin{equation}
+(BC)_{i,j} \equiv a_j \bmod m_i
+\end{equation}
+and 
+\begin{equation}
+0 \leq (BC)_{i,j} < s m_i\beta < s \beta^2.
+\end{equation}
+This shows that the matrix product $BC$ encode all the pseudo-reduction of the $a_i$'s with the $m_j$'s.
+\item The last step consist in reducing the $i$-th row of the matrix product $BC$ modulo $m_i$ for $1 \leqslant i \leqslant r$.
+\end{itemize}
+
+
+The complexity of this approach is $\bigO(\M\M(s,s,r)\M(t))$ bit operations.
+Indeed, the dominant cost is achieved for the matrix product $BC$ where each entries of both matrices are bounded by $\beta=2^t$. The construction of matrix $B$ only costs $\bigO(s^2\M(t))$ bit operations
+while the last step to reduce the entries in $BC$ costs $\bigO(sr\M(t))$ bit operations since by assumption $s<\beta$.
+
+Assuming $s\leq r$, this gives a complexity of $\bigO(rs^{\omega-1}\M(t))$. This boils down to $\bigO(r^{2(\omega-2)}s^2\M(t))$ when $s>r$.
+ 
+% Using one matrix
+% multiplication, we are able to reduce the computation of pseudo-reductions of
+% $a_i \bmod m_\ell $ to the reductions of $\beta^j \rem m_\ell$ for
+% $0 \leqslant j < n$ and $1 \leqslant \ell \leqslant s$ and linear algebra. These
+% latter reductions do not depend on the number $a$ to reduce and are precomputed
+% once and for all. Then we turn the pseudo-reductions into reductions in
+% negligible time.
+
+% \paragraph*{Simultaneous pseudo-reductions}
+
+% The first thing to do is to write the expansion in base $\beta$ of
+% \[ a_i = \sum_{j = 0}^{n - 1} c_{i,j} \beta^j \]
+% for $1 \leqslant i \leqslant r$. Let's precompute the values
+% $r_{j, \ell} \assign \beta^j \rem m_\ell$ for $0 \leqslant j < n$ and
+% $1 \leqslant \ell \leqslant s$.  This costs
+% $\bigO \left( s^2 \I (\log (\beta)) \right)$ by computing them incrementally.
+
+% Let $a_{i, \ell} \assign \sum_{j = 0}^{n - 1} c_{i, j} r_{j, \ell}$ so that 
+% $a_{i, \ell} \equiv a_i \bmod m_{\ell}$. The value $a_{i, \ell} $ is bounded by
+% $n \beta^2$, when $a_i$ was of size $\beta^n$. We say that $a_{i, \ell}$ is a
+% pseudo-reduction of $a_i$ modulo $p_{\ell}$.
+% The values $a_{i, \ell}$ can be computed by linear algebra :
+% $(a_{i, \ell}) \in \Mat_{r \times s} (\Z)$ is the product of
+% $(c_{i, j}) \in \Mat_{r \times n} (\Z)$ and
+% $(r_{j, \ell}) \in \Mat_{n \times s} (\Z)$.
+
+% This product costs $\bigO( \M\M(r,n,s) \I(\log \beta))$ since
+% $n \leqslant \beta$ by assumption (**see Introduction**). In the most common
+% case $n = \bigO(s)$ which corresponds to $a_j < m_1 \cdots m_s$, the complexity
+% reduces to $\left( rs^{\omega - 1} \I (\log (\beta)) \right)$.
+
+% \paragraph*{Simultaneous reductions}Now the cost of computing the remainder
+% $(a \rem m)$ when $a < n \beta^2$ and $m < \beta$ is
+% $\bigO \left( \I (\log (\beta)) \right)$ using again the initial simplifying
+% assumption. Therefore, our final step to compute our simultaneous reductions
+% costs $\bigO \left( r s \I (\log (\beta)) \right)$.
+
+\subsubsection{Conversions from RNS}
+
+\paragraph*{Simultaneous pseudo-reconstructions}
+
+Recall that we denote $M=\Pi_{i=1}^sm_i$ and $M_i=(M/m_i) \rem m_i$ for
+$1 \leqslant i \leqslant s$.  Let
+$l_i \assign \sum_{j = 1}^s a_{i, j} M_j [M_j^{- 1}]_{m_j}$ so that
+$a_i = l_i \bmod M$ (see Formula \eqref{eq:cra}) and $l_i < M \beta$. We say
+that $l_i$ are pseudo-reconstructions of $(a_{i, \ell})$ modulo
+$m_1, \ldots, m_s$.
+
+Let us precompute $M_{\ell} [M_{\ell}^{- 1}]_{m_{\ell}}$ for all
+$1 \leqslant \ell \leqslant s$. If we have precomputed the $M_\ell$ before
+(\emph{e.g.} during the reduction step), then we can compute
+$[M_{\ell}]_{m_{\ell}}$ from $M_\ell$ in time $\bigO(s \I(\log \beta))$, then
+$[M_{\ell}^{-1}]_{m_{\ell}}$ in time $\bigO(\I(\log \beta) \log \log \beta)$ and
+finally $M_{\ell} [M_{\ell}^{- 1}]_{m_{\ell}}$ in time
+$\bigO(s \I(\log \beta))$. When $\beta$ is a constant, this comes down to
+$\bigO(s)$ bit operations.
+
+
+Now from the expansion of $M_{\ell} [M_{\ell}^{- 1}]_{m_{\ell}}$
+in base $\beta$
+\[
+M_j [M_j^{- 1}]_{m_j} = \sum_{k = 0}^{s - 1} e_{j, k} \beta^k.
+\]
+we perform the computation of $l_i$ using linear algebra using
+\[ 
+l_i = \sum_{j = 1}^s a_{i, j} M_j [M_j^{- 1}]_{m_j} = \sum_{j = 1}^s
+a_{i, j} \sum_{k = 0}^{s - 1} e_{j, k} \beta^k = \sum_{k = 0}^{s - 1} \left(
+  \sum_{j = 1}^s a_{i, j} \cdot e_{j, k} \right) \beta^k . 
+\]
+
+Let $(d_{i, j}) \in \Mat_{r \times s}(\Z)$ be the product of the matrices
+$(a_{i, j}) \in \Mat_{r \times s}(\Z)$ and
+$(e_{j, k}) \in \Mat_{s \times s}(\Z)$. Then
+$l_i = \sum_{k = 0}^{s - 1} d_{i, j} \beta^k$.
+Note that $(d_{i, j})$ are not the exact coefficients of the $\beta$-expansion
+of $l_i$.
+But we can still compute the $l_i$s in time $\bigO(r s \I(\log \beta))$
+since $d_{i, j} \leqslant s \beta^2$ and $s \leqslant \beta$ by assumption.
+The matrix product to compute $(d_{i, j})$ can be done in bit complexity
+$\bigO \left( rs^{\omega - 1} \I (\log (\beta)) \right)$.
+
+\paragraph{Simultaneous reconstructions}The final step of the reconstruction
+consists in reducing $l_i$ modulo $M$. This step is relatively cheap since $l_i$
+is almost reduced.  Using $s < \beta$ and the modular reduction complexity
+results (**see Introduction**) when $\log (a / p) \ll \Theta (\log (p))$ in our
+case $l_i =\bigO (s \beta^{s + 2}) = \bigO(\beta^{s + 2})$ and
+$M =\bigO (\beta^s)$, the last reduction step costs
+$\bigO \left( s \I (\log \beta) \right)$ per $l_i$. Thus a total cost of
+$\bigO (r s \I (\log \beta))$.
+
+\section{Matrix multiplication with multi-precision integer coefficients}
+
+\subsection{Matrix multiplication modulo composite primes}
+
+Of course, this ideal case of application of matrix multiplication using RNS is
+for matrices over $\Z/M\Z$ with $M=m_1 \cdots m_s$ and $m_i < \beta$. Then, the
+multiplication of two matrices $A \in \Mat_{n,k}(\Z/M\Z)$,
+$B \in \Mat_{k,m}(\Z/M\Z)$ is done classically by converting them to RNS,
+multiply each of the reductions and convert from RNS. The cost is
+$$\bigO( \left[\M\M(n,k,m) s + (nk + km) s^{2} \right] \I(\log \beta))$$ using the
+naive approach for RNS,
+$$\bigO( \left[\M\M(n,k,m) s + (nk + km) s^{\omega-1} \right] \I(\log \beta))$$
+using linear algebra approach and
+$$\bigO( \left[\M\M(n,k,m) s + (nk + km) \I(s) \log s \right] \I(\log \beta))$$
+using the quasi-optimal approach.
+
+\subsection{Integer matrix multiplication}\label{ssec:imm}
+
+In this section, the matrices $A \in \Mat_{n,k}(\Z)$, $B \in \Mat_{k,m}(\Z)$
+have entries of absolute value less than $\beta^n$.  Therefore, their product
+$C \assign A \cdot B$ have entries of absolute value less than $k \beta^{2n}$.
+
+We will compute $C$ modulo $M=m_1 \cdots m_s$ such that $2 k \beta^{2n} < M$ and
+$m_i < \beta$. Therefore, the entries of $C$ coincide with their unique residue
+modulo $M$ whose absolute value is less than $\frac{M-1}{2}$.
+
+Since we make the simplifying assumption that $k < \beta$ and
+assuming there exists enough primes slightly smaller than $\beta$, we will
+necessarily have $s = \Theta(n)$. Therefore, we can state the costs:
+$$\bigO( \left[\M\M(n,k,m) n + (nk + km) n^{2} \right] \I(\log \beta))$$ using the
+naive approach for RNS,
+$$\bigO( \left[\M\M(n,k,m) n + (nk + km) n^{\omega-1} \right] \I(\log \beta))$$
+using linear algebra approach and
+$$\bigO( \left[\M\M(n,k,m) n + (nk + km) \I(n) \log n \right] \I(\log \beta))$$
+using the quasi-optimal approach.
+
+**Aarrrg ! We have the same notation : $n$ is both the matrix size and its bit size**
+
+\subsection{Matrix multiplication modulo any prime}
+
+In the case of matrix multiplication over $\Z/M\Z$ when $M$ do not decompose
+into the product of several small primes, we actually perform an integer matrix
+multiplication and reduce the result modulo $M$. The costs remain the same than
+in Section~\ref{ssec:imm} with the bit size $n \assign \log_\beta M$.  Note that
+each final reduction costs $\bigO(\I(n) \I(\log \beta))$ (see
+Section~\ref{sssec:naivetoRNS}), which is negligible.
+
+
+
+\section{Implementation}
+{\color{red}
+All the codes are available in the FFLAS\_FFPACK Library (see https://github.com/linbox-team/fflas-ffpack).
+\begin{itemize}
+\item The simultaneous reduction/reconstruction's code is available in the file:\\ \texttt{fflas-ffpack/fflas-ffpack/field/rns-double.inl}
+\item The matrix multiplication code is available in the file: \\\texttt{fflas-ffpack/fflas-ffpack/fflas/fflas\_fgemm/fgemm\_classical\_mp.inl}
+\end{itemize}
+}
+\subsection{Reduction to word-size matrix multiplication}
+how to store intermediate matrices (Kronecker matrix) in order to optimize cache
+efficiency (transpose is delayed to the matrix multiplication). We always want
+the Kronecker matrix to be stored $\beta$-adic major.  How to choose $\beta$ and
+the $m_i$ to guarantee the result to fit into a word-size register.
+
+\subsection{Kronecker substitution}
+$\beta$ is chosen to be $2^{16}$ in order to do not require any arithmetic
+operation.  Can we do better with a larger beta ? What is the compromise between
+$\beta$ and the $m_i$ ?
+
+Reconstruction from the almost $\beta$-adic to GMP integer using a splitting of
+the $beta$-adic expansion into four GMP integer. ? Can we do better do reduce the
+result mod $\prod m_i$.
+
+\subsubsection{From integer to $\beta$-adic}
+using gmp structure we can do this for free. only cast mpz data to uint16.
+
+\subsection{Linear storage for multi-modular matrix}
+explication lda, rda , RNSMajor ou MatrixMajor
+\section{Benchmarks}
+
+
+\section{TODO}
+1) parallelisme 2) algo hybride (rapide/la)
+
+%\newpage
+%\tableofcontents
+
+% Partie 1 : Introduction
+
+\bibliographystyle{acmtrans} \bibliography{biblio}
+\end{document}
+  
