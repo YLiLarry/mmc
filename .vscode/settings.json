@@ -1,0 +1,15 @@
+{
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/build/*/include/**",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/**"
+    ],
+    "files.associations": {
+        "stdio.h": "c",
+        "__locale": "cpp",
+        "algorithm": "cpp",
+        "random": "cpp"
+    },
+    "files.autoSave": "onFocusChange",
+    "editor.wordWrap": "bounded"
+}
