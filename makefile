@@ -8,7 +8,7 @@ LINBOX_LIB=$(BUILD_DIR)/linbox/lib
 GIVARO_INCLUDE=$(BUILD_DIR)/givaro/include
 FFLAS_INCLUDE=$(BUILD_DIR)/fflas-ffpack/include
 BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
-LINBOX_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
+LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig
 export LD_LIBRARY_PATH := $(GIVARO_LIB)
@@ -62,6 +62,8 @@ linbox:
 clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
 
-this:
-	gcc *.cpp -I"$(LINBOX_INCLUDE)" -L"$(LINBOX_LIB)"
-
+me:
+	g++ *.cc --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
+	chmod u+x ./a.out
+	./a.out
+	
