@@ -1,27 +1,37 @@
 SRC_DIR=$(shell pwd)
 BUILD_DIR=$(SRC_DIR)/build
 
-GIVARO_LIBS=$(BUILD_DIR)/givaro/lib
-FFLAS_FFPACK_LIBS=$(BUILD_DIR)/fflas-ffpack/lib
-PKG_CONFIG_PATH=$(BUILD_DIR)/givaro/lib/pkgconfig:$(BUILD_DIR)/OpenBLAS/lib/pkgconfig
-LDFLAGS="-L$(BUILD_DIR)/givaro/lib -L$(BUILD_DIR)/OpenBLAS/lib"
-DEPS_LIBS="-L$(BUILD_DIR)/givaro/lib -L$(BUILD_DIR)/OpenBLAS/lib"
+BLAS_LIB=$(BUILD_DIR)/OpenBLAS/lib
+FFLAS_LIB=$(BUILD_DIR)/fflas-ffpack/lib
+GIVARO_LIB=$(BUILD_DIR)/givaro/lib
+GIVARO_INCLUDE=$(BUILD_DIR)/givaro/include
+FFLAS_INCLUDE=$(BUILD_DIR)/fflas-ffpack/include
+BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
+
+export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig
+export LD_LIBRARY_PATH := $(GIVARO_LIB)
+
+export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
+export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
+
+export GIVARO_CFLAGS := -L"$(BLAS_INCLUDE)"
+export GIVARO_LIBS := "$(GIVARO_LIB)" 
 
 init:
 	@echo Checking following build tools:
-	@printf "\t%s -- " autoreconf
+	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
-	@printf "\t%s -- " autogen
+	@printf "\tdo you have %s? -- " autogen
 	@which autogen
-	@printf "\t%s -- " autoreconf
+	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
-	@printf "\t%s -- " automake
+	@printf "\tdo you have %s? -- " automake
 	@which automake
-	@printf "\t%s -- " g++
+	@printf "\tdo you have %s? -- " g++
 	@which g++
-	@printf "\t%s -- " pkg-config
+	@printf "\tdo you have %s? -- " pkg-config
 	@which pkg-config
-	@printf "\t%s -- " git
+	@printf "\tdo you have %s? -- " git
 	@which git
 
 	git submodule update --init --recursive
@@ -36,19 +46,19 @@ blas:
 	cd submodule/OpenBLAS && make && make install PREFIX="$(BUILD_DIR)/OpenBLAS"
 
 givaro:
-	mkdir -p build/givaro 
-	cd submodule/givaro && autoreconf -if && ./configure  --prefix="$(BUILD_DIR)/givaro" --with-blas-libs="-L$(BUILD_DIR)/OpenBLAS/lib" && make && make install
+	mkdir -p build/givaro   
+	cd submodule/givaro && autoreconf -if && autoreconf -if && ./configure  --prefix="$(BUILD_DIR)/givaro" --with-blas-libs="-L$(BLAS_LIB)" && make && make install
 
 fflas:
 	mkdir -p build/fflas-ffpack
-	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BUILD_DIR)/OpenBLAS/lib" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" && make && make install 
+	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro=$(BUILD_DIR)/givaro && make 
 
 linbox:
 	mkdir -p build/linbox
-	cd submodule/linbox && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BUILD_DIR)/OpenBLAS/lib" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" FFLAS_FFPACK_LIBS=$(FFLAS_FFPACK_LIBS) GIVARO_LIBS=$(GIVARO_LIBS) LDFLAGS=$(LDFLAGS) DEPS_LIBS=$(DEPS_LIBS) && make && make install 
+	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" && make && make install 
 
 clean:
-	git submodule foreach "git add --all && git reset --hard"
+	git submodule foreach "git reset --hard && git clean -fdx"
 
 this:
 	gcc *.cpp \
