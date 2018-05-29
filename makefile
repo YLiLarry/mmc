@@ -4,9 +4,11 @@ BUILD_DIR=$(SRC_DIR)/build
 BLAS_LIB=$(BUILD_DIR)/OpenBLAS/lib
 FFLAS_LIB=$(BUILD_DIR)/fflas-ffpack/lib
 GIVARO_LIB=$(BUILD_DIR)/givaro/lib
+LINBOX_LIB=$(BUILD_DIR)/linbox/lib
 GIVARO_INCLUDE=$(BUILD_DIR)/givaro/include
 FFLAS_INCLUDE=$(BUILD_DIR)/fflas-ffpack/include
 BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
+LINBOX_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
 
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig
 export LD_LIBRARY_PATH := $(GIVARO_LIB)
@@ -51,19 +53,15 @@ givaro:
 
 fflas:
 	mkdir -p build/fflas-ffpack
-	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro=$(BUILD_DIR)/givaro && make && make install
+	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro="$(BUILD_DIR)/givaro" && make && make install
 
 linbox:
 	mkdir -p build/linbox
-	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" --with-givaro=$(BUILD_DIR)/givaro && make && make install 
+	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" --with-givaro="$(BUILD_DIR)/givaro" && make && make install 
 
 clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
 
 this:
-	gcc *.cpp \
-		-I./build/linbox/include/ \
-		-I./build/givaro/include/ \
-		-I./build/fflas-ffpack/include/ \
-		-I./build/OpenBLAS/include/ \
+	gcc *.cpp -I"$(LINBOX_INCLUDE)" -L"$(LINBOX_LIB)"
 
