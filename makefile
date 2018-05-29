@@ -37,7 +37,7 @@ init:
 	git submodule update --init --recursive
 	make blas
 	make givaro
-	make fflas
+	# make fflas
 	make linbox
 	make this
 
@@ -51,11 +51,11 @@ givaro:
 
 fflas:
 	mkdir -p build/fflas-ffpack
-	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro=$(BUILD_DIR)/givaro && make 
+	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro=$(BUILD_DIR)/givaro && make && make install
 
 linbox:
 	mkdir -p build/linbox
-	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" && make && make install 
+	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" --with-givaro=$(BUILD_DIR)/givaro && make && make install 
 
 clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
