@@ -10,15 +10,23 @@ using namespace std;
 using namespace LinBox;
 int main()
 {
-    // TwoPhaseAlgo<NoCopyInteger, 1, 14, int, 1000, 26> algo;
+    // TwoPhaseAlgo<NoCopyInteger, 11, 1024, NoCopyInteger, 1000, 26> algo;
     // NoCopyInteger a;
     // NoCopyInteger b;
-    // a.random(1000);
-    // b.random(1000);
+    // a.random(10240);
+    // b.random(10240);
+    // cout << a << endl;
+    // cout << b << endl;
     // NoCopyInteger d;
     // algo.mult(d, a, b);
-    // PrimeGenExact<NoCopyInteger, 1000, 26> a;
-    MargeGenExact<NoCopyInteger, 1, 26> a;
+
+    PrimeGenExact<Integer, 10, 4> a;
+    // MargeGenExact<NoCopyInteger, 1, 26> a;
+
+    // PrimeGen<NoCopyInteger, 10, 10> a([](size_t i) {
+    //     cout << i << endl;
+    //     return new NoCopyInteger(i);
+    // });
     cout << a << endl
          << a.product << endl;
 }

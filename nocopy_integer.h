@@ -5,7 +5,7 @@
 
 using namespace LinBox;
 
-class NoCopyInteger : public Integer {
+class NoCopyInteger : public LinBox::Integer {
 public:
     NoCopyInteger() = default;
     explicit NoCopyInteger(const uint_fast8_t& i)
@@ -30,11 +30,15 @@ public:
     {
         operator&=(uint_fast64_t(1 << ((to - from) - 1)));
     }
-    // rewrite the current value to a random bits of length 2^n
-    // ie, between [2^(n-1), 2^n-1]
+    // rewrite the current value to a random bits of length p
     void random(const uint_fast64_t p)
     {
         Integer::random_exact_2exp((*this), p);
+    }
+    // clone another NoCopyInteger
+    void expensiveCopy(const NoCopyInteger& a)
+    {
+        Integer::operator=(a);
     }
     // NoCopyInteger& operator=(const Integer& i) { return operator=(i); }
     // NoCopyInteger& operator=(const int& i) { return operator=(i); }

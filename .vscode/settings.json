@@ -47,7 +47,9 @@
         "exception": "cpp",
         "new": "cpp",
         "stdexcept": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "__functional_base_03": "cpp",
+        "utility": "cpp"
     },
     "files.autoSave": "onFocusChange",
     "c-cpp-flylint.includePaths": [
@@ -64,5 +66,13 @@
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_style": "{BasedOnStyle: WebKit, IndentWidth: 4}",
-    "editor.wordWrap": "off"
+    "editor.wordWrap": "off",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "submodule": true
+    }
 }

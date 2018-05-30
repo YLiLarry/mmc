@@ -12,7 +12,7 @@ template <typename T, size_t N, uint_fast8_t B>
 class MargeGenExact : public PrimeGen<T, N, B> {
 public:
     MargeGenExact()
-        : PrimeGen<T, N, B>([this]() {
+        : PrimeGen<T, N, B>([this](size_t index) {
             const uint64_t p = PrimeGen<T, N, B>::_primeItr.random_exact();
             assert(p < 3e10);
             T* t = new T{ 1 }; // init to 1
