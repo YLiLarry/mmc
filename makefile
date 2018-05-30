@@ -60,10 +60,11 @@ linbox:
 	cd submodule/linbox && autoreconf -if && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" --with-givaro="$(BUILD_DIR)/givaro" && make && make install 
 
 clean:
+	rm *.o
 	git submodule foreach "git reset --hard && git clean -fdx"
 
 me:
-	g++ *.cc --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
+	g++ *.cc ./cnma/*.cpp --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
 	chmod u+x ./a.out
 	./a.out
 	

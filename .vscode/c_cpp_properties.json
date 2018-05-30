@@ -11,7 +11,8 @@
             "includePath": [
                 "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
                 "${workspaceFolder}/build/linbox/include",
-                "${workspaceFolder}/build/givaro/include"
+                "${workspaceFolder}/build/givaro/include",
+                "${workspaceFolder}/cnma"
             ],
             "defines": [],
             "macFrameworkPath": [

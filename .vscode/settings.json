@@ -1,9 +1,5 @@
 {
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/build/givaro/include",
-        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"
-    ],
     "files.associations": {
         "stdio.h": "c",
         "__locale": "cpp",
@@ -28,13 +24,36 @@
         "string_view": "cpp",
         "unordered_map": "cpp",
         "unordered_set": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "chrono": "cpp",
+        "__string": "cpp",
+        "queue": "c",
+        "stack": "c",
+        "bitset": "cpp",
+        "memory": "cpp",
+        "__functional_base": "cpp",
+        "atomic": "cpp",
+        "__memory": "cpp",
+        "functional": "cpp",
+        "limits": "cpp",
+        "ratio": "cpp",
+        "system_error": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "ostream": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "cstddef": "cpp",
+        "exception": "cpp",
+        "new": "cpp",
+        "stdexcept": "cpp",
+        "typeinfo": "cpp"
     },
     "files.autoSave": "onFocusChange",
-    "editor.wordWrap": "bounded",
     "c-cpp-flylint.includePaths": [
         "${workspaceFolder}/build/linbox/include",
-        "${workspaceFolder}/build/givaro/include"
+        "${workspaceFolder}/build/givaro/include",
+        "${workspaceFolder}/cnma",
     ],
     "c-cpp-flylint.run": "onType",
     "c-cpp-flylint.standard": [
@@ -44,5 +63,6 @@
     "editor.formatOnType": false,
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
-    "C_Cpp.clang_format_style": "{BasedOnStyle: Google, IndentWidth: 4}"
+    "C_Cpp.clang_format_style": "{BasedOnStyle: WebKit, IndentWidth: 4}",
+    "editor.wordWrap": "off"
 }
