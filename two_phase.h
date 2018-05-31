@@ -34,17 +34,17 @@ public:
         assert(b.bitsize() < static_cast<uint_fast64_t>(_F_arr.sum));
         // phase 1 begins
         // MM_A_1 stores multimuduli representation of a
-        ConstNumArray<T_F, N_F> MM_A_1([&](size_t i) {
+        ConstNumPtrArray<T_F, N_F> MM_A_1([&](size_t i) {
             T_F* t = new T_F;
             t->expensiveCopy(a);
             dc_reduce_minus(*t, _F_arr[i]);
             return t;
         });
         // MM_B_1 stores multimuduli representation of b
-        ConstNumArray<T_M, N_M> MM_B_1([&](size_t i) {
-            T_M* t = new T_M;
-            t->expensiveCopy(a);
-            dc_reduce_minus(*t, _M_arr[i]);
+        ConstNumPtrArray<T_F, N_F> MM_B_1([&](size_t i) {
+            T_F* t = new T_F;
+            t->expensiveCopy(b);
+            dc_reduce_minus(*t, _F_arr[i]);
             return t;
         });
         cout << MM_A_1 << endl;

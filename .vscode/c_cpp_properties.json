@@ -12,6 +12,7 @@
                 "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
                 "${workspaceFolder}/build/linbox/include",
                 "${workspaceFolder}/build/givaro/include",
+                "${workspaceFolder}/build/fflas-ffpack/include",
                 "${workspaceFolder}/cnma"
             ],
             "defines": [],

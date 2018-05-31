@@ -49,12 +49,14 @@
         "stdexcept": "cpp",
         "typeinfo": "cpp",
         "__functional_base_03": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "numeric": "cpp"
     },
     "files.autoSave": "onFocusChange",
     "c-cpp-flylint.includePaths": [
         "${workspaceFolder}/build/linbox/include",
         "${workspaceFolder}/build/givaro/include",
+        "${workspaceFolder}/build/fflas-ffpack/include",
         "${workspaceFolder}/cnma",
     ],
     "c-cpp-flylint.run": "onType",

@@ -9,44 +9,32 @@
 
 using namespace std;
 
-// template <typename T, size_t N>
-// ostream&
-// operator<<(ostream& out, array<T, N>& arr)
-// {
-//     out << "[";
-//     for (size_t i = 0; i < N; i++) {
-//         out << arr[i];
-//         if (i != N - 1) {
-//             out << ",";
-//         }
-//     }
-//     out << "]";
-//     return out;
-// };
+template <class T>
+using PtrAllocator = std::function<T*(size_t index)>;
 
 // used to store a list of large primes as pointers
 template <class T, size_t N>
-class ConstPtrArray : public array<T const*, N> {
+class PtrArray : public array<T*, N> {
 public:
-    ConstPtrArray(std::function<const T*(size_t index)> generator)
+    PtrArray(const PtrAllocator<T>& allocator)
     {
         for (size_t i = 0; i < N; i++) {
-            (*this)[i] = generator(i);
+            (*this)[i] = allocator(i);
         }
     }
     // default C++ array<T,N> destructor frees the memory
-    ~ConstPtrArray() = default;
+    ~PtrArray() = default;
 
-    ConstPtrArray(const ConstPtrArray&) = delete;
-    const ConstPtrArray& operator=(const ConstPtrArray&) = delete;
+    PtrArray(const PtrArray&) = delete;
+    const PtrArray& operator=(const PtrArray&) = delete;
 
     const T& ref(size_t i) const { return *((*this)[i]); }
 
-    friend ostream& operator<<(ostream& out, const ConstPtrArray<T, N>& arr)
+    friend ostream& operator<<(ostream& out, const PtrArray<T, N>& arr)
     {
         out << "[";
         for (size_t i = 0; i < N; i++) {
-            out << arr.ref(i);
+            out << arr[i];
             if (i != N - 1) {
                 out << ",";
             }
@@ -56,69 +44,69 @@ public:
     };
 };
 
-// helper class to compute the product in initialization list
 template <class T, size_t N>
-class ConstNumPtrArray : public ConstPtrArray<T, N> {
-public:
-    T product;
-    T sum;
-    ConstNumPtrArray(std::function<const T*(size_t index)> generator)
-        : ConstPtrArray<T, N>(generator)
-        , product(N > 0 ? 1 : 0)
-        , sum(0)
-    {
-        for (int i = 0; i < N; i++) {
-            product *= this->ref(i);
-            sum += this->ref(i);
-        }
-    }
-};
-
-template <class T, size_t N>
-class ConstNumArray {
-protected:
-    const ConstNumPtrArray<T, N> _ptrarr;
+class ConstNumPtrArray : public PtrArray<const T, N> {
+private:
+    T _product;
+    T _sum;
 
 public:
     const T& product;
     const T& sum;
-    ConstNumArray(std::function<const T*(size_t index)> generator)
-        : _ptrarr(generator)
-        , product(_ptrarr.product)
-        , sum(_ptrarr.sum)
+
+    ConstNumPtrArray(const PtrAllocator<const T>& allocator)
+        : PtrArray<const T, N>(allocator)
+        , _product(N > 0 ? 1 : 0)
+        , _sum(0)
+        , product(_product)
+        , sum(_sum)
     {
+        for (int i = 0; i < N; i++) {
+            _product *= this->operator[](i);
+            _sum += this->operator[](i);
+        }
     }
-    const T& operator[](const size_t& i) const { return _ptrarr.ref(i); };
-    friend ostream& operator<<(ostream& out, ConstNumArray<T, N>& _ptrarr)
+    const T& operator[](const size_t& i) const { return PtrArray<const T, N>::ref(i); };
+    friend ostream& operator<<(ostream& out, const ConstNumPtrArray<T, N>& arr)
     {
-        out << _ptrarr._ptrarr;
+        out << "[";
+        for (size_t i = 0; i < N; i++) {
+            out << arr[i];
+            if (i != N - 1) {
+                out << ",";
+            }
+        }
+        out << "]";
         return out;
-    }
+    };
+
+    ConstNumPtrArray(const ConstNumPtrArray&) = delete;
+    const ConstNumPtrArray& operator=(const ConstNumPtrArray&) = delete;
 };
 
-// class PrimeGenerator {
-//     T _generator;
+// class Primeallocator {
+//     T _allocator;
 
 // public:
-//     PrimeGenerator()
-//         : _generator(LinBox::RandomPrimeIter(B))
+//     Primeallocator()
+//         : _allocator(LinBox::RandomPrimeIter(B))
 //     {
 //     }
 //     T* next()
 //     {
-//         return _generator.random
+//         return _allocator.random
 //     }
 // }
 
 // generate N random primes each of B-bits length
 template <typename T, size_t N, uint_fast64_t B>
-class PrimeGen : public ConstNumArray<T, N> {
+class PrimeGen : public ConstNumPtrArray<T, N> {
 protected:
     static LinBox::RandomPrimeIter _primeItr;
 
 public:
-    PrimeGen(std::function<const T*(size_t index)> generator)
-        : ConstNumArray<T, N>(generator)
+    PrimeGen(const PtrAllocator<T>& allocator)
+        : ConstNumPtrArray<T, N>(allocator)
     {
     }
     ~PrimeGen() = default;
@@ -129,17 +117,17 @@ public:
 template <typename T, size_t N, uint_fast64_t B>
 LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{ B };
 // template <class T, uint_fast8_t B>
-// class PrimeGenerator {
-//     T _generator;
+// class Primeallocator {
+//     T _allocator;
 
 // public:
-//     PrimeGenerator()
-//         : _generator(LinBox::RandomPrimeIter(B))
+//     Primeallocator()
+//         : _allocator(LinBox::RandomPrimeIter(B))
 //     {
 //     }
 //     T* next()
 //     {
-//         return _generator.random
+//         return _allocator.random
 //     }
 // }
 

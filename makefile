@@ -59,6 +59,9 @@ linbox:
 	mkdir -p build/linbox
 	cd submodule/linbox && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/linbox" --with-blas-libs="-L$(BLAS_LIB)" --with-givaro="$(BUILD_DIR)/givaro" && make 
 
+install-linbox:
+	cd submodule/linbox && make install
+
 clean:
 	rm -f *.o
 	git submodule foreach "git reset --hard && git clean -fdx"
