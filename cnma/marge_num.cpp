@@ -10,7 +10,6 @@ using namespace std;
 
 void dc_reduce_minus(NoCopyInteger& a, const uint_fast64_t n)
 {
-    // cerr << &a << " " << a << " " << n << endl;
     uint_fast64_t s = a.bitsize();
     uint_fast64_t b;
     uint_fast64_t bn;

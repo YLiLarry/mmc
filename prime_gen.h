@@ -19,7 +19,7 @@ public:
     PtrArray(const PtrAllocator<T>& allocator)
     {
         for (size_t i = 0; i < N; i++) {
-            (*this)[i] = allocator(i);
+            this->operator[](i) = allocator(i);
         }
     }
     // default C++ array<T,N> destructor frees the memory
@@ -28,7 +28,7 @@ public:
     PtrArray(const PtrArray&) = delete;
     const PtrArray& operator=(const PtrArray&) = delete;
 
-    const T& ref(size_t i) const { return *((*this)[i]); }
+    const T& ref(size_t i) const { return *(this->operator[](i)); }
 
     friend ostream& operator<<(ostream& out, const PtrArray<T, N>& arr)
     {
@@ -66,8 +66,19 @@ public:
             _sum += this->operator[](i);
         }
     }
-    const T& operator[](const size_t& i) const { return PtrArray<const T, N>::ref(i); };
-    friend ostream& operator<<(ostream& out, const ConstNumPtrArray<T, N>& arr)
+
+    const T* ptr(const size_t& i) const
+    {
+        return PtrArray<const T, N>::operator[](i);
+    }
+
+    const T& operator[](const size_t& i) const
+    {
+        return *(PtrArray<const T, N>::operator[](i));
+    }
+
+    friend ostream& operator<<(ostream& out,
+        const ConstNumPtrArray<T, N>& arr)
     {
         out << "[";
         for (size_t i = 0; i < N; i++) {
@@ -78,7 +89,9 @@ public:
         }
         out << "]";
         return out;
-    };
+    }
+
+    ~ConstNumPtrArray() = default;
 
     ConstNumPtrArray(const ConstNumPtrArray&) = delete;
     const ConstNumPtrArray& operator=(const ConstNumPtrArray&) = delete;
@@ -140,11 +153,11 @@ template <typename T, size_t N, uint_fast64_t B>
 class PrimeGenExact : public PrimeGen<T, N, B> {
 public:
     PrimeGenExact()
-        : PrimeGen<T, N, B>{ [&](size_t index) {
+        : PrimeGen<T, N, B>([&](size_t index) {
             T* t = new T;
             PrimeGen<T, N, B>::_primeItr.random_exact(*t);
             return t;
-        } }
+        })
     {
     }
 
