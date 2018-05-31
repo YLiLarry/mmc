@@ -11,13 +11,13 @@ using namespace std;
 using namespace LinBox;
 int main()
 {
-    const size_t phase1_modulis_size = 10;
-    const uint_fast8_t phase1_modulis_expo_bit_length = 10;
+    const size_t phase1_modulis_size = (1 << 11);
+    const uint_fast64_t phase1_modulis_expo_bit_length = 18;
 
     const size_t phase2_modulis_basis_size = 1000;
     const size_t phase2_modulis_bit_length = 26;
 
-    const size_t input_bit_length = (1 << 10);
+    const size_t input_bit_length = (1 << 28);
 
     TwoPhaseAlgo<NoCopyInteger, phase1_modulis_size, phase1_modulis_expo_bit_length, NoCopyInteger, phase2_modulis_basis_size, phase2_modulis_bit_length> algo;
     NoCopyInteger a;
@@ -27,8 +27,8 @@ int main()
     b.randomize(input_bit_length);
     algo.mult(d, a, b);
 
-    cout << a << endl;
-    cout << b << endl;
+    // cout << a << endl;
+    // cout << a * b << endl;
     // NoCopyInteger d;
     // algo.mult(d, a, b);
 

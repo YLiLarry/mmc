@@ -67,7 +67,7 @@ clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
 
 me:
-	g++ -Wall *.cc ./cnma/*.cpp --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
+	g++ -O3 -Wall *.cc ./cnma/*.cpp --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
 	chmod u+x ./a.out
 	./a.out
 	

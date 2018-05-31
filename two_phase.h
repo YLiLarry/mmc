@@ -33,27 +33,35 @@ public:
 
     void mult(T_F& dest, T_F& a, T_F& b)
     {
+        cerr << "_F_arr.sum: " << _F_arr.sum << endl;
+        cerr << "a.bitsize(): " << a.bitsize() << endl;
         assert(a.bitsize() < static_cast<uint_fast64_t>(_F_arr.sum));
         assert(b.bitsize() < static_cast<uint_fast64_t>(_F_arr.sum));
         // phase 1 begins
+        cerr << "phase 1" << endl;
         // MM_A_1 stores multimuduli representation of a
         typename Phase1_RNS::ReducedInt
             MM_A_1(a, _F_arr, [&](size_t i) {
                 T_F* t = new T_F;
+                cerr << ".";
                 t->expensiveCopy(a);
                 dc_reduce_minus(*t, _F_arr[i]);
                 return t;
             });
+        cerr << endl;
         // MM_B_1 stores multimuduli representation of b
         typename Phase1_RNS::ReducedInt
             MM_B_1(a, _F_arr, [&](size_t i) {
                 T_F* t = new T_F;
+                cerr << ".";
                 t->expensiveCopy(b);
                 dc_reduce_minus(*t, _F_arr[i]);
                 return t;
             });
+        cerr << endl;
         cout << MM_A_1 << endl;
         cout << MM_B_1 << endl;
+        cerr << "phase 2" << endl;
         // phase 2 begins
         size_t input_size = 2 * N_F;
         vector<const T_F*> inputs(input_size);
