@@ -19,10 +19,13 @@ export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
 export GIVARO_CFLAGS := -L"$(BLAS_INCLUDE)"
 export GIVARO_LIBS := "$(GIVARO_LIB)" 
 
+COMPILER_FLAGS=-O3 -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
+TARGETS=*.cc ./cnma/*.cpp 
+
 init:
 	@echo Checking following build tools:
 	@printf "\tdo you have %s? -- " libtool
-	@ls -d /usr/share/libtool
+	@ls -d /usr/share/libtool || which libtool
 
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
@@ -40,7 +43,7 @@ init:
 	@which g++
 
 	@printf "\tdo you have %s? -- " gfortran
-	@which gfortran
+	@which gfortran || which gcc
 
 	@printf "\tdo you have %s? -- " pkg-config
 	@which pkg-config
@@ -88,9 +91,7 @@ clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
 
 me:
-	clear
-	clear
-	g++-5 -O3 -Wall *.cc ./cnma/*.cpp --std=c++17 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
+	g++ $(TARGETS) $(COMPILER_FLAGS)
 	make run
 
 check:

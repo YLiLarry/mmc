@@ -25,10 +25,10 @@ int main()
     NoCopyInteger d;
     a.randomize(input_bit_length);
     b.randomize(input_bit_length);
-    // algo.mult(d, a, b);
+    algo.mult(d, a, b);
 
     // cout << a << endl;
-    cout << (a * b) << endl;
+    // cout << (a * b) << endl;
     // NoCopyInteger d;
     // algo.mult(d, a, b);
 

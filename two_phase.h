@@ -28,17 +28,15 @@ public:
     TwoPhaseAlgo(const TwoPhaseAlgo&) = delete;
     TwoPhaseAlgo& operator=(const TwoPhaseAlgo&) = delete;
 
-    typedef SIM_RNS::RNS<T_F, T_F, N_F> Phase1_RNS;
-    typedef SIM_RNS::RNS<T_F, T_M, N_M> Phase2_RNS;
-
     void mult(T_F& dest, T_F& a, T_F& b)
     {
         cerr << "_F_arr.sum: " << _F_arr.sum << endl;
         cerr << "a.bitsize(): " << a.bitsize() << endl;
         assert(a.bitsize() < static_cast<uint_fast64_t>(_F_arr.sum));
         assert(b.bitsize() < static_cast<uint_fast64_t>(_F_arr.sum));
-        // phase 1 begins
+        typedef SIM_RNS::RNS<T_F, T_F, N_F> Phase1_RNS;
         cerr << "phase 1" << endl;
+        // phase 1 begins
         // MM_A_1 stores multimuduli representation of a
         typename Phase1_RNS::ReducedInt
             MM_A_1(_F_arr, [&](size_t i) {
@@ -62,13 +60,14 @@ public:
         // cout << MM_A_1 << endl;
         // cout << MM_B_1 << endl;
         cerr << "phase 2" << endl;
+        typedef SIM_RNS::RNS<T_F, T_M, N_M> Phase2_RNS;
         // phase 2 begins
         vector<const T_F*> phase2_inputs(2 * N_F);
         for (size_t i = 0; i < N_F; i++) {
-            phase2_inputs[i] = &MM_A_1.residuals[i];
+            phase2_inputs[i] = MM_A_1.residuals.ptr(i);
         }
         for (size_t i = 0; i < N_F; i++) {
-            phase2_inputs[i + N_F] = &MM_B_1.residuals[i];
+            phase2_inputs[i + N_F] = MM_B_1.residuals.ptr(i);
         }
         typename Phase2_RNS::ReducedIntVector phase2_outputs = Phase2_RNS::naive_reduce(phase2_inputs, _M_arr);
         // A = A*B
@@ -81,6 +80,12 @@ public:
         phase2_outputs.resize(N_F);
         // cout << phase2_outputs << endl;
         phase2_outputs.erase(phase2_outputs.begin());
+
+        cerr << "phase 2 recovery" << endl;
+        // phase 2 recovery begins
+        vector<T_F*> recovered = Phase2_RNS::naive_recover(phase2_outputs);
+        cerr << recovered << endl;
+        recovered.erase(recovered.begin());
     }
 };
 

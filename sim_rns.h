@@ -4,6 +4,7 @@
 #include "nocopy_integer.h"
 #include "prime_gen.h"
 #include <fflas-ffpack/field/rns.h>
+#include <linbox/algorithms/cra-domain-seq.h>
 #include <linbox/integer.h>
 #include <memory>
 #include <vector>
@@ -63,9 +64,24 @@ public:
         return vec;
     }
 
-    static void recover(T_I& output, const ReducedIntVector&, const ConstNumPtrArray<T_M, N>& modulis)
+    static vector<T_I*> naive_recover(const ReducedIntVector& inputs)
     {
-        return output;
+        size_t input_len = inputs.size();
+        vector<T_I*> vec = vector<T_I*>(input_len);
+        if (input_len > 0) {
+            for (size_t i = 0; i < input_len; i++) {
+                ReducedInt* reduced_int = inputs[i];
+                // run CRT on reduced_int to produce a T_I*
+                auto prime_res_mapping = [&](auto r, auto f) {
+                    return r;
+                };
+                auto primeiter = reduced_int->modulis.begin();
+                T_I* result = new T_I;
+                LinBox::ChineseRemainderSeq<Givaro::ZRing<Integer>>(*result, prime_res_mapping, primeiter);
+                vec[i] = result;
+            }
+        }
+        return vec;
     }
 
     friend ostream& operator<<(ostream& out, const ReducedIntVector& arr)
