@@ -11,7 +11,7 @@ using namespace std;
 using namespace LinBox;
 int main()
 {
-    const size_t phase1_modulis_size = (1 << 8);
+    const size_t phase1_modulis_size = (1 << 7) + 40;
     const uint_fast64_t phase1_modulis_expo_bit_length = 21;
 
     const size_t phase2_modulis_basis_size = 1000;
@@ -25,10 +25,10 @@ int main()
     NoCopyInteger d;
     a.randomize(input_bit_length);
     b.randomize(input_bit_length);
-    algo.mult(d, a, b);
+    // algo.mult(d, a, b);
 
     // cout << a << endl;
-    // cout << a * b << endl;
+    cout << (a * b) << endl;
     // NoCopyInteger d;
     // algo.mult(d, a, b);
 

@@ -59,8 +59,8 @@ public:
                 return t;
             });
         cerr << endl;
-        cout << MM_A_1 << endl;
-        cout << MM_B_1 << endl;
+        // cout << MM_A_1 << endl;
+        // cout << MM_B_1 << endl;
         cerr << "phase 2" << endl;
         // phase 2 begins
         vector<const T_F*> phase2_inputs(2 * N_F);
@@ -79,7 +79,7 @@ public:
         }
         phase2_outputs.erase(phase2_outputs.begin() + N_F);
         phase2_outputs.resize(N_F);
-        cout << phase2_outputs << endl;
+        // cout << phase2_outputs << endl;
         phase2_outputs.erase(phase2_outputs.begin());
     }
 };
