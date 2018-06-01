@@ -17,12 +17,10 @@ public:
     class ReducedInt {
 
     public:
-        const T_I& original;
-        const ConstNumPtrArray<T_M, N> residuals;
+        NumPtrArray<T_M, N> residuals;
         const ConstNumPtrArray<T_M, N>& modulis;
-        ReducedInt(const T_I& _original, const ConstNumPtrArray<T_M, N>& _modulis, const PtrAllocator<T_M>& residuals_alloc)
-            : original(_original)
-            , residuals(residuals_alloc)
+        ReducedInt(const ConstNumPtrArray<T_M, N>& _modulis, const PtrAllocator<T_M>& residuals_alloc)
+            : residuals(residuals_alloc)
             , modulis(_modulis)
         {
         }
@@ -31,14 +29,22 @@ public:
         {
             out << endl
                 << "type ReducedInt - " << endl
-                << " original:" << r.original << endl
                 << " modulis:" << r.modulis << endl
                 << " residuals:" << r.residuals << endl;
             return out;
         }
+
+        void operator*=(const ReducedInt& other)
+        {
+            for (size_t i = 0; i < N; i++) {
+                assert(&modulis[i] == &other.modulis[i]);
+                residuals[i] *= other.residuals[i];
+                residuals[i] %= modulis[i];
+            }
+        }
     };
 
-    typedef vector<shared_ptr<ReducedInt>> ReducedIntVector;
+    typedef vector<ReducedInt*> ReducedIntVector;
     static ReducedIntVector naive_reduce(const vector<const NoCopyInteger*>& inputs, const ConstNumPtrArray<T_M, N>& modulis)
     {
         size_t len_inputs = inputs.size();
@@ -52,7 +58,7 @@ public:
                 p->operator%=(m);
                 return p;
             };
-            vec[input_i] = shared_ptr<ReducedInt>(new ReducedInt(*ith_input, modulis, residuals_alloc));
+            vec[input_i] = new ReducedInt(modulis, residuals_alloc);
         }
         return vec;
     }

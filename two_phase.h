@@ -41,7 +41,7 @@ public:
         cerr << "phase 1" << endl;
         // MM_A_1 stores multimuduli representation of a
         typename Phase1_RNS::ReducedInt
-            MM_A_1(a, _F_arr, [&](size_t i) {
+            MM_A_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
                 t->expensiveCopy(a);
@@ -51,7 +51,7 @@ public:
         cerr << endl;
         // MM_B_1 stores multimuduli representation of b
         typename Phase1_RNS::ReducedInt
-            MM_B_1(a, _F_arr, [&](size_t i) {
+            MM_B_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
                 t->expensiveCopy(b);
@@ -63,16 +63,24 @@ public:
         cout << MM_B_1 << endl;
         cerr << "phase 2" << endl;
         // phase 2 begins
-        size_t input_size = 2 * N_F;
-        vector<const T_F*> inputs(input_size);
+        vector<const T_F*> phase2_inputs(2 * N_F);
         for (size_t i = 0; i < N_F; i++) {
-            inputs[i] = &MM_A_1.residuals[i];
+            phase2_inputs[i] = &MM_A_1.residuals[i];
         }
         for (size_t i = 0; i < N_F; i++) {
-            inputs[i + N_F] = &MM_B_1.residuals[i];
+            phase2_inputs[i + N_F] = &MM_B_1.residuals[i];
         }
-        typename Phase2_RNS::ReducedIntVector reduced_all = Phase2_RNS::naive_reduce(inputs, _M_arr);
-        cout << reduced_all << endl;
+        typename Phase2_RNS::ReducedIntVector phase2_outputs = Phase2_RNS::naive_reduce(phase2_inputs, _M_arr);
+        // A = A*B
+        for (size_t i = 0; i < N_F; i++) {
+            typename Phase2_RNS::ReducedInt* a = phase2_outputs[i];
+            typename Phase2_RNS::ReducedInt* b = phase2_outputs[i + N_F];
+            a->operator*=(*b);
+        }
+        phase2_outputs.erase(phase2_outputs.begin() + N_F);
+        phase2_outputs.resize(N_F);
+        cout << phase2_outputs << endl;
+        phase2_outputs.erase(phase2_outputs.begin());
     }
 };
 

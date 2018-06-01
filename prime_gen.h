@@ -46,6 +46,44 @@ public:
 };
 
 template <class T, size_t N>
+class NumPtrArray : public PtrArray<T, N> {
+public:
+    NumPtrArray(const PtrAllocator<T>& allocator)
+        : PtrArray<T, N>(allocator)
+    {
+    }
+
+    T* ptr(const size_t& i) const
+    {
+        return PtrArray<T, N>::operator[](i);
+    }
+
+    T& operator[](const size_t& i) const
+    {
+        return *(PtrArray<T, N>::operator[](i));
+    }
+
+    friend ostream& operator<<(ostream& out,
+        const NumPtrArray<T, N>& arr)
+    {
+        out << "[";
+        for (size_t i = 0; i < N; i++) {
+            out << arr[i];
+            if (i != N - 1) {
+                out << ",";
+            }
+        }
+        out << "]";
+        return out;
+    }
+
+    ~NumPtrArray() = default;
+
+    NumPtrArray(const NumPtrArray&) = delete;
+    const NumPtrArray& operator=(const NumPtrArray&) = delete;
+};
+
+template <class T, size_t N>
 class ConstNumPtrArray : public PtrArray<const T, N> {
 private:
     T _product;

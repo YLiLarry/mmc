@@ -11,8 +11,8 @@ using namespace std;
 using namespace LinBox;
 int main()
 {
-    const size_t phase1_modulis_size = (1 << 11);
-    const uint_fast64_t phase1_modulis_expo_bit_length = 18;
+    const size_t phase1_modulis_size = (1 << 8);
+    const uint_fast64_t phase1_modulis_expo_bit_length = 21;
 
     const size_t phase2_modulis_basis_size = 1000;
     const size_t phase2_modulis_bit_length = 26;
