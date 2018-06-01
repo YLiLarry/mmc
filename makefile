@@ -10,7 +10,7 @@ FFLAS_INCLUDE=$(BUILD_DIR)/fflas-ffpack/include
 BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
 LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 
-export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig
+export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig:$(FFLAS_LIB)/pkgconfig
 export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
 export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
@@ -91,9 +91,6 @@ me:
 	g++ -O3 -Wall *.cc ./cnma/*.cpp --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
 	chmod u+x ./a.out
 	./a.out
-	
-doc:
-	cd submodule/fflas-ffpack && make doc
 
-install:
-	cd submodule/fflas-ffpack && make install
+check:
+	cd submodule/linbox && make check
