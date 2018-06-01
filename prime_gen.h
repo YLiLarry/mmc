@@ -4,6 +4,7 @@
 #include "nocopy_integer.h"
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <linbox/randiter/random-prime.h>
 #include <ostream>
 
@@ -61,7 +62,7 @@ public:
         , product(_product)
         , sum(_sum)
     {
-        for (int i = 0; i < N; i++) {
+        for (size_t i = 0; i < N; i++) {
             _product *= this->operator[](i);
             _sum += this->operator[](i);
         }

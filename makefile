@@ -22,7 +22,7 @@ export GIVARO_LIBS := "$(GIVARO_LIB)"
 init:
 	@echo Checking following build tools:
 	@printf "\tdo you have %s? -- " libtool
-	@which libtool
+	@ls -d /usr/share/libtool
 
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
@@ -88,7 +88,7 @@ clean:
 	git submodule foreach "git reset --hard && git clean -fdx"
 
 me:
-	g++ -O3 -Wall *.cc ./cnma/*.cpp --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
+	g++-5 -O3 -Wall *.cc ./cnma/*.cpp --std=c++17 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp | less -R
 	chmod u+x ./a.out
 	./a.out
 

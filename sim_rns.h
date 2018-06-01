@@ -5,6 +5,7 @@
 #include "prime_gen.h"
 #include <fflas-ffpack/field/rns.h>
 #include <linbox/integer.h>
+#include <memory>
 #include <vector>
 
 namespace SIM_RNS {
