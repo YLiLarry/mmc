@@ -11,7 +11,7 @@ BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
 LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig
-export LD_LIBRARY_PATH := $(GIVARO_LIB)
+export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
 export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
 export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
@@ -21,39 +21,60 @@ export GIVARO_LIBS := "$(GIVARO_LIB)"
 
 init:
 	@echo Checking following build tools:
+	@printf "\tdo you have %s? -- " libtool
+	@which libtool
+
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
+
 	@printf "\tdo you have %s? -- " autogen
 	@which autogen
+
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
+
 	@printf "\tdo you have %s? -- " automake
 	@which automake
+
 	@printf "\tdo you have %s? -- " g++
 	@which g++
+
+	@printf "\tdo you have %s? -- " gfortran
+	@which gfortran
+
 	@printf "\tdo you have %s? -- " pkg-config
 	@which pkg-config
+
 	@printf "\tdo you have %s? -- " git
 	@which git
 
 	git submodule update --init --recursive
-	make blas
-	make givaro
-	# make fflas
-	make linbox
-	make this
+	make blas && make install-blas
+	make givaro && make install-givaro
+	make fflas && make install-fflas
+	make linbox && make install linbox
+	make me
 
 blas:
 	mkdir -p build/OpenBLAS 
 	cd submodule/OpenBLAS && make PREFIX="$(BUILD_DIR)/OpenBLAS"
 
+install-blas:
+	cd submodule/OpenBLAS && make install PREFIX="$(BUILD_DIR)/OpenBLAS"
+
 givaro:
 	mkdir -p build/givaro   
 	cd submodule/givaro && autoreconf -if && ./configure  --prefix="$(BUILD_DIR)/givaro" --with-blas-libs="-L$(BLAS_LIB)" && make
 
+install-givaro:
+	cd submodule/givaro && make install
+
 fflas:
 	mkdir -p build/fflas-ffpack
-	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs="-L$(BLAS_LIB) -lopenblas" --with-blas-cflags="-I$(BLAS_INCLUDE)" --with-givaro="$(BUILD_DIR)/givaro" && make
+	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs=-L"$(BLAS_LIB)" --with-blas-cflags="-I$(BLAS_INCLUDE)" && make
+
+install-fflas:
+	cd submodule/fflas-ffpack && make install
 
 linbox:
 	mkdir -p build/linbox
