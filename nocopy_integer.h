@@ -50,7 +50,11 @@ public:
         return p;
     }
     // clone another NoCopyInteger
-    void expensiveCopy(const NoCopyInteger& a)
+    void EXPENSIVE_COPY(const NoCopyInteger& a)
+    {
+        Integer::operator=(a);
+    } // clone another NoCopyInteger
+    void EXPENSIVE_COPY(const Integer& a)
     {
         Integer::operator=(a);
     }

@@ -1,10 +1,11 @@
 #if !defined(H_TWO_STEPS_ALGO)
 #define H_TWO_STEPS_ALGO
 
-#include "./sim_rns.h"
 #include "cnma/marge_num.h"
+#include "containers.h"
 #include "coprime_gen.h"
 #include "prime_gen.h"
+#include "sim_rns.h"
 #include <givaro/modular-integer.h>
 #include <iostream>
 #include <linbox/integer.h>
@@ -23,7 +24,7 @@ private:
     const PrimeGenExact<T_M, N_M, B_M> _M_arr; // primes in the second level
 
 public:
-    TwoPhaseAlgo() { assert((1 << B_E_F) < static_cast<uint_fast64_t>(_M_arr.product)); }
+    TwoPhaseAlgo() { assert((1 << B_E_F) < static_cast<uint_fast64_t>(_M_arr.sum)); }
     ~TwoPhaseAlgo() = default;
     TwoPhaseAlgo(const TwoPhaseAlgo&) = delete;
     TwoPhaseAlgo& operator=(const TwoPhaseAlgo&) = delete;
@@ -42,7 +43,7 @@ public:
             MM_A_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
-                t->expensiveCopy(a);
+                t->EXPENSIVE_COPY(a);
                 dc_reduce_minus(*t, _F_arr[i]);
                 return t;
             });
@@ -52,7 +53,7 @@ public:
             MM_B_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
-                t->expensiveCopy(b);
+                t->EXPENSIVE_COPY(b);
                 dc_reduce_minus(*t, _F_arr[i]);
                 return t;
             });

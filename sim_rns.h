@@ -1,10 +1,15 @@
 #if !defined(H_SIM_RNS)
 #define H_SIM_RNS
 
+#include "containers.h"
 #include "nocopy_integer.h"
 #include "prime_gen.h"
 #include <fflas-ffpack/field/rns.h>
+#include <givaro/modular-integer.h>
+#include <givaro/modular-uint64.h>
 #include <linbox/algorithms/cra-domain-seq.h>
+#include <linbox/algorithms/cra-early-single.h>
+#include <linbox/algorithms/cra-givrnsfixed.h>
 #include <linbox/integer.h>
 #include <memory>
 #include <vector>
@@ -53,10 +58,9 @@ public:
         for (size_t input_i = 0; input_i < len_inputs; input_i++) {
             const NoCopyInteger* ith_input = inputs[input_i];
             const PtrAllocator<T_M>& residuals_alloc = [&](size_t res_index) {
-                T_M* p = new T_M;
-                p->expensiveCopy(*ith_input);
+                T_M* p = new T_M(*ith_input);
                 const T_M& m = modulis[res_index];
-                p->operator%=(m);
+                (*p) %= m;
                 return p;
             };
             vec[input_i] = new ReducedInt(modulis, residuals_alloc);
@@ -64,24 +68,30 @@ public:
         return vec;
     }
 
-    static vector<T_I*> naive_recover(const ReducedIntVector& inputs)
+    static vector<NoCopyInteger*> naive_recover(const ReducedIntVector& inputs)
     {
         size_t input_len = inputs.size();
-        vector<T_I*> vec = vector<T_I*>(input_len);
+        vector<NoCopyInteger*> outvec = vector<NoCopyInteger*>(input_len);
         if (input_len > 0) {
+            vector<Integer> modulis = inputs[0]->modulis.EXPENSIVE_TO_VECTOR();
             for (size_t i = 0; i < input_len; i++) {
                 ReducedInt* reduced_int = inputs[i];
+                // the numbers should have the same modulis
+                assert(reduced_int->modulis == inputs[0]->modulis);
                 // run CRT on reduced_int to produce a T_I*
                 auto prime_res_mapping = [&](auto r, auto f) {
                     return r;
                 };
-                auto primeiter = reduced_int->modulis.begin();
-                T_I* result = new T_I;
-                LinBox::ChineseRemainderSeq<Givaro::ZRing<Integer>>(*result, prime_res_mapping, primeiter);
-                vec[i] = result;
+                auto primeiter = modulis.begin();
+                typedef LinBox::EarlySingleCRA<Givaro::Modular<T_M>> CRABase;
+                CRABase base{};
+                LinBox::ChineseRemainderSeq<CRABase> cra{ base };
+                Integer result;
+                cra(result, prime_res_mapping, primeiter);
+                outvec[i]->EXPENSIVE_COPY(result);
             }
         }
-        return vec;
+        return outvec;
     }
 
     friend ostream& operator<<(ostream& out, const ReducedIntVector& arr)

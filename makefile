@@ -90,6 +90,9 @@ clean:
 	rm -f *.o
 	git submodule foreach "git reset --hard && git clean -fdx"
 
+ex:
+	g++ *.C $(COMPILER_FLAGS)
+
 me:
 	g++ $(TARGETS) $(COMPILER_FLAGS)
 	make run
