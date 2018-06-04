@@ -1,0 +1,297 @@
+@article{von1992,
+	title={Computing Frobenius maps and factoring polynomials},
+	author={Von Zur Gathen, Joachim and Shoup, Victor},
+	journal={Computational complexity},
+	volume={2},
+	number={3},
+	pages={187--224},
+	year={1992},
+	publisher={Springer}
+}
+
+@article{Cantor1981,
+	title={A new algorithm for factoring polynomials over finite fields},
+	author={Cantor, David G and Zassenhaus, Hans},
+	journal={Mathematics of Computation},
+	pages={587--592},
+	year={1981},
+	publisher={JSTOR}
+}
+
+@misc{ntl2015,
+	title={NTL: A library for doing number theory},
+	author={Shoup, Victor and others},
+	year={2015},
+	note={\url{http://www.shoup.net/ntl/}}
+}
+
+@InProceedings{Shoup1999,
+	title =	"Efficient Computation of Minimal Polynomials in Algebraic Extensions of Finite Fields",
+	author =	"Victor Shoup",
+	year = 	"1999",
+	bibdate =	"2002-12-16",
+	booktitle =	"ISSAC",
+	pages =	"53--58",
+}
+
+@article {BrKu78,
+	AUTHOR = {Brent, R. P. and Kung, H. T.},
+	TITLE = {Fast algorithms for manipulating formal power series},
+	JOURNAL = {Journal of the Association for Computing Machinery},
+	VOLUME = {25},
+	YEAR = {1978},
+	NUMBER = {4},
+	PAGES = {581--595},
+}
+
+@article{Van2012,
+	title={Mathemagix: the quest of modularity and efficiency for symbolic and certified numeric 
+	computation?},
+	author={van der Hoeven, Joris and Lecerf, Gr{\'e}goire and Mourrain, Bernard and Tr{\'e}buchet, 
+	Philippe and Berthomieu, J{\'e}r{\'e}my and Diatta, Daouda Niang and Mantzaflaris, Angelos},
+	journal={ACM Communications in Computer Algebra},
+	volume={45},
+	number={3/4},
+	pages={186--188},
+	year={2012},
+	publisher={ACM},
+	note={\url{http://www.mathemagix.org/}},
+}
+
+@incollection{Hart2010,
+	title={Fast library for number theory: an introduction},
+	author={Hart, William B},
+	booktitle={Mathematical Software--ICMS 2010},
+	pages={88--91},
+	year={2010},
+	publisher={Springer},
+	note={\url{http://www.flintlib.org/}},
+}
+
+@misc{GNU-GMP,
+	title={Multiple precision arithmetic library},
+	author={GMP-Team},
+	year={2015},
+	note={\url{https://gmplib.org/}},
+}
+
+@article{Goto2008,
+	title={High-performance implementation of the level-3 BLAS},
+	author={Goto, Kazushige and Van De Geijn, Robert},
+	journal={ACM Transactions on Mathematical Software (TOMS)},
+	volume={35},
+	number={1},
+	pages={4},
+	year={2008},
+	publisher={ACM}
+}
+
+@misc{IntelMKL2007,
+	title={Intel math kernel library},
+	author={Intel, MKL},
+	year={2007},
+	publisher={ed}
+}
+
+@article{Whaley2001,
+	title={Automated empirical optimizations of software and the ATLAS project},
+	author={Whaley, R Clint and Petitet, Antoine and Dongarra, Jack J},
+	journal={Parallel Computing},
+	volume={27},
+	number={1},
+	pages={3--35},
+	year={2001},
+	publisher={Elsevier}
+}
+
+@article{Dongarra1988,
+	title={An extended set of Fortran Basic Linear Algebra Subprograms},
+	author={Dongarra, J and Hammarling, S and Du Croz, J and Hanson, R},
+	journal={ACM Transactions on Mathematical Software},
+	volume={14},
+	number={1},
+	pages={1--32},
+	year={1988}
+}
+
+@misc{fflas-ffpack,
+	author    = {Linbox-Team},
+	title     = {Finite Field Linear Algebra Subroutines/Package},
+	year     = {2015},
+	note     = {\url{https://github.com/linbox-team/fflas-ffpack}},
+}
+
+@article{Borodin1974,
+	title={Fast modular transforms},
+	author={Borodin, Allan and Moenck, Robert},
+	journal={Journal of Computer and System Sciences},
+	volume={8},
+	number={3},
+	pages={366--386},
+	year={1974},
+	publisher={Elsevier}
+}
+
+@article{Pollard1971,
+	title={The fast Fourier transform in a finite field},
+	author={Pollard, John M},
+	journal={Mathematics of computation},
+	volume={25},
+	number={114},
+	pages={365--374},
+	year={1971}
+}
+
+@Article{Schonhage1971,
+	author =	{A. Sch\"{o}nhage and V. Strassen},
+	title =	"Schnelle {M}ultiplikation grosser {Z}ahlen",
+	journal =	"Computing",
+	volume =	"7",
+	year = 	"1971",
+	pages =	"281--292",
+}
+
+@Article{CaKa91,
+	author = 	 {Cantor, D. G. and Kaltofen, E.},
+	title = 	 {On Fast Multiplication of Polynomials over Arbitrary Algebras},
+	journal = 	 {Acta Informatica},
+	year = 	 1991,
+	volume =	 28,
+	number =	 7,
+	pages =	 {693-701}
+}
+
+@article{Strassen1969,
+	year={1969},
+	issn={0029-599X},
+	journal={Numerische Mathematik},
+	volume={13},
+	number={4},
+	doi={10.1007/BF02165411},
+	title={Gaussian elimination is not optimal},
+	url={http://dx.doi.org/10.1007/BF02165411},
+	publisher={Springer-Verlag},
+	author={Strassen, Volker},
+	pages={354-356},
+	language={English}
+}
+
+@Article{CoWi90,
+	author = 	 {D. Coppersmith and S. Winograd},
+	title = 	 {Matrix multiplication via arithmetic progressions},
+	journal = 	 {J. Symb. Comp},
+	year = 	 1990,
+	volume =	 9,
+	number =	 3,
+	pages =	 {251--280}
+}
+
+@book{GaGe03,
+ author = {Gathen, Joachim Von Zur and Gerhard, Jurgen},
+ title = {Modern Computer Algebra},
+ year = 2003,
+ edition = 3,
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+}
+
+@book{BrZi10,
+ author = {Brent, Richard and Zimmermann, Paul},
+ title = {Modern Computer Arithmetic},
+ year = 2010,
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+}
+
+@InBook{Bernstein08,
+  author = 	 {D. J. Bernstein},
+  title = 	 {Algorithmic Number Theory},
+  chapter = 	 {Fast multiplication and its applications},
+  publisher = 	 {{MSRI} Publications},
+  year = 	 2008,
+  volume = 	 44,
+  pages = 	 {325--384}
+}
+
+@InProceedings{Barrett86,
+  author = 	 {P. Barrett},
+  title = 	 {Implementing the {Rivest} {Shamir} and {Adleman} public key encryption algorithm on a standard digital signal processor},
+  booktitle =	 {Advances in Cryptology, {CRYPTO'86}},
+  pages =	 {311--326},
+  year =	 1986,
+  volume =	 263,
+  series =	 {LNCS},
+  publisher =	 {Springer}
+}
+
+@Article{Montgomery85,
+  author = 	 {P. L. Montgomery},
+  title = 	 {Modular Multiplication Without Trial Division},
+  journal = 	 {Mathematics of Computation},
+  year = 	 1985,
+  volume =	 44,
+  number =	 170,
+  pages =	 {519--521},
+  month =	 Apr
+}
+
+@Misc{GnuMP,
+  author =	 {T. Granlund},
+  title =	 {{GMP}, The {GNU} Multiple Precision Arithmetic Library},
+  note =	 {\url{http://www.swox.com/gmp/}}
+}
+
+@PHDTHESIS{St10,
+  author = {Stothers, A.},
+  title = {On the Complexity of Matrix Multiplication},
+  school = {University of Edinburgh},
+  year = {2010}
+}
+
+@inproceedings{Wi12,
+ author = {Vassilevska Williams, V. },
+ title = {Multiplying Matrices Faster Than Coppersmith-winograd},
+ booktitle = {Proceedings of the Forty-fourth Annual ACM Symposium on Theory of Computing},
+ series = {STOC '12},
+ year = {2012},
+ isbn = {978-1-4503-1245-5},
+ location = {New York, New York, USA},
+ pages = {887--898},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/2213977.2214056},
+ doi = {10.1145/2213977.2214056},
+ acmid = {2214056},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {matrix multiplication},
+}
+
+@inproceedings{Le14,
+ author = {Le Gall, F.},
+ title = {Powers of Tensors and Fast Matrix Multiplication},
+ booktitle = {Proceedings of the 39th International Symposium on Symbolic and Algebraic Computation},
+ series = {ISSAC '14},
+ year = {2014},
+ isbn = {978-1-4503-2501-1},
+ location = {Kobe, Japan},
+ pages = {296--303},
+ numpages = {8},
+ url = {http://doi.acm.org/10.1145/2608628.2608664},
+ doi = {10.1145/2608628.2608664},
+ acmid = {2608664},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {algebraic complexity theory, matrix multiplication},
+} 
+
+@INPROCEEDINGS{GII13,
+author={P. Giorgi and L. Imbert and T. Izard},
+booktitle={Computer Arithmetic (ARITH), 2013 21st IEEE Symposium on},
+title={Parallel Modular Multiplication on Multi-core Processors},
+year={2013},
+pages={135-142},
+keywords={digital arithmetic;microprocessor chips;multiprocessing systems;parallel processing;Barrett;Montgomery;k-ary multipartite multiplication;low level arithmetic operations;multicore processors;parallel modular multiplications;software parallelism;Algorithm design and analysis;Complexity theory;Parallel processing;Program processors;Software algorithms;Synchronization;Modular multiplication;bipartite;k-ary multipartite algorithms;multi-core;parallel arithmetic;tripartite},
+doi={10.1109/ARITH.2013.20},
+ISSN={1063-6889},
+month={April},
+}

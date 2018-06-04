@@ -1,0 +1,22 @@
+
+To Brent, Zimmerman :
+---------------------
+Modern Computer Arithmetic
+Richard P. Brent and Paul Zimmermann
+Version 0.5.9 of 7 October 2010
+
+page 74, algo 2.16, precomputation of step 7 : we do not see how this
+precomputation would be done in O(M(n) log(n)). If we perform an extended GCD in
+step 7, the total cost of RNSToInteger climbs up to O(M(n) log(n)^2) because the
+XGCD takes O(M(n) log(n)).
+
+The only way we know to have the whole algorithm in O(M(n) log(n)) is the one
+described in Modern Computer Algebra, Section 10.3 "Fast Chinese remaindering".
+
+The precomputation only computes for all i,
+r_i := [m_1 * .. * m_{i-1} * m_{i+1} * .. * m_k] mod m_i
+and the modular inverses (r_i)^(-1) mod m_i in time O(M(n) log(n)).
+
+To Flint dev team :
+------------------
+Similar to previous item, their precomputation costs O(M(n) log(n)^2).

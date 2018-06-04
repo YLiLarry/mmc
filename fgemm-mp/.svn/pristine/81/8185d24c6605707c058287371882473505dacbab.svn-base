@@ -1,0 +1,407 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   main.cpp
+ * Author: javad
+ *
+ * Created on February 7, 2016, 9:46 PM
+ */
+
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <givaro/modular-integer.h>
+#include <gmp.h>
+#include <fflas-ffpack/fflas/fflas.h>
+#include <NTL/ZZ.h>
+#include <flint/NTL-interface.h>
+#include <givaro/givindeter.h>
+#include <flint/profiler.h>
+
+
+using namespace std;
+using namespace Givaro;
+using namespace NTL;
+using namespace FFLAS;
+
+
+void givaro_to_ntl_ZZ_p(ZZ_p& a, const Integer& b, fmpz_t temp) {
+	fmpz_set_mpz(temp, b.get_mpz_const());
+	fmpz_get_ZZ_p(a, temp);
+}
+
+void ntl_ZZ_p_to_givaro(Integer& a, const ZZ_p &b, fmpz_t temp) {
+	fmpz_set_ZZ_p(temp, b);
+	fmpz_get_mpz(a.get_mpz(), temp);
+}
+
+void givaro_to_ntl_ZZ(ZZ& a, const Integer& b, fmpz_t temp) {
+	fmpz_set_mpz(temp, b.get_mpz_const());
+	fmpz_get_ZZ(a, temp);
+}
+
+void ntl_ZZ_to_givaro(Integer& a, const ZZ &b, fmpz_t temp) {
+	fmpz_set_ZZ(temp, b);
+	fmpz_get_mpz(a.get_mpz(), temp);
+}
+
+void randomExact(ZZ_pX& x, int degree) {
+	random(x, degree);
+	if (deg(x) < degree)
+		SetCoeff(x, degree, random_ZZ_p());
+}
+
+void modularComp(ZZ_pX& x, const ZZ_pX& qx, const ZZ_pXArgument& pxsArg,
+		const ZZ_pXModulus& F) {
+
+	if (deg(qx) <= 0) {
+		x = qx;
+		return;
+	}
+
+	long pxRows = deg(F.val()) + 1;
+	long pxColumns = SqrRoot(qx.rep.length());
+	if (pxColumns * pxColumns < qx.rep.length())
+		pxColumns++;
+
+	ZZ_pXArgument pxs;
+	pxs.H.SetLength(pxColumns + 1);
+	pxs.H = pxsArg.H;
+
+	if (pxsArg.H.length() < pxColumns + 1) {
+		MulMod(pxs.H[pxColumns], pxsArg.H[pxColumns - 1], pxsArg.H[1], F);
+	}
+
+	//--------------
+	typedef Modular<Integer> Field;
+	fmpz_t temp_mpz;
+	fmpz_init(temp_mpz);
+	Integer p;
+	ntl_ZZ_to_givaro(p, ZZ_p::modulus(), temp_mpz);
+	Field field(p);
+	
+	Field::Element_ptr pxMatrix;
+	pxMatrix = FFLAS::fflas_new(field, pxRows, pxColumns);	
+
+	ZZ_p temp_zz_p;
+	for (int i = 0; i < pxColumns; i++)
+		for (int j = 0; j < pxRows; j++) {
+			GetCoeff(temp_zz_p, pxs.H[i], j);
+			ntl_ZZ_p_to_givaro(pxMatrix[j * pxColumns + i], temp_zz_p, temp_mpz);
+		}
+
+	ZZ_pXMultiplier multyplier;
+	build(multyplier, pxs.H[pxColumns], F);
+
+	// free the memory of pxs
+	for (int i = 0; i <= pxColumns; i++)
+		pxs.H[i].kill();
+	pxs.H.kill();
+
+	Field::Element_ptr qxMatrix;
+	qxMatrix = FFLAS::fflas_new(field, pxColumns, pxColumns);	
+
+	for (int i = 0; i < pxColumns; i++)
+		for (int j = 0; j < pxColumns; j++) {
+			GetCoeff(temp_zz_p, qx, i * pxColumns + j);
+			ntl_ZZ_p_to_givaro(qxMatrix[j * pxColumns + i], temp_zz_p, temp_mpz);
+		}
+
+	Field::Element_ptr resultMatrix;
+	resultMatrix = FFLAS::fflas_new(field, pxRows, pxColumns);	
+
+	size_t lda = pxColumns;
+	size_t ldb = pxColumns;
+	size_t ldc = pxColumns;
+	Integer alpha = 1;
+	Integer beta = 0;
+	FFLAS::fgemm(field, FFLAS::FflasNoTrans,FFLAS::FflasNoTrans, pxRows, 
+			pxColumns, pxColumns, alpha, pxMatrix, lda, qxMatrix, ldb,
+			beta, resultMatrix, ldc);
+	FFLAS::fflas_delete(pxMatrix);
+	FFLAS::fflas_delete(qxMatrix);
+	
+	ZZ_pX *subQs = new ZZ_pX[pxColumns];
+	for (int i = 0; i < pxColumns; i++) {
+		subQs[i].SetMaxLength(pxRows);
+		for (int j = 0; j < pxRows; j++) {
+			givaro_to_ntl_ZZ_p(temp_zz_p, resultMatrix[j * pxColumns + i], temp_mpz);
+			SetCoeff(subQs[i], j, temp_zz_p);
+		}
+	}
+
+	FFLAS::fflas_delete(resultMatrix);
+	fmpz_clear(temp_mpz);
+	
+	x = subQs[pxColumns - 1];
+	for (int i = pxColumns - 2; i >= 0; i--) {
+		MulMod(x, x, multyplier, F);
+		add(x, x, subQs[i]);
+	}
+
+	// free the memory of subQs
+	for (int i = 0; i < pxColumns; i++)
+		subQs[i].kill();
+	delete[] subQs;
+}
+
+////////////////////////////////////////////////////////////
+
+void modularComp(ZZ_pX& x, const ZZ_pX& qx, const ZZ_pX& px,
+		const ZZ_pXModulus& F) {
+
+	long m = SqrRoot(qx.rep.length());
+
+	if (m == 0) {
+		clear(x);
+		return;
+	}
+
+	ZZ_pXArgument A;
+	build(A, px, F, m);
+	modularComp(x, qx, A, F);
+}
+
+//////////////////////////////////////////////////////////////
+
+void projectPowersNew(vec_ZZ_p& x, const vec_ZZ_p& a, long k,
+		const ZZ_pXArgument& sigmasArg, const ZZ_pXModulus& F) {
+
+	if (k == 0) {
+		x.SetLength(0);
+		return;
+	}
+
+	long vRows = SqrRoot(k);
+
+	if (vRows * vRows < k)
+		vRows++;
+
+	long vColumns = deg(F.val());
+
+	if (a.length() > vColumns || k < 0 || NTL_OVERFLOW(k, 1, 0))
+		Error("projectPowers: bad args");
+
+	ZZ_pXArgument sigmas;
+	sigmas.H.SetLength(vRows + 1);
+	sigmas.H = sigmasArg.H;
+
+	if (sigmasArg.H.length() < vRows + 1) {
+		MulMod(sigmas.H[vRows], sigmasArg.H[vRows - 1], sigmasArg.H[1], F);
+	}
+
+	//--------------
+	typedef Modular<Integer> Field;
+	fmpz_t temp_mpz;
+	fmpz_init(temp_mpz);
+	Integer p;
+	ntl_ZZ_to_givaro(p, ZZ_p::modulus(), temp_mpz);
+	Field field(p);
+	
+	Field::Element_ptr sigmaMatrix;
+	sigmaMatrix = FFLAS::fflas_new(field, vColumns, vRows);	
+
+	ZZ_p temp_zz_p;
+	for (int i = 0; i < vRows; i++)
+		for (int j = 0; j < vColumns; j++) {
+			GetCoeff(temp_zz_p, sigmas.H[i], j);
+			ntl_ZZ_p_to_givaro(sigmaMatrix[j * vRows + i], temp_zz_p, temp_mpz);
+		}
+
+	ZZ_pXMultiplier multyplier;
+	build(multyplier, sigmas.H[vRows], F);
+
+	// free the memory of sigmas
+	for (int i = 0; i <= vRows; i++)
+		sigmas.H[i].kill();
+	sigmas.H.kill();
+
+	Field::Element_ptr vMatrix;
+	vMatrix = FFLAS::fflas_new(field, vRows, vColumns);	
+	
+	vec_ZZ_p tempVec(INIT_SIZE, F.n);
+	tempVec = a;
+	// strip zeroes
+	long length = tempVec.length();
+	while (length > 0 && IsZero(tempVec[length-1]))
+		length--;
+	tempVec.SetLength(length);
+
+	for (int i = 0; i < vRows; i++) {
+		for (int j = 0; j < vColumns; j++) {
+			ntl_ZZ_p_to_givaro(vMatrix[i * vColumns + j], tempVec[j], temp_mpz);
+		}
+		UpdateMap(tempVec, tempVec, multyplier, F);
+	}
+
+	Field::Element_ptr resultMatrix;
+	resultMatrix = FFLAS::fflas_new(field, vRows, vRows);	
+
+	size_t lda = vColumns;
+	size_t ldb = vRows;
+	size_t ldc = vRows;
+	Integer alpha = 1;
+	Integer beta = 0;
+	FFLAS::fgemm(field, FFLAS::FflasNoTrans, FFLAS::FflasNoTrans, vRows, 
+			vRows, vColumns, alpha, vMatrix, lda, sigmaMatrix, ldb,
+			beta, resultMatrix, ldc);
+	FFLAS::fflas_delete(vMatrix);
+	FFLAS::fflas_delete(sigmaMatrix);
+
+	x.SetLength(k);
+	int index = 0;
+	for (int i = 0; i < vRows; i++)
+		for (int j = 0; j < vRows; j++) {
+			if (index >= k) {
+				i = vRows;
+				break;
+			}
+			givaro_to_ntl_ZZ_p(x[index], resultMatrix[i * vRows + j], temp_mpz);
+			index++;
+		}
+
+	FFLAS::fflas_delete(resultMatrix);
+	fmpz_clear(temp_mpz);
+	tempVec.kill();
+}
+
+////////////////////////////////////////////////////////////
+
+void projectPowersNew(vec_ZZ_p& x, const vec_ZZ_p& a, long k,
+		const ZZ_pX& sigma, const ZZ_pXModulus& F) {
+
+	if (a.length() > F.n || k < 0) Error("ProjectPowers: bad args");
+
+	if (k == 0) {
+		x.SetLength(0);
+		return;
+	}
+
+	long m = SqrRoot(k);
+	ZZ_pXArgument H;
+	build(H, sigma, F, m);
+	projectPowersNew(x, a, k, H, F);
+}
+
+
+void bench_mod_comp(ofstream& output, int degree) {
+	
+	ZZ_pX result1, result2, f, g, h;
+	randomExact(f, degree - 1);
+	randomExact(g, degree - 1);
+	randomExact(h, degree);
+	
+	ZZ_pXModulus modulus;
+	build(modulus, h);
+	
+	timeit_t time;
+	double ntlTime;
+	double newTime;
+	
+	timeit_start(time);
+	CompMod(result1, f, g, modulus);	
+	timeit_stop(time);
+	ntlTime = time->wall / 1000.0;
+	
+	timeit_start(time);
+	modularComp(result2, f, g, modulus);
+	timeit_stop(time);
+	newTime = time->wall / 1000.0;
+	
+	if (result1 != result2) {
+		output << "Oops" << endl;
+		return;
+	}
+		
+	result1.kill();
+	result2.kill();
+	f.kill();
+	g.kill();
+	h.kill();
+	
+	output << degree << "  " << ntlTime << "  " << newTime << endl;
+}
+
+void bench_power_proj(ofstream& output, int degree) {
+	
+	vec_ZZ_p result1, result2, a;
+	result1.SetLength(degree);
+	result2.SetLength(degree);
+	a.SetLength(degree);
+	
+	for (int i = 0; i < degree; i++)
+		random(a[i]);
+	
+	ZZ_pX f, h;
+	randomExact(f, degree);
+	randomExact(h, degree);
+	
+	ZZ_pXModulus modulus;
+	build(modulus, h);
+	rem(f, f, modulus);
+	
+	timeit_t time;
+	double ntl_time;
+	double new_time;
+	
+	timeit_start(time);
+	ProjectPowers(result1, a, degree, f, modulus);	
+	timeit_stop(time);
+	ntl_time = time->wall / 1000.0;
+	
+	timeit_start(time);
+	projectPowersNew(result2, a, degree, f, modulus);	
+	timeit_stop(time);
+	new_time = time->wall / 1000.0;
+	
+	for (int i = 0; i < degree - 1; i++)
+	if (result1[i] != result2[i]) {
+		output << "Oops" << endl;
+		return;
+	}
+		
+	result1.kill();
+	result2.kill();
+	a.kill();
+	f.kill();
+	h.kill();
+
+	output << degree << "  " << ntl_time << "  " << new_time << endl;
+}
+
+void bench_mod_comp(ofstream& output) {
+	output << "degree  " << "ntl  " << "new" << endl;
+	for (int degree = 10000; degree <= 30000; degree += 2000)
+		bench_mod_comp(output, degree);
+}
+
+void bench_power_proj(ofstream& output) {
+	output << "degree  " << "ntl  " << "new" << endl;
+	for (int degree = 10000; degree <= 30000; degree += 2000)
+		bench_power_proj(output, degree);
+}
+
+/*
+ * 
+ */
+int main(int argc, char** argv) {
+
+	ZZ p;
+	RandomBits(p, 1000);
+	NextPrime(p, p);
+	ZZ_p::init(p);
+	
+	ofstream output;
+	output.open("bench.dat");
+        output << "####################### modular composiiton #################" << endl;
+        bench_mod_comp(output);
+        output << "####################### power projection #################" << endl;
+        bench_power_proj(output);
+	
+	return 0;
+}
+
