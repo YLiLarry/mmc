@@ -108,7 +108,7 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             for (size_t j = 0; j < n; ++j)
                 Rand.random(A[i * n + j]);
 
-        // A is a random matrix in field F(p)
+        // A is a random array of size n^2 in field F(p)
 
         if (matmul)
             bits = 2 * b;
@@ -361,9 +361,9 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
         {
             chrono.clear();
             chrono.start();
-            // construct an RNS structure and its associated Domain
+            // RNS: contains an array of primes whose product is >= P, each of primes_bits long
             FFPACK::rns_double RNS(p, primes_bits);
-            // RNS: primes
+            // RNSInteger is a decorator (wrapper) on FFPACK::rns_double that adds some functionalities
             typedef FFPACK::RNSInteger<FFPACK::rns_double> RnsDomain;
             RnsDomain Zrns(RNS);
             typename RnsDomain::Element_ptr mod_A = FFLAS::fflas_new(Zrns, n, n);
@@ -372,6 +372,10 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.clear();
             chrono.start();
             // from integer to rns
+            // A: integer array
+            // mod_A: output
+            // k: ceil(|p|/16) how many 16-bits chunks
+            // lda: =n? what is lda?
             FFLAS::finit_rns(Zrns, n, n, (p.bitsize() / 16) + ((p.bitsize() % 16) ? 1 : 0), A, n, mod_A);
             chrono.stop();
             timeFFLASToRNS += chrono.usertime();

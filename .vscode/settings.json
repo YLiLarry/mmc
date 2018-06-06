@@ -75,6 +75,11 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
-        "submodule": true
-    }
+        "build": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true
+    },
+    "workbench.editor.enablePreview": false
 }
