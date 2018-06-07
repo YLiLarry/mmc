@@ -50,7 +50,9 @@
         "typeinfo": "cpp",
         "__functional_base_03": "cpp",
         "utility": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "locale": "cpp",
+        "__debug": "c"
     },
     "files.autoSave": "onFocusChange",
     "c-cpp-flylint.includePaths": [

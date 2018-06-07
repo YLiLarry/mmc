@@ -17,9 +17,9 @@ int main()
     const size_t phase2_modulis_basis_size = 1024;
     const size_t phase2_modulis_bit_length = 64;
 
-    const size_t input_bit_length = (1 << 27);
+    const size_t input_bit_length = (1 << 10);
 
-    typedef NoCopyInteger Phase1_modulis_type;
+    typedef LInteger Phase1_modulis_type;
     typedef uint_fast64_t Phase2_modulis_type;
 
     TwoPhaseAlgo<
@@ -30,9 +30,9 @@ int main()
         phase2_modulis_basis_size,
         phase2_modulis_bit_length>
         algo;
-    NoCopyInteger a;
-    NoCopyInteger b;
-    NoCopyInteger d;
+    Phase1_modulis_type a;
+    Phase1_modulis_type b;
+    Phase1_modulis_type d;
     a.randomize(input_bit_length);
     b.randomize(input_bit_length);
     algo.mult(d, a, b);

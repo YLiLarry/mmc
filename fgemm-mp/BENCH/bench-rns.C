@@ -361,12 +361,12 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
         {
             chrono.clear();
             chrono.start();
-            // RNS: contains an array of primes whose product is >= P, each of primes_bits long
+            // RNS: contains an array of primes whose product is >= p, each of primes_bits long
             FFPACK::rns_double RNS(p, primes_bits);
             // RNSInteger is a decorator (wrapper) on FFPACK::rns_double that adds some functionalities
             typedef FFPACK::RNSInteger<FFPACK::rns_double> RnsDomain;
             RnsDomain Zrns(RNS);
-            typename RnsDomain::Element_ptr mod_A = FFLAS::fflas_new(Zrns, n, n);
+            typename RnsDomain::Element_ptr mod_A = FFLAS::fflas_new(Zrns, n, n); // allocate array of n^2 * RNS.size() doubles
             chrono.stop();
             timeFFLASPrecomp += chrono.usertime();
             chrono.clear();

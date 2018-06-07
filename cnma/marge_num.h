@@ -6,6 +6,6 @@
 
 using namespace LinBox;
 
-void dc_reduce_minus(NoCopyInteger& a, const uint_fast64_t n);
+void dc_reduce_minus(LInteger& a, const uint_fast64_t n);
 
 #endif  // H_MARGE_HUM

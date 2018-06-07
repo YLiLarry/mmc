@@ -13,14 +13,16 @@ LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig:$(FFLAS_LIB)/pkgconfig
 export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
-export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
-export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
+# export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
+# export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
 
-export GIVARO_CFLAGS := -L"$(BLAS_INCLUDE)"
-export GIVARO_LIBS := "$(GIVARO_LIB)" 
+# export GIVARO_CFLAGS := -L"$(BLAS_INCLUDE)"
+# export GIVARO_LIBS := "-L$(GIVARO_LIB)"
 
-COMPILER_FLAGS=-O3 -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
-TARGETS=*.cc ./cnma/*.cpp 
+export fflas:PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
+
+COMPILER_FLAGS := -ferror-limit=1 -O3 -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
+TARGETS := *.cc ./cnma/*.cpp 
 
 init:
 	@echo Checking following build tools:
@@ -74,7 +76,7 @@ install-givaro:
 
 fflas:
 	mkdir -p build/fflas-ffpack
-	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --with-blas-libs=-L"$(BLAS_LIB)" --with-blas-cflags="-I$(BLAS_INCLUDE)" && make
+	cd submodule/fflas-ffpack && autoreconf -if && ./configure --prefix="$(BUILD_DIR)/fflas-ffpack" --enable-precompilation --with-blas-libs=-L"$(BLAS_LIB)" --with-blas-cflags="-I$(BLAS_INCLUDE)" && make
 
 install-fflas:
 	cd submodule/fflas-ffpack && make install

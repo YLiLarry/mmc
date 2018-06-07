@@ -70,7 +70,7 @@ public:
         for (size_t i = 0; i < N_F; i++) {
             phase2_inputs[i + N_F] = MM_B_1.residuals.ptr(i);
         }
-        typename Phase2_RNS::ReducedIntVector phase2_outputs = Phase2_RNS::naive_reduce(phase2_inputs, _M_arr);
+        typename Phase2_RNS::ReducedIntVector phase2_outputs = Phase2_RNS::sim_reduce(phase2_inputs, _M_arr);
         // A = A*B
         for (size_t i = 0; i < N_F; i++) {
             typename Phase2_RNS::ReducedInt* a = phase2_outputs[i];
@@ -84,7 +84,7 @@ public:
 
         cerr << "phase 2 recovery" << endl;
         // phase 2 recovery begins
-        vector<T_F*> recovered = Phase2_RNS::naive_recover(phase2_outputs);
+        vector<T_F*> recovered = Phase2_RNS::sim_recover(phase2_outputs);
         cerr << recovered << endl;
         recovered.erase(recovered.begin());
     }
