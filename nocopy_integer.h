@@ -2,6 +2,8 @@
 #define H_NOCOPY_INTEGER
 
 #include <linbox/integer.h>
+#include <linbox/randiter/random-prime.h>
+#include <givaro/givtimer.h>
 
 using namespace LinBox;
 
@@ -49,7 +51,14 @@ public:
     // rewrite the current value to a random bits of length p
     void randomize(const uint_fast64_t p)
     {
+        Integer::seeding();
         Integer::random_exact_2exp((*this), p);
+    }
+
+    void randomizePrime(const uint_fast64_t p)
+    {
+        RandomPrimeIter pit{ p, (uint64_t) BaseTimer::seed() };
+        pit.random_exact(*this);
     }
 };
 

@@ -47,6 +47,21 @@ public:
     {
     }
 
+    friend ostream& operator<<(ostream& out, const PrimeGenExact<T, N, B>& arr) {
+        out << "PrimeGenExact [";
+        for (size_t i = 0; i < N; i++) {
+            out << arr[i];
+            if (i != N - 1) {
+                out << ",";
+            }
+        }
+        out << "]" << endl
+             << " - count: " << arr.count() << endl
+             << " - max bit length " << B << endl
+             << " - product bit length: " << arr.product.bitsize() << endl;
+        return out;
+    }
+
     ~PrimeGenExact() = default;
 
     PrimeGenExact(const PrimeGenExact&) = delete;
@@ -54,12 +69,12 @@ public:
 };
 
 template <size_t N, uint_fast64_t B>
-class PrimeGenExact<NoCopyInteger, N, B> : public PrimeGen<NoCopyInteger, N, B> {
+class PrimeGenExact<LInteger, N, B> : public PrimeGen<LInteger, N, B> {
 public:
     PrimeGenExact()
-        : PrimeGen<NoCopyInteger, N, B>([&](size_t index) {
-            NoCopyInteger* p = new NoCopyInteger();
-            PrimeGen<NoCopyInteger, N, B>::_primeItr.random_exact(*p);
+        : PrimeGen<LInteger, N, B>([&](size_t index) {
+            LInteger* p = new LInteger();
+            PrimeGen<LInteger, N, B>::_primeItr.random_exact(*p);
             return p;
         })
     {

@@ -33,6 +33,8 @@ public:
 
     const T& ref(size_t i) const { return *(this->operator[](i)); }
 
+    size_t count() const { return N; }
+
     friend ostream& operator<<(ostream& out, const PtrArray<T, N>& arr)
     {
         out << "[";
@@ -90,12 +92,12 @@ public:
 template <class T, size_t N>
 class ConstNumPtrArray : public NumPtrArray<const T, N> {
 private:
-    T _product;
-    T _sum;
+    Givaro::Integer _product;
+    Givaro::Integer _sum;
 
 public:
-    const T& product;
-    const T& sum;
+    const Givaro::Integer& product;
+    const Givaro::Integer& sum;
 
     ConstNumPtrArray(const PtrAllocator<const T>& allocator)
         : NumPtrArray<const T, N>(allocator)

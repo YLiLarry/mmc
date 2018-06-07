@@ -8,8 +8,9 @@ using namespace LinBox;
 using namespace Givaro;
 using namespace std;
 
-void dc_reduce_minus(LInteger& a, const uint_fast64_t n)
+void dc_reduce_minus(LInteger& a, const LInteger& moduli)
 {
+    uint_fast64_t n = (moduli+1).bitsize();
     uint_fast64_t s = a.bitsize();
     uint_fast64_t b;
     uint_fast64_t bn;
