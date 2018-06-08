@@ -41,7 +41,7 @@ public:
         for (size_t i = 0; i < N; i++) {
             out << arr[i];
             if (i != N - 1) {
-                out << ",";
+                out << " , ";
             }
         }
         out << "]";
@@ -76,7 +76,7 @@ public:
         for (size_t i = 0; i < N; i++) {
             out << arr[i];
             if (i != N - 1) {
-                out << ",";
+                out << " , ";
             }
         }
         out << "]";
@@ -138,7 +138,7 @@ public:
         for (size_t i = 0; i < N; i++) {
             out << arr[i];
             if (i != N - 1) {
-                out << ",";
+                out << " , ";
             }
         }
         out << "]";

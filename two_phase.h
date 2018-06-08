@@ -45,22 +45,20 @@ public:
         cerr << "##### phase 1 #####" << endl;
         // phase 1 begins
         // MM_A_1 stores multimuduli representation of a
-        typename Phase1_RNS::ReducedInt
-            MM_A_1(_F_arr, [&](size_t i) {
+        typename Phase1_RNS::ReducedInt MM_A_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
                 t->EXPENSIVE_COPY(a);
-                dc_reduce_minus(*t, _F_arr[i]);
+                dc_reduce_minus(t->get_mpz(), (_F_arr[i]+1).bitsize() - 1);
                 return t;
             });
         cerr << endl;
         // MM_B_1 stores multimuduli representation of b
-        typename Phase1_RNS::ReducedInt
-            MM_B_1(_F_arr, [&](size_t i) {
+        typename Phase1_RNS::ReducedInt MM_B_1(_F_arr, [&](size_t i) {
                 T_F* t = new T_F;
                 cerr << ".";
                 t->EXPENSIVE_COPY(b);
-                dc_reduce_minus(*t, _F_arr[i]);
+                dc_reduce_minus(t->get_mpz(), (_F_arr[i]+1).bitsize() - 1);
                 return t;
             });
         cerr << endl;

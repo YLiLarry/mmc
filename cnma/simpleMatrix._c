@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 		test();	
 	}
 	else{
-		/*int N = 3;
+		int N = 3;
 		mpz_t P, Pi, m[N];
 		mpz_init(P);
 		mpz_init(Pi);
@@ -36,8 +36,9 @@ int main(int argc, char *argv[]) {
 		mpz_set_ui(m[1], 13);
 		mpz_set_ui(m[2], 19);	
 		prod(P, Pi, &m, N);
-		gmp_printf("%Zd, %Zd\n", P, Pi);*/
+		gmp_printf("%Zd, %Zd\n", P, Pi);
 
+/*
 		mpz_t r_num;
 		unsigned long int seed;
 		gmp_randstate_t state;
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]) {
 		gmp_printf("DC_reduce_plus result: %Zd\n", cp_num); 
 		printf("Time: %f\n", sec);
 		printf("\n"); 
-	
+	*/
 		/*if (argc != 2){
 			fprintf(stderr, "USAGE: %s matrix_size\n", argv[0]);
 	    		exit(EXIT_FAILURE);*/

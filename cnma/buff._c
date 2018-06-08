@@ -1,0 +1,21 @@
+long int simple_reduce_minus(mpz_t a, unsigned long int n);
+void bits(mpz_t r, mpz_t n, unsigned long int a, mp_bitcnt_t b);
+
+long int simple_reduce_minus(mpz_t a, unsigned long int n){
+
+	//if(0<=mpz_cmp_ui(a, 0) && 0>mpz_cmp(a, pow(2,
+	mpz_t temp;
+	mpz_init(temp);
+
+	bits(temp, a, n, n*2);
+	bits(a, a, 0, n);
+	mpz_add(a, a, temp);
+	bits(temp, a, n, n+1);
+	bits(a, a, 0, n);
+	mpz_add(a, a, temp);
+}
+
+void bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b){
+	mpz_tdiv_r_2exp(r, a, b);
+	mpz_tdiv_q_2exp(r, r, n);
+}

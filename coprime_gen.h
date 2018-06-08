@@ -18,8 +18,8 @@ public:
         : PrimeGen<T, N, B>([&](size_t index) {
             const uint_fast64_t p = MargeGenMost<T, N, B>::_primeItr.random();
             T* t = new T{ 1 }; // init to 1
-            (*t) <<= p; // = 2^p
-            (*t)--; // = 2^p-1
+            t->operator<<=(p); // = 2^p
+            t->operator--(); // = 2^p-1
             return t;
         })
     {
@@ -29,10 +29,10 @@ public:
         out << "MargeGenMost [";
         for (size_t i = 0; i < N; i++) {
             const Integer& t = arr[i];
-            const uint_fast64_t p = (t+1).bitsize(); // static_cast<uint_fast64_t>(std::ceil())
+            const uint_fast64_t p = (t+1).bitsize() - 1; // static_cast<uint_fast64_t>(std::ceil())
             out << "2^" << p << "-1=" << t;
             if (i != N - 1) {
-                out << ",";
+                out << " , ";
             }
         }
         out << "]" << endl
