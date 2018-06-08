@@ -18,7 +18,6 @@ void bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b);
 
 
 void dc_reduce_minus(mpz_t a, unsigned long int n){
-	printf("!!!!!!!!! %ld", n);
 	mpz_t t, p;
 	int s;
 	int b;

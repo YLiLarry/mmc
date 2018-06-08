@@ -78,7 +78,7 @@ public:
         for (size_t i = 0; i < N_F; i++) {
             phase2_inputs[i + N_F] = MM_B_1.residuals.ptr(i);
         }
-        vector<typename Phase2_RNS::ReducedInt*> phase2_outputs = Phase2_RNS::naive_reduce(phase2_inputs, _M_arr);
+        vector<typename Phase2_RNS::ReducedInt*> phase2_outputs = Phase2_RNS::sim_reduce(phase2_inputs, _M_arr);
         cerr << "phase 2 reduced: " << endl
              << phase2_outputs << endl;
 

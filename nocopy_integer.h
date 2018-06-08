@@ -57,7 +57,8 @@ public:
 
     void randomizePrime(const uint_fast64_t p)
     {
-        RandomPrimeIter pit{ p, (uint64_t) BaseTimer::seed() };
+        // RandomPrimeIter pit{ p, (uint64_t) BaseTimer::seed() };
+        RandomPrimeIter pit{ p };
         pit.random_exact(*this);
     }
 };

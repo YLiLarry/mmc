@@ -17,7 +17,7 @@ int main()
     const size_t phase2_modulis_basis_size = 100;
     const size_t phase2_modulis_bit_length = 15;
 
-    const size_t input_bit_length = (1 << 10);
+    const size_t input_bit_length = (1 << 5);
 
     typedef LInteger Phase1_modulis_type;
     typedef uint_fast64_t Phase2_modulis_type;

@@ -63,34 +63,20 @@ public:
         size_t len_inputs = inputs.size();
         vector<ReducedInt*> vec(len_inputs);
         for (size_t input_i = 0; input_i < len_inputs; input_i++) {
-            const T_L* ith_input = inputs[input_i];
-            const PtrAllocator<T_M>& residuals_alloc = [&](size_t res_index) {
-                T_M* p = new T_M(*ith_input);
+            const T_L& ith_input = *inputs[input_i];
+            vec[input_i] = new ReducedInt(modulis, [&](size_t res_index) {
                 const T_M& m = modulis[res_index];
-                (*p) %= m;
+                // cerr << "ith_input %= m " << endl 
+                //     << ith_input << endl 
+                //     << m << endl;
+                T_M* p = new T_M{static_cast<T_M>(ith_input % m)};
+                    // cerr << *p << endl;
                 return p;
-            };
-            vec[input_i] = new ReducedInt(modulis, residuals_alloc);
+            });
         }
         return vec;
     }
-    vector<ReducedInt*> naive_reduce(const vector<const NoCopyInteger*>& inputs, const ConstNumPtrArray<NoCopyInteger, N_M>& modulis)
-    {
-        size_t len_inputs = inputs.size();
-        vector<ReducedInt*> vec(len_inputs);
-        for (size_t input_i = 0; input_i < len_inputs; input_i++) {
-            const NoCopyInteger* ith_input = inputs[input_i];
-            const PtrAllocator<NoCopyInteger>& residuals_alloc = [&](size_t res_index) {
-                NoCopyInteger* p = new NoCopyInteger;
-                p->EXPENSIVE_COPY(*ith_input);
-                const NoCopyInteger& m = modulis[res_index];
-                p->operator%=(m);
-                return p;
-            };
-            vec[input_i] = new ReducedInt(modulis, residuals_alloc);
-        }
-        return vec;
-    }
+    
     static vector<T_L*> naive_recover(const vector<ReducedInt*>& inputs)
     {
         size_t input_len = inputs.size();
@@ -120,6 +106,9 @@ public:
     // calls the algorithm for simultaneous reduction to RNS on inputs using modulis
     static vector<ReducedInt*> sim_reduce(const vector<const T_L*>& inputs, const ConstNumPtrArray<T_M, N_M>& modulis)
     {
+        cerr << "sim_reduce called with" << endl
+            << " - inputs: " << inputs << endl
+            << " - modulis: " << modulis << endl;
         size_t len_inputs = inputs.size();
         // to adopt for FFLA's interface
         // wet up input_A
@@ -130,6 +119,7 @@ public:
         for (size_t r = 0; r < len_inputs; r++) {
             input_A[r] = *inputs[r];
         }
+        cerr << "check: " << *input_A << endl;
         // set up output_A
         // RNS: contains an array of primes whose product is >= P, each of primes_bits long
         FFPACK::rns_double rns(modulis.EXPENSIVE_TO_VECTOR());
@@ -141,6 +131,7 @@ public:
         for (size_t idx_out = 0; idx_out < len_inputs; idx_out++) {
             output_vec[idx_out] = new ReducedInt(modulis, [&](size_t idx_moduli) {
                 double* res = output_A[idx_moduli * len_inputs + idx_out]._ptr;
+                cerr << *inputs[idx_out] << " mod " << modulis[idx_moduli] << " = " << *res << endl;
                 return new T_M{ static_cast<T_M>(std::round(*res)) };
             });
         }
