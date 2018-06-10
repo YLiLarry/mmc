@@ -1,9 +1,9 @@
 #if !defined(H_NOCOPY_INTEGER)
 #define H_NOCOPY_INTEGER
 
+#include <givaro/givtimer.h>
 #include <linbox/integer.h>
 #include <linbox/randiter/random-prime.h>
-#include <givaro/givtimer.h>
 
 using namespace LinBox;
 

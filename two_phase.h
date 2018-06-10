@@ -41,26 +41,25 @@ public:
              << " - b: " << b << endl;
         assert(static_cast<uint_least64_t>(a.bitsize()) < _F_arr.sum);
         assert(static_cast<uint_least64_t>(b.bitsize()) < _F_arr.sum);
-        typedef SIM_RNS::RNS<T_F, T_F, N_F> Phase1_RNS;
         cerr << "##### phase 1 #####" << endl;
         // phase 1 begins
-        // MM_A_1 stores multimuduli representation of a
-        typename Phase1_RNS::ReducedInt MM_A_1(_F_arr, [&](size_t i) {
-                T_F* t = new T_F;
-                cerr << ".";
-                t->EXPENSIVE_COPY(a);
-                dc_reduce_minus(t->get_mpz(), (_F_arr[i]+1).bitsize() - 1);
-                return t;
-            });
+        // MM_A_1 stores multi-moduli representation of a
+        SIM_RNS::ReducedInt<T_F, N_F> MM_A_1(_F_arr, [&](size_t i) {
+            T_F* t = new T_F;
+            cerr << ".";
+            t->EXPENSIVE_COPY(a);
+            dc_reduce_minus(t->get_mpz(), (_F_arr[i] + 1).bitsize() - 1);
+            return t;
+        });
         cerr << endl;
-        // MM_B_1 stores multimuduli representation of b
-        typename Phase1_RNS::ReducedInt MM_B_1(_F_arr, [&](size_t i) {
-                T_F* t = new T_F;
-                cerr << ".";
-                t->EXPENSIVE_COPY(b);
-                dc_reduce_minus(t->get_mpz(), (_F_arr[i]+1).bitsize() - 1);
-                return t;
-            });
+        // MM_B_1 stores multi-moduli representation of b
+        SIM_RNS::ReducedInt<T_F, N_F> MM_B_1(_F_arr, [&](size_t i) {
+            T_F* t = new T_F;
+            cerr << ".";
+            t->EXPENSIVE_COPY(b);
+            dc_reduce_minus(t->get_mpz(), (_F_arr[i] + 1).bitsize() - 1);
+            return t;
+        });
         cerr << endl;
 
         cerr << "phase 1 reduced: " << endl
@@ -69,36 +68,37 @@ public:
 
         cerr << "##### phase 2 #####" << endl;
 
-        typedef SIM_RNS::RNS<T_F, T_M, N_M> Phase2_RNS;
         // phase 2 begins
-        vector<const T_F*> phase2_inputs(2 * N_F);
+        NumPtrVector<T_F> phase2_inputs(2 * N_F);
         for (size_t i = 0; i < N_F; i++) {
-            phase2_inputs[i] = MM_A_1.residuals.ptr(i);
+            phase2_inputs.ptr(i) = MM_A_1.residuals.ptr(i);
         }
         for (size_t i = 0; i < N_F; i++) {
-            phase2_inputs[i + N_F] = MM_B_1.residuals.ptr(i);
+            phase2_inputs.ptr(i + N_F) = MM_B_1.residuals.ptr(i);
         }
-        vector<typename Phase2_RNS::ReducedInt*> phase2_outputs = Phase2_RNS::sim_reduce(phase2_inputs, _M_arr);
+        NumPtrVector<SIM_RNS::ReducedInt<T_M, N_M>>* phase2_outputs = SIM_RNS::new_sim_reduce<T_F, T_M, N_M>(phase2_inputs, _M_arr);
         cerr << "phase 2 reduced: " << endl
-             << phase2_outputs << endl;
+             << *phase2_outputs << endl;
 
         // A = A*B
         for (size_t i = 0; i < N_F; i++) {
-            typename Phase2_RNS::ReducedInt* a = phase2_outputs[i];
-            typename Phase2_RNS::ReducedInt* b = phase2_outputs[i + N_F];
+            SIM_RNS::ReducedInt<T_M, N_M>* a = phase2_outputs->ptr(i);
+            SIM_RNS::ReducedInt<T_M, N_M>* b = phase2_outputs->ptr(i + N_F);
             a->operator*=(*b);
         }
-        phase2_outputs.erase(phase2_outputs.begin() + N_F);
-        phase2_outputs.resize(N_F);
-        phase2_outputs.erase(phase2_outputs.begin());
+        phase2_outputs->erase(phase2_outputs->begin() + N_F);
+        phase2_outputs->resize(N_F);
 
         cerr << "a * b: " << phase2_outputs << endl;
 
         cerr << "phase 2 recovery" << endl;
         // phase 2 recovery begins
-        vector<T_F*> recovered = Phase2_RNS::sim_recover(phase2_outputs);
-        cerr << recovered << endl;
-        recovered.erase(recovered.begin());
+        NumPtrVector<T_F>* recovered = SIM_RNS::new_sim_recover<T_F, T_M, N_M>(*phase2_outputs);
+        cerr << *recovered << endl;
+        recovered->erase(recovered->begin());
+
+        delete phase2_outputs;
+        delete recovered;
     }
 };
 

@@ -83,5 +83,45 @@
         "**/node_modules": true,
         "**/bower_components": true
     },
-    "workbench.editor.enablePreview": false
+    "workbench.editor.enablePreview": false,
+    "cSpell.enabledLanguageIds": [
+        "asciidoc",
+        "c",
+        "cpp",
+        "csharp",
+        "css",
+        "go",
+        "handlebars",
+        "html",
+        "jade",
+        "javascript",
+        "javascriptreact",
+        "json",
+        "latex",
+        "less",
+        "markdown",
+        "php",
+        "plaintext",
+        "pub",
+        "python",
+        "restructuredtext",
+        "rust",
+        "scss",
+        "text",
+        "typescript",
+        "typescriptreact",
+        "yml"
+    ],
+    "cSpell.language": "en-US,en",
+    "cSpell.words": [
+        "FFLA's",
+        "FFLAS",
+        "FFPACK",
+        "Givaro",
+        "Lidiia",
+        "Zhitova",
+        "fconvert",
+        "szres",
+        "tdiv"
+    ]
 }

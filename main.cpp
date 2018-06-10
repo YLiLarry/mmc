@@ -9,30 +9,43 @@
 
 using namespace std;
 using namespace LinBox;
-int main()
-{
-    const size_t phase1_modulis_size = 2;
-    const uint_fast64_t phase1_modulis_bit_length = (1 << 10);
+using namespace SIM_RNS;
 
-    const size_t phase2_modulis_basis_size = 100;
-    const size_t phase2_modulis_bit_length = 15;
+void test2()
+{
+    PrimeGenExact<LInteger, 2, 6> pg;
+    PrimeGenExact<LInteger, 2, 5> moduli;
+    NumPtrVector<LInteger>* inputs = pg.EXPENSIVE_NEW_NUM_PTR_VECTOR();
+    NumPtrVector<ReducedInt<LInteger, 2>>* vec = new_sim_reduce<LInteger, LInteger, 2>(*inputs, moduli);
+    cerr << vec << endl;
+    delete vec;
+    delete inputs;
+}
+
+void test()
+{
+    const size_t phase1_moduli_size = 2;
+    const uint_fast64_t phase1_moduli_bit_length = (1 << 10);
+
+    const size_t phase2_moduli_basis_size = 100;
+    const size_t phase2_moduli_bit_length = 15;
 
     const size_t input_bit_length = (1 << 5);
 
-    typedef LInteger Phase1_modulis_type;
-    typedef uint_fast64_t Phase2_modulis_type;
+    typedef LInteger Phase1_moduli_type;
+    typedef uint_fast64_t Phase2_moduli_type;
 
     TwoPhaseAlgo<
-        Phase1_modulis_type,
-        phase1_modulis_size,
-        phase1_modulis_bit_length,
-        Phase2_modulis_type,
-        phase2_modulis_basis_size,
-        phase2_modulis_bit_length>
+        Phase1_moduli_type,
+        phase1_moduli_size,
+        phase1_moduli_bit_length,
+        Phase2_moduli_type,
+        phase2_moduli_basis_size,
+        phase2_moduli_bit_length>
         algo;
-    Phase1_modulis_type a;
-    Phase1_modulis_type b;
-    Phase1_modulis_type d;
+    Phase1_moduli_type a;
+    Phase1_moduli_type b;
+    Phase1_moduli_type d;
     a.randomizePrime(input_bit_length);
     b.randomizePrime(input_bit_length);
 
@@ -61,4 +74,10 @@ int main()
     // cout
     // << a << endl
     // << a.product << endl;
+}
+
+int main()
+{
+    // test();
+    test2();
 }

@@ -11,6 +11,49 @@
 using namespace std;
 
 template <class T>
+class PtrVector : public vector<T*> {
+public:
+    PtrVector(size_t len)
+        : vector<T*>(len)
+    {
+    }
+    T& val(size_t i) const { return *(this->operator[](i)); }
+    T*& ptr(size_t i) { return this->operator[](i); }
+    ~PtrVector()
+    {
+        this->erase(this->begin());
+    }
+};
+
+template <class T>
+class NumPtrVector : public PtrVector<T> {
+public:
+    NumPtrVector(size_t len)
+        : PtrVector<T>(len)
+    {
+    }
+
+    T& operator[](const size_t i) const
+    {
+        return this->val(i);
+    }
+
+    friend ostream& operator<<(ostream& out, const NumPtrVector<T>& arr)
+    {
+        size_t N = arr.size();
+        out << "[";
+        for (size_t i = 0; i < N; i++) {
+            out << arr[i];
+            if (i != N - 1) {
+                out << " , ";
+            }
+        }
+        out << "]";
+        return out;
+    }
+};
+
+template <class T>
 using PtrAllocator = std::function<T*(size_t index)>;
 
 // used to store a list of large primes as pointers
@@ -25,13 +68,24 @@ public:
             this->operator[](i) = allocator(i);
         }
     }
+
+    PtrVector<T>* EXPENSIVE_NEW_PTR_VECTOR() const
+    {
+        auto vec = new PtrVector<T>(N);
+        for (size_t i = 0; i < N; i++) {
+            vec->ptr(i) = this->ptr(i);
+        }
+        return vec;
+    }
+
     // default C++ array<T,N> destructor frees the memory
     ~PtrArray() = default;
 
     PtrArray(const PtrArray&) = delete;
     const PtrArray& operator=(const PtrArray&) = delete;
 
-    const T& ref(size_t i) const { return *(this->operator[](i)); }
+    T& val(size_t i) const { return *(this->operator[](i)); }
+    T* ptr(size_t i) const { return this->operator[](i); }
 
     size_t count() const { return N; }
 
@@ -59,18 +113,30 @@ public:
     {
     }
 
-    T* ptr(const size_t& i) const
+    T& operator[](const size_t i) const
     {
-        return PtrArray<T, N>::operator[](i);
+        return this->val(i);
     }
 
-    T& operator[](const size_t& i) const
+    NumPtrVector<T>* EXPENSIVE_NEW_NUM_PTR_VECTOR() const
     {
-        return *(PtrArray<T, N>::operator[](i));
+        auto vec = new NumPtrVector<T>(N);
+        for (size_t i = 0; i < N; i++) {
+            vec->ptr(i) = this->ptr(i);
+        }
+        return vec;
     }
 
-    friend ostream& operator<<(ostream& out,
-        const NumPtrArray<T, N>& arr)
+    vector<Givaro::Integer>* EXPENSIVE_NEW_INTEGER_VECTOR() const
+    {
+        auto vec = new vector<Givaro::Integer>(N);
+        for (size_t i = 0; i < N; i++) {
+            vec->operator[](i) = this->val(i);
+        }
+        return vec;
+    }
+
+    friend ostream& operator<<(ostream& out, const NumPtrArray<T, N>& arr)
     {
         out << "[";
         for (size_t i = 0; i < N; i++) {
@@ -82,7 +148,6 @@ public:
         out << "]";
         return out;
     }
-
     ~NumPtrArray() = default;
 
     NumPtrArray(const NumPtrArray&) = delete;
@@ -112,15 +177,6 @@ public:
         }
     }
 
-    const vector<Integer> EXPENSIVE_TO_VECTOR() const
-    {
-        vector<Integer> vec(N);
-        for (size_t i = 0; i < N; i++) {
-            vec[i] = this->operator[](i);
-        }
-        return vec;
-    }
-
     const T* ptr(const size_t& i) const
     {
         return PtrArray<const T, N>::operator[](i);
@@ -129,6 +185,15 @@ public:
     const T& operator[](const size_t& i) const
     {
         return *(PtrArray<const T, N>::operator[](i));
+    }
+
+    NumPtrVector<T>* EXPENSIVE_NEW_NUM_PTR_VECTOR() const
+    {
+        auto vec = new NumPtrVector<T>(N);
+        for (size_t i = 0; i < N; i++) {
+            vec->ptr(i) = new T{ this->val(i) };
+        }
+        return vec;
     }
 
     friend ostream& operator<<(ostream& out,
