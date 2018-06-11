@@ -108,6 +108,10 @@ NumPtrVector<T_L>* new_naive_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& i
 template <class T_L, class T_M, size_t N_M>
 NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inputs)
 {
+#ifdef DEBUG_MMC
+    cerr << "new_sim_recover called with" << endl
+         << " - inputs: " << inputs << endl;
+#endif
     size_t len_inputs = inputs.size();
     auto output_vec = new NumPtrVector<T_L>(len_inputs);
     if (len_inputs == 0) {
@@ -115,17 +119,26 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
     }
     // assuming all inputs are reduced with the same set of moduli
     vector<Integer>* input_vec = inputs[0].moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
+    // cerr << "check: " << *input_vec << endl;
     FFPACK::rns_double rns(*input_vec);
     delete input_vec;
     // RNSInteger is a decorator (wrapper) on FFPACK::rns_double that adds some functionalities
     FFPACK::RNSInteger<FFPACK::rns_double> z_rns(rns);
     // to adopt for FFLA's interface
     // create two finite fields mod the larges number representable by Givaro::Integer
-    Givaro::Modular<Givaro::Integer> output_field(-1);
-    auto input_A = FFLAS::fflas_new(z_rns, len_inputs);
-    auto output_A = FFLAS::fflas_new(output_field, len_inputs);
+    typename FFPACK::RNSInteger<FFPACK::rns_double>::Element_ptr input_A = FFLAS::fflas_new(z_rns, len_inputs);
+    for (size_t idx_in = 0; idx_in < len_inputs; idx_in++) {
+        for (size_t idx_mod = 0; idx_mod < N_M; idx_mod++) {
+            // cerr << input_A[idx_mod * len_inputs + idx_in]._ptr << " = " << inputs[idx_in].residuals[idx_mod] << endl;
+            *input_A[idx_mod * len_inputs + idx_in]._ptr = static_cast<double>(inputs[idx_in].residuals[idx_mod]);
+            // cerr << "input_A[" << idx_mod << " * " << len_inputs << " + " << idx_in << "] = " << *input_A[idx_mod * len_inputs + idx_in]._ptr << endl;
+        }
+    }
+    Givaro::Modular<Givaro::Integer> output_field;
+    typename Givaro::Modular<Givaro::Integer>::Element_ptr output_A = FFLAS::fflas_new(output_field, len_inputs);
     FFLAS::fconvert_rns(z_rns, len_inputs, 1, Givaro::Integer(0), output_A, 1, input_A);
     for (size_t idx_out = 0; idx_out < len_inputs; idx_out++) {
+        // cerr << "check: " << output_A[idx_out] << endl;
         Givaro::Integer& e = output_A[idx_out];
         output_vec->ptr(idx_out) = new T_L{ e };
     }
@@ -138,20 +151,28 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
 template <class T_L, class T_M, size_t N_M>
 NumPtrVector<ReducedInt<T_M, N_M>>* new_sim_reduce(const NumPtrVector<T_L>& inputs, const ConstNumPtrArray<T_M, N_M>& moduli)
 {
-    cerr << "sim_reduce called with" << endl
+#ifdef DEBUG_MMC
+    cerr << "new_sim_reduce called with" << endl
          << " - inputs: " << inputs << endl
-         << " - moduli: " << moduli << endl;
+         << " - moduli: " << moduli << endl
+         << "    - product: " << moduli.product << endl;
+#endif
     size_t len_inputs = inputs.size();
     // to adopt for FFLA's interface
     // wet up input_A
     Givaro::Modular<Givaro::Integer> input_field;
     typename Givaro::Modular<Givaro::Integer>::Element_ptr input_A = FFLAS::fflas_new(input_field, len_inputs, 1);
-    size_t input_max_bitsize = input_field.cardinality().bitsize();
+    size_t input_max_bitsize = moduli.product.bitsize();
     size_t n_16bits_chunks = (input_max_bitsize / 16) + ((input_max_bitsize % 16) ? 1 : 0);
+    // cerr << "input_max_bitsize: " << input_max_bitsize << endl;
+    // cerr << "n_16bits_chunks: " << n_16bits_chunks << endl;
     for (size_t r = 0; r < len_inputs; r++) {
+#ifdef ASSERT_MMC
+        assert(inputs[r] < moduli.product && "At least of one the input integers is too large.");
+#endif
         input_A[r] = inputs[r];
     }
-    cerr << "check: " << *input_A << endl;
+    // cerr << "check: " << *input_A << endl;
     // set up output_A
     // RNS: contains an array of primes whose product is >= P, each of primes_bits long
     const vector<Givaro::Integer>* moduli_vec = moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
@@ -165,7 +186,10 @@ NumPtrVector<ReducedInt<T_M, N_M>>* new_sim_reduce(const NumPtrVector<T_L>& inpu
     for (size_t idx_out = 0; idx_out < len_inputs; idx_out++) {
         ReducedInt<T_M, N_M>* ptr = new ReducedInt<T_M, N_M>(moduli, [&](size_t idx_moduli) {
             double* res = output_A[idx_moduli * len_inputs + idx_out]._ptr;
-            cerr << inputs[idx_out] << " mod " << moduli[idx_moduli] << " = " << *res << endl;
+            // cerr << inputs[idx_out] << " mod " << moduli[idx_moduli] << " = " << *res << endl;
+#ifdef ASSERT_MMC
+            assert(Integer(inputs[idx_out]) % Integer(moduli[idx_moduli]) == Integer(*res));
+#endif
             return new T_M{ static_cast<T_M>(std::round(*res)) };
         });
         ReducedInt<T_M, N_M>*& _ptr = output_vec->ptr(idx_out);

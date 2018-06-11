@@ -95,7 +95,6 @@ public:
         // phase 2 recovery begins
         NumPtrVector<T_F>* recovered = SIM_RNS::new_sim_recover<T_F, T_M, N_M>(*phase2_outputs);
         cerr << *recovered << endl;
-        recovered->erase(recovered->begin());
 
         delete phase2_outputs;
         delete recovered;

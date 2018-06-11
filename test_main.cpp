@@ -13,18 +13,26 @@ using namespace SIM_RNS;
 
 void test2()
 {
-    PrimeGenExact<LInteger, 2, 6> pg;
-    PrimeGenExact<LInteger, 2, 5> moduli;
-    NumPtrVector<LInteger>* inputs = pg.EXPENSIVE_NEW_NUM_PTR_VECTOR();
-    NumPtrVector<ReducedInt<LInteger, 2>>* vec = new_sim_reduce<LInteger, LInteger, 2>(*inputs, moduli);
-    cerr << vec << endl;
+    const size_t input_count = 100;
+    const size_t input_bitsize = 50;
+    const size_t moduli_count = 8;
+    const size_t moduli_bitsize = 10;
+    const PrimeGenExact<LInteger, input_count, input_bitsize> pg;
+    const PrimeGenExact<LInteger, moduli_count, moduli_bitsize> moduli;
+    const NumPtrVector<LInteger>* inputs = pg.EXPENSIVE_NEW_NUM_PTR_VECTOR();
+    auto vec = new_sim_reduce(*inputs, moduli);
+    auto vec2 = new_sim_recover<LInteger, LInteger, moduli_count>(*vec);
+    cerr << *inputs << endl;
+    cerr << *vec2 << endl;
+    assert(inputs->equals(*vec2) && "test2 failed");
     delete vec;
     delete inputs;
+    cerr << "test2 passed" << endl;
 }
 
 void test()
 {
-    const size_t phase1_moduli_size = 2;
+    const size_t phase1_moduli_count = 2;
     const uint_fast64_t phase1_moduli_bit_length = (1 << 10);
 
     const size_t phase2_moduli_basis_size = 100;
@@ -37,7 +45,7 @@ void test()
 
     TwoPhaseAlgo<
         Phase1_moduli_type,
-        phase1_moduli_size,
+        phase1_moduli_count,
         phase1_moduli_bit_length,
         Phase2_moduli_type,
         phase2_moduli_basis_size,
@@ -78,6 +86,8 @@ void test()
 
 int main()
 {
-    // test();
-    test2();
+    for (int i = 0; i < 100; i++) {
+        // test();
+        test2();
+    }
 }

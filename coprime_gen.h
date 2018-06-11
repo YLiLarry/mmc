@@ -23,22 +23,28 @@ public:
             return t;
         })
     {
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                assert(gcd(this->val(i), this->val(j)) == 2);
+            }
+        }
     }
 
-    friend ostream& operator<<(ostream& out, const MargeGenMost<LInteger, N, B>& arr) {
+    friend ostream& operator<<(ostream& out, const MargeGenMost<LInteger, N, B>& arr)
+    {
         out << "MargeGenMost [";
         for (size_t i = 0; i < N; i++) {
             const Integer& t = arr[i];
-            const uint_fast64_t p = (t+1).bitsize() - 1; // static_cast<uint_fast64_t>(std::ceil())
+            const uint_fast64_t p = (t + 1).bitsize() - 1; // static_cast<uint_fast64_t>(std::ceil())
             out << "2^" << p << "-1=" << t;
             if (i != N - 1) {
                 out << " , ";
             }
         }
         out << "]" << endl
-             << " - count: " << arr.count() << endl
-             << " - max bit length " << B << endl
-             << " - product bit length: " << arr.product.bitsize() << endl;
+            << " - count: " << arr.count() << endl
+            << " - max bit length " << B << endl
+            << " - product bit length: " << arr.product.bitsize() << endl;
         return out;
     }
 

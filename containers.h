@@ -19,6 +19,7 @@ public:
     }
     T& val(size_t i) const { return *(this->operator[](i)); }
     T*& ptr(size_t i) { return this->operator[](i); }
+    T* ptr(size_t i) const { return this->operator[](i); }
     ~PtrVector()
     {
         this->erase(this->begin());
@@ -36,6 +37,23 @@ public:
     T& operator[](const size_t i) const
     {
         return this->val(i);
+    }
+
+    bool equals(const NumPtrVector<T>& other) const
+    {
+        size_t N = this->size();
+        if (N != other.size()) {
+            return false;
+        }
+        for (size_t i = 0; i < N; i++) {
+            if (!this->ptr(i) || !other.ptr(i)) {
+                return false;
+            }
+            if (this->val(i) != other.val(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     friend ostream& operator<<(ostream& out, const NumPtrVector<T>& arr)
@@ -148,6 +166,23 @@ public:
         out << "]";
         return out;
     }
+
+    bool equals(const NumPtrArray<T, N>& other) const
+    {
+        if (N != other.count()) {
+            return false;
+        }
+        for (size_t i = 0; i < N; i++) {
+            if (!this->ptr(i) || !other.ptr(i)) {
+                return false;
+            }
+            if (this->val(i) != other.val(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     ~NumPtrArray() = default;
 
     NumPtrArray(const NumPtrArray&) = delete;

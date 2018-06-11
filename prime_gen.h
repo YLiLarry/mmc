@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <givaro/givintprime.h>
 #include <linbox/randiter/random-prime.h>
 #include <ostream>
 using namespace std;
@@ -27,7 +28,7 @@ public:
 };
 
 template <typename T, size_t N, uint_fast64_t B>
-LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{ B };
+LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{ B, (uint64_t)BaseTimer::seed() };
 
 // return an array containing primes in type T, eg. T = int64_t
 // all primes are exactly B-b   its long, ie, between [2^(B-1), 2^B-1]
@@ -45,9 +46,16 @@ public:
             return t;
         })
     {
+#ifdef ASSERT_MMC
+        Givaro::IntPrimeDom primeDom;
+        for (size_t i = 0; i < N; i++) {
+            assert(primeDom.isprime(this->val(i)));
+        }
+#endif
     }
 
-    friend ostream& operator<<(ostream& out, const PrimeGenExact<T, N, B>& arr) {
+    friend ostream& operator<<(ostream& out, const PrimeGenExact<T, N, B>& arr)
+    {
         out << "PrimeGenExact [";
         for (size_t i = 0; i < N; i++) {
             out << arr[i];
@@ -56,9 +64,9 @@ public:
             }
         }
         out << "]" << endl
-             << " - count: " << arr.count() << endl
-             << " - max bit length " << B << endl
-             << " - product bit length: " << arr.product.bitsize() << endl;
+            << " - count: " << arr.count() << endl
+            << " - max bit length " << B << endl
+            << " - product bit length: " << arr.product.bitsize() << endl;
         return out;
     }
 
@@ -68,23 +76,23 @@ public:
     PrimeGenExact& operator&=(const PrimeGenExact&) = delete;
 };
 
-template <size_t N, uint_fast64_t B>
-class PrimeGenExact<LInteger, N, B> : public PrimeGen<LInteger, N, B> {
-public:
-    PrimeGenExact()
-        : PrimeGen<LInteger, N, B>([&](size_t index) {
-            LInteger* p = new LInteger();
-            PrimeGen<LInteger, N, B>::_primeItr.random_exact(*p);
-            return p;
-        })
-    {
-    }
+// template <size_t N, uint_fast64_t B>
+// class PrimeGenExact<LInteger, N, B> : public PrimeGen<LInteger, N, B> {
+// public:
+//     PrimeGenExact()
+//         : PrimeGen<LInteger, N, B>([&](size_t index) {
+//             LInteger* p = new LInteger();
+//             PrimeGen<LInteger, N, B>::_primeItr.random_exact(*p);
+//             return p;
+//         })
+//     {
+//     }
 
-    ~PrimeGenExact() = default;
+//     ~PrimeGenExact() = default;
 
-    PrimeGenExact(const PrimeGenExact&) = delete;
-    PrimeGenExact& operator&=(const PrimeGenExact&) = delete;
-};
+//     PrimeGenExact(const PrimeGenExact&) = delete;
+//     PrimeGenExact& operator&=(const PrimeGenExact&) = delete;
+// };
 
 // return an array containing primes in type T, eg. T = int64_t
 // all primes are at most B-bits long, ie, between [2, 2^B-1]
