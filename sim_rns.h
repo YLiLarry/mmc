@@ -44,7 +44,7 @@ public:
     {
         out << endl
             << "ReducedInt " << r.residuals << endl
-            << " - from moduli:" << r.moduli << endl;
+            << " - from moduli: " << r.moduli << endl;
         return out;
     }
 
@@ -118,7 +118,8 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
         return output_vec;
     }
     // assuming all inputs are reduced with the same set of moduli
-    vector<Integer>* input_vec = inputs[0].moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
+    const ConstNumPtrArray<T_M, N_M>& moduli = inputs[0].moduli;
+    vector<Integer>* input_vec = moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
     // cerr << "check: " << *input_vec << endl;
     FFPACK::rns_double rns(*input_vec);
     delete input_vec;
@@ -129,16 +130,19 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
     typename FFPACK::RNSInteger<FFPACK::rns_double>::Element_ptr input_A = FFLAS::fflas_new(z_rns, len_inputs);
     for (size_t idx_in = 0; idx_in < len_inputs; idx_in++) {
         for (size_t idx_mod = 0; idx_mod < N_M; idx_mod++) {
-            // cerr << input_A[idx_mod * len_inputs + idx_in]._ptr << " = " << inputs[idx_in].residuals[idx_mod] << endl;
             *input_A[idx_mod * len_inputs + idx_in]._ptr = static_cast<double>(inputs[idx_in].residuals[idx_mod]);
+#ifdef ASSERT_MMC
+            cerr << *input_A[idx_mod * len_inputs + idx_in]._ptr << " = " << inputs[idx_in].residuals[idx_mod] << endl;
+            assert(Integer(*input_A[idx_mod * len_inputs + idx_in]._ptr) = Integer(inputs[idx_in].residuals[idx_mod]));
             // cerr << "input_A[" << idx_mod << " * " << len_inputs << " + " << idx_in << "] = " << *input_A[idx_mod * len_inputs + idx_in]._ptr << endl;
+#endif
         }
     }
-    Givaro::Modular<Givaro::Integer> output_field;
-    typename Givaro::Modular<Givaro::Integer>::Element_ptr output_A = FFLAS::fflas_new(output_field, len_inputs);
+    Givaro::Modular<Givaro::Integer> output_field(moduli.product);
+    typename Givaro::Modular<Givaro::Integer>::Element_ptr output_A = FFLAS::fflas_new(output_field, len_inputs, 1);
     FFLAS::fconvert_rns(z_rns, len_inputs, 1, Givaro::Integer(0), output_A, 1, input_A);
     for (size_t idx_out = 0; idx_out < len_inputs; idx_out++) {
-        // cerr << "check: " << output_A[idx_out] << endl;
+        cerr << "check: " << output_A[idx_out] << endl;
         Givaro::Integer& e = output_A[idx_out];
         output_vec->ptr(idx_out) = new T_L{ e };
     }
