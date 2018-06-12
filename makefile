@@ -21,7 +21,7 @@ export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
 export fflas:PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
 
-DEBUG_FLAGS := -DASSERT_MMC=1 -DDEBUG_MMC=1
+# DEBUG_FLAGS := -DASSERT_MMC=1 -DDEBUG_MMC=1
 COMPILER_FLAGS := $(DEBUG_FLAGS) -ferror-limit=1 -g -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp
 TARGETS := *.cpp ./cnma/*.c ./cnma/*.cpp
 

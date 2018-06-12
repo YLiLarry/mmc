@@ -26,9 +26,12 @@ private:
 public:
     TwoPhaseAlgo()
     {
-        cerr << _F_arr << endl
+#ifdef DEBUG_MMC
+        cerr << "TwoPhaseAlgo constructor called" << endl
+             << _F_arr << endl
              << _M_arr << endl;
-        assert(B_F < _M_arr.product.bitsize() && "At least one of the first level moduli is greater than the product of the second level moduli.");
+#endif
+        // assert(B_F < _M_arr.product.bitsize() && "At least one of the first level moduli is greater than the product of the second level moduli.");
     }
     ~TwoPhaseAlgo() = default;
     TwoPhaseAlgo(const TwoPhaseAlgo&) = delete;
@@ -41,8 +44,8 @@ public:
              << " - a: " << a << endl
              << " - b: " << b << endl;
 #endif
-        assert(static_cast<uint_least64_t>(a.bitsize()) < _F_arr.sum);
-        assert(static_cast<uint_least64_t>(b.bitsize()) < _F_arr.sum);
+        assert(a < _F_arr.product && "Inputs must be less than the product of first level moduli.");
+        assert(b < _F_arr.product && "Inputs must be less than the product of first level moduli.");
 #ifdef DEBUG_MMC
         cerr << "##### phase 1 #####" << endl;
 #endif

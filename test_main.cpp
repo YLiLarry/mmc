@@ -32,13 +32,13 @@ void test2()
 
 void test()
 {
-    const size_t phase1_moduli_count = 2;
-    const uint_fast64_t phase1_moduli_bit_length = (1 << 10);
+    const size_t phase1_moduli_count = 1000;
+    const uint_fast64_t phase1_moduli_bit_length = 25000;
 
-    const size_t phase2_moduli_basis_size = 100;
-    const size_t phase2_moduli_bit_length = 15;
+    const size_t phase2_moduli_basis_size = 1000;
+    const size_t phase2_moduli_bit_length = 26;
 
-    const size_t input_bit_length = (1 << 5);
+    const size_t input_bit_length = 25000000;
 
     typedef LInteger Phase1_moduli_type;
     typedef uint_fast64_t Phase2_moduli_type;
@@ -54,8 +54,8 @@ void test()
     Phase1_moduli_type a;
     Phase1_moduli_type b;
     Phase1_moduli_type d;
-    a.randomizePrime(input_bit_length);
-    b.randomizePrime(input_bit_length);
+    a.randomize(input_bit_length);
+    b.randomize(input_bit_length);
 
     algo.mult(d, a, b);
 
