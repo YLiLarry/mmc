@@ -132,7 +132,7 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
         for (size_t idx_mod = 0; idx_mod < N_M; idx_mod++) {
             *input_A[idx_mod * len_inputs + idx_in]._ptr = static_cast<double>(inputs[idx_in].residuals[idx_mod]);
 #ifdef ASSERT_MMC
-            cerr << *input_A[idx_mod * len_inputs + idx_in]._ptr << " = " << inputs[idx_in].residuals[idx_mod] << endl;
+            // cerr << *input_A[idx_mod * len_inputs + idx_in]._ptr << " = " << inputs[idx_in].residuals[idx_mod] << endl;
             assert(Integer(*input_A[idx_mod * len_inputs + idx_in]._ptr) = Integer(inputs[idx_in].residuals[idx_mod]));
             // cerr << "input_A[" << idx_mod << " * " << len_inputs << " + " << idx_in << "] = " << *input_A[idx_mod * len_inputs + idx_in]._ptr << endl;
 #endif
@@ -142,7 +142,7 @@ NumPtrVector<T_L>* new_sim_recover(const NumPtrVector<ReducedInt<T_M, N_M>>& inp
     typename Givaro::Modular<Givaro::Integer>::Element_ptr output_A = FFLAS::fflas_new(output_field, len_inputs, 1);
     FFLAS::fconvert_rns(z_rns, len_inputs, 1, Givaro::Integer(0), output_A, 1, input_A);
     for (size_t idx_out = 0; idx_out < len_inputs; idx_out++) {
-        cerr << "check: " << output_A[idx_out] << endl;
+        // cerr << "check: " << output_A[idx_out] << endl;
         Givaro::Integer& e = output_A[idx_out];
         output_vec->ptr(idx_out) = new T_L{ e };
     }

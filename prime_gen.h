@@ -30,7 +30,7 @@ public:
 template <typename T, size_t N, uint_fast64_t B>
 LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{ B, (uint64_t)BaseTimer::seed() };
 
-// return an array containing primes in type T, eg. T = int64_t
+// return an array containing unique primes in type T, eg. T = int64_t
 // all primes are exactly B-b   its long, ie, between [2^(B-1), 2^B-1]
 // eg. PrimeGen<uint64_t, 10, 64> p{};
 //     generates 10 primes each exactly 64 bits
@@ -41,8 +41,19 @@ public:
     PrimeGenExact()
         : PrimeGen<T, N, B>([&](size_t index) {
             Integer p;
-            PrimeGen<T, N, B>::_primeItr.random_exact(p);
-            T* t = new T(p);
+            T* t = nullptr;
+            while (t == nullptr) {
+                PrimeGen<T, N, B>::_primeItr.random_exact(p);
+                t = new T{ p };
+                for (size_t i = 0; i < index; i++) {
+                    if (this->val(i) == p) {
+                        delete t;
+                        t = nullptr;
+                        cerr << "PrimeGenExact generated a duplicated prime, retrying.. If this repeats forever you might be running out of primes within the same bit length." << endl;
+                        break;
+                    }
+                }
+            }
             return t;
         })
     {

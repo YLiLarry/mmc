@@ -13,9 +13,9 @@ using namespace SIM_RNS;
 
 void test2()
 {
-    const size_t input_count = 100;
-    const size_t input_bitsize = 50;
-    const size_t moduli_count = 8;
+    const size_t input_count = 1;
+    const size_t input_bitsize = 90;
+    const size_t moduli_count = 10;
     const size_t moduli_bitsize = 10;
     const PrimeGenExact<LInteger, input_count, input_bitsize> pg;
     const PrimeGenExact<LInteger, moduli_count, moduli_bitsize> moduli;
@@ -87,7 +87,7 @@ void test()
 int main()
 {
     for (int i = 0; i < 100; i++) {
-        // test();
-        test2();
+        test();
+        // test2();
     }
 }

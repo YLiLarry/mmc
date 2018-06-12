@@ -16,18 +16,37 @@ protected:
 public:
     MargeGenMost()
         : PrimeGen<T, N, B>([&](size_t index) {
-            const uint_fast64_t p = MargeGenMost<T, N, B>::_primeItr.random();
-            T* t = new T{ 1 }; // init to 1
-            t->operator<<=(p); // = 2^p
-            t->operator--(); // = 2^p-1
+            static_assert(B < UINT_LEAST64_MAX, "B is too large.");
+            Integer p;
+            T* t = nullptr;
+            while (t == nullptr) {
+                MargeGenMost<T, N, B>::_primeItr.random_exact(p);
+                t = new T{ 1 }; // init to 1
+                t->operator<<=(static_cast<uint_fast64_t>(p)); // = 2^p
+                t->operator--(); // = 2^p-1
+                for (size_t i = 0; i < index; i++) {
+                    if (this->val(i) == *t) {
+                        delete t;
+                        t = nullptr;
+                        cerr << "MargeGenMost generated a duplicated coprime, retrying.. If this repeats forever you may be running out of coprimes." << endl;
+                        break;
+                    }
+                }
+            }
             return t;
         })
     {
+#ifdef ASSERT_MMC
         for (size_t i = 0; i < N; i++) {
             for (size_t j = 0; j < N; j++) {
-                assert(gcd(this->val(i), this->val(j)) == 2);
+                if (i != j && gcd(this->val(i), this->val(j)) != 1) {
+                    cerr << "MargeGenMost is not generating coprimes." << endl
+                         << " - got: " << this->val(i) << " and " << this->val(j) << endl;
+                    abort();
+                }
             }
         }
+#endif
     }
 
     friend ostream& operator<<(ostream& out, const MargeGenMost<LInteger, N, B>& arr)
