@@ -28,7 +28,7 @@ public:
     {
         cerr << _F_arr << endl
              << _M_arr << endl;
-        assert(B_F < _M_arr.product.bitsize() && "Your second level moduli's product is less than the input.");
+        assert(B_F < _M_arr.product.bitsize() && "At least one of the first level moduli is greater than the product of the second level moduli.");
     }
     ~TwoPhaseAlgo() = default;
     TwoPhaseAlgo(const TwoPhaseAlgo&) = delete;
