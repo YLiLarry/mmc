@@ -1,12 +1,12 @@
 [submodule "submodule/fflas-ffpack"]
 	path = submodule/fflas-ffpack
-	url = https://github.com/linbox-team/fflas-ffpack.git
+	url = https://github.com/ylilarry/fflas-ffpack.git
 [submodule "submodule/OpenBLAS"]
 	path = submodule/OpenBLAS
-	url = https://github.com/xianyi/OpenBLAS.git
+	url = https://github.com/ylilarry/OpenBLAS.git
 [submodule "submodule/givaro"]
 	path = submodule/givaro
-	url = https://github.com/linbox-team/givaro.git
+	url = https://github.com/ylilarry/givaro.git
 [submodule "submodule/linbox"]
 	path = submodule/linbox
-	url = https://github.com/linbox-team/linbox
+	url = https://github.com/ylilarry/linbox
