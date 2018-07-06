@@ -83,8 +83,7 @@ NumPtrVector<ReducedInt<T_M, N_M>> *new_naive_reduce(
 }
 
 template <class T_L, class T_M, size_t N_M>
-NumPtrVector<T_L> *new_naive_recover(
-    const NumPtrVector<ReducedInt<T_M, N_M>> &inputs)
+NumPtrVector<T_L> *new_naive_recover(const NumPtrVector<ReducedInt<T_M, N_M>> &inputs)
 {
     size_t input_len = inputs.size();
     auto outvec = new NumPtrVector<T_L>(input_len);
@@ -347,29 +346,56 @@ NumPtrVector<ReducedInt<T_M, N_M>> *new_sim_reduce(
     return output_vec;
 }
 
-// template <class T_L, class T_M, size_t N_M>
-// NumPtrVector<FFPACK::rns_double::Element>* fflas_new_vec_reduce(const
-// NumPtrVector<T_L>& inputs, const ConstNumPtrArray<T_M, N_M>& moduli)
-// {
-// #if DEBUG_MMC
-//     cerr << "fflas_new_vec_reduce called with" << endl
-//          << " - inputs: " << inputs << endl
-//          << " - moduli: " << moduli << endl
-//          << "    - product: " << moduli.product << endl;
-// #endif
-//     size_t len_inputs = inputs.size();
-//     NumPtrVector<ReducedInt<T_M, N_M>>* reduced = new_sim_reduce<T_L, T_M,
-//     N_M>(inputs, moduli); NumPtrVector<FFPACK::rns_double::Element>*
-//     output_vec = new NumPtrVector<FFPACK::rns_double::Element>(len_inputs);
-//     const vector<Givaro::Integer>* moduli_vec =
-//     moduli.EXPENSIVE_NEW_INTEGER_VECTOR(); FFPACK::rns_double
-//     rns(*moduli_vec); delete moduli_vec;
-//     // RNSInteger is a decorator (wrapper) on FFPACK::rns_double that adds
-//     some functionalities FFPACK::RNSInteger<FFPACK::rns_double> z_rns(rns);
-//     for (size_t i = 0; i < len_inputs; i++) {
-//         output_vec[i] = FFLAS::fflas_new(z_rns, N_M);
-//     }
-//     return output_vec;
-// }
+vector<Givaro::Integer> fflas_mult_integer(
+    const vector<Givaro::Integer> &matrix_a,
+    const vector<Givaro::Integer> &matrix_b,
+    size_t dim_m, size_t dim_n, size_t dim_k)
+{
+    using namespace FFLAS;
+    assert(dim_m && dim_n && dim_k);
+    // create matrix_c to return
+    typedef Givaro::ZRing<Givaro::Integer> ZRing;
+    ZRing zring;
+    ZRing::Element_ptr fflas_mat_a = FFLAS::fflas_new(zring, dim_m, dim_n);
+    ZRing::Element_ptr fflas_mat_b = FFLAS::fflas_new(zring, dim_n, dim_k);
+    ZRing::Element_ptr fflas_mat_c = FFLAS::fflas_new(zring, dim_m, dim_k);
+
+    size_t len_a = dim_m * dim_n;
+    size_t len_b = dim_n * dim_k;
+    for (size_t i = 0; i < len_a; i++)
+    {
+        fflas_mat_a[i] = matrix_a[i];
+    }
+
+    for (size_t i = 0; i < len_b; i++)
+    {
+        fflas_mat_b[i] = matrix_b[i];
+    }
+
+    FFLAS::fgemm(
+        zring,               // field
+        FFLAS::FflasNoTrans, // transpose matrix_a?
+        FFLAS::FflasNoTrans, // transpose matrix_b?
+        dim_m, dim_n, dim_k,
+        zring.one, // coefficient before matrix_a*matrix_b
+        fflas_mat_a,
+        dim_n, // row length of matrix_a
+        fflas_mat_b,
+        dim_k,      // row length of matrix_b
+        zring.zero, // constant matrix to add
+        fflas_mat_c,
+        dim_k // row length of matrix_c
+    );
+
+    size_t out_len = dim_m * dim_k;
+    vector<Givaro::Integer> out(out_len);
+    for (size_t i = 0; i < out_len; i++)
+    {
+        out[i] = fflas_mat_c[i];
+    }
+
+    return out;
+};
+
 } // namespace SIM_RNS
 #endif // H_SIM_RNS

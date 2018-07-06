@@ -19,10 +19,12 @@ class LInteger : public LinBox::Integer
         : LinBox::Integer(i)
     {
     }
-    explicit LInteger(const LInteger &i)
-        : LinBox::Integer(i)
-    {
-    }
+
+    LInteger(const LInteger &) = default;
+    // explicit LInteger(const LInteger &i)
+    //     : LinBox::Integer(i)
+    // {
+    // }
     explicit LInteger(const Integer &i)
         : LinBox::Integer(i)
     {
@@ -49,10 +51,17 @@ class LInteger : public LinBox::Integer
         operator&=(uint_fast64_t(1 << ((to - from) - 1)));
     }
 
+    static LInteger random_exact(const uint_fast64_t p)
+    {
+        LInteger a;
+        a.randomize(p);
+        return a;
+    }
+
     // rewrite the current value to a random bits of length p
     void randomize(const uint_fast64_t p)
     {
-#if ! PSEUDO_RANDOM_MMC
+#if !PSEUDO_RANDOM_MMC
         Integer::seeding();
 #endif
         Integer::random_exact_2exp((*this), p);

@@ -165,22 +165,13 @@ class TwoPhaseAlgo
 
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    Phase2_Matrix matrix_reduce(const NumPtrVector<LInteger> &inputs, size_t dim_m, size_t dim_n) const
+    /*
+        this helper method is used by matrix_product(...)
+    */
+  protected:
+    NumPtrVector<Phase1_Int> phase1_reduce(const NumPtrVector<LInteger> &inputs) const
     {
         size_t len_inputs = inputs.length();
-        assert(len_inputs == dim_m * dim_n && "input matrix dimension is incorrect");
-        assert(dim_m > 0 && "input matrix dimension is incorrect");
-        assert(dim_n > 0 && "input matrix dimension is incorrect");
-#if DEBUG_MMC
-        cerr << "########## matrix_reduce ##########" << endl
-             << inputs << endl;
-#endif
-#if TEST_MMC
-        for (size_t i = 0; i < len_inputs; i++)
-        {
-            assert(inputs[i] < _F_arr.product && "Inputs must be less than the product of first level moduli.");
-        }
-#endif
 #if DEBUG_MMC
         cerr << "..... phase 1 reduce ....." << endl;
 #endif
@@ -207,6 +198,30 @@ class TwoPhaseAlgo
         cerr << "phase 1 reduced: " << endl
              << p1_reduced << endl;
 #endif
+        return p1_reduced;
+    }
+
+    /* 
+        use this method to reduce a single matrix to level 2
+    */
+  public:
+    Phase2_Matrix matrix_reduce(const NumPtrVector<LInteger> &inputs, size_t dim_m, size_t dim_n) const
+    {
+        size_t len_inputs = inputs.length();
+        assert(len_inputs == dim_m * dim_n && "input matrix dimension is incorrect");
+        assert(dim_m > 0 && "input matrix dimension is incorrect");
+        assert(dim_n > 0 && "input matrix dimension is incorrect");
+#if DEBUG_MMC
+        cerr << "########## matrix_reduce ##########" << endl
+             << inputs << endl;
+#endif
+#if TEST_MMC
+        for (size_t i = 0; i < len_inputs; i++)
+        {
+            assert(inputs[i] < _F_arr.product && "Inputs must be less than the product of first level moduli.");
+        }
+#endif
+        NumPtrVector<Phase1_Int> p1_reduced = phase1_reduce(inputs);
 
 #if DEBUG_MMC
         cerr << "..... phase 2 reduce ....." << endl;
@@ -232,25 +247,90 @@ class TwoPhaseAlgo
         FFLAS::fflas_delete(phase2_outputs);
 #if DEBUG_MMC
         cerr << "phase 2 reduced: " << endl
-             << mat << endl
-             << "########## matrix_reduce ends ##########" << endl;
+             << mat << endl;
+#endif
+#if DEBUG_MMC
+        cerr << "########## matrix_reduce ends ##########" << endl;
 #endif
         return mat;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
+    /* 
+        use this method to reduce multiple matrices to level 2
+        shoule be faster than reducing one by one
+    */
+  public:
+    const NumPtrVector<Phase2_Matrix> matrix_reduce(const NumPtrVector<LInteger> &matrices, const NumPtrVector<size_t> &dimensions)
+    {
+        size_t len_inputs = matrices.length();
+        size_t num_matrices = dimensions.length();
+#if DEBUG_MMC
+        cerr << "########## matrix_reduce ##########" << endl
+             << "reducing " << len_inputs << " matrices" << endl;
+#endif
+        assert(len_inputs > 0 && num_matrices > 2 && "need at least 2 matrices");
 
+#if TEST_MMC
+        size_t len_ints = 0;
+        for (size_t i = 1; i < num_matrices; i++)
+        {
+            size_t m = dimensions[i - 1];
+            size_t n = dimensions[i];
+            len_ints += m * n;
+        }
+        assert(len_inputs == len_ints && "supplied inputs and dimensions don't match");
+#endif
+        const NumPtrVector<Phase1_Int> p1_reduced = phase1_reduce(matrices);
+
+#if DEBUG_MMC
+        cerr << "..... phase 2 reduce ....." << endl;
+#endif
+        // phase 2 begins
+        Phase2_RNS_Int_Ptr phase2_outputs = SIM_RNS::fflas_new_sim_reduce(*_phase1_field, p1_reduced, *_phase2_rns_field);
+
+        NumPtrVector<Phase2_Matrix> outputs(num_matrices);
+        for (size_t o = 1; o < num_matrices; o++)
+        {
+            size_t dim_m = dimensions[o - 1];
+            size_t dim_n = dimensions[o];
+            Phase2_Matrix *mat = new Phase2_Matrix(*_phase2_rns_computation_field, dim_m, dim_n);
+            outputs->ptr(o) = mat;
+            for (size_t r = 0; r < dim_m; r++)
+            {
+                for (size_t c = 0; c < dim_n; c++)
+                {
+                    size_t i = r * mat->dim_n + c;
+                    for (size_t f = 0; f < N_F; f++)
+                    {
+                        for (size_t m = 0; m < N_M; m++)
+                        {
+                            mat->ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat->count * N_F) + (i * N_F) + f]._ptr[0];
+                        }
+                    }
+                }
+            }
+        }
+        FFLAS::fflas_delete(phase2_outputs);
+#if DEBUG_MMC
+        cerr << "phase 2 reduced: " << endl
+             << outputs << endl;
+#endif
+#if DEBUG_MMC
+        cerr << "########## matrix_reduce ends ##########" << endl;
+#endif
+        return outputs;
+    }
+
+    /* 
+        use this method to recover from a single reduced matrix 
+    */
+  public:
     NumPtrVector<Givaro::Integer> *matrix_recover(const Phase2_Matrix &mat) const
     {
 #if DEBUG_MMC
         cerr << "########## matrix_recover ##########" << endl
              << mat << endl
              << "..... phase 2 recovery ....." << endl;
-
-        // for (size_t i = 0; i < mat.count * N_F; i++)
-        // {
-        //     _phase2_rns_field->write(cerr, mat.data[i]);
-        // }
 #endif
 
         Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*_phase2_rns_field, N_F * mat.count);
@@ -276,22 +356,6 @@ class TwoPhaseAlgo
 #if DEBUG_MMC
         cerr << *phase2_recovered << endl;
 #endif
-#if TEST_MMC
-        // for (size_t i = 0; i < mat.count; i++)
-        // {
-        //     for (size_t f = 0; f < N_F; f++)
-        //     {
-        //         if (phase2_recovered->val(i * N_F + f) >= _F_arr[f])
-        //         {
-        //             cerr << "something went wrong in matrix_recover:" << endl
-        //                  << phase2_recovered->val(i * N_F + f) << endl
-        //                  << _F_arr[f] << endl;
-        //         }
-        //         assert(phase2_recovered->val(i * N_F + f) < _F_arr[f]);
-        //     }
-        // }
-#endif
-
 #if DEBUG_MMC
         cerr << "..... phase 2 recovery ends ....." << endl;
         cerr << "..... phase 1 recovery ....." << endl;
@@ -340,9 +404,11 @@ class TwoPhaseAlgo
         return phase1_recovered;
     }
 
-    Phase2_Matrix phase2_mult(
-        const Phase2_Matrix &matrix_a,
-        const Phase2_Matrix &matrix_b) const
+    /* 
+        use this method to multiply two reduced matrices
+    */
+  public:
+    Phase2_Matrix phase2_mult(const Phase2_Matrix &matrix_a, const Phase2_Matrix &matrix_b) const
     {
 #if DEBUG_MMC
         cerr << "########## phase2_mult ##########" << endl
@@ -383,13 +449,6 @@ class TwoPhaseAlgo
         assert(matrix_a._stride == dim_m * dim_n);
         assert(matrix_b._stride == dim_n * dim_k);
         assert(matrix_c._stride == dim_m * dim_k);
-
-        // Givaro::Integer t1;
-        // cerr << _phase2_rns_computation_field->convert(t1, _phase2_rns_computation_field->one) << endl;
-        // _phase2_rns_computation_field->write(cerr, _phase2_rns_computation_field->one) << endl;
-        // _phase2_rns_computation_field->write(cerr, _phase2_rns_computation_field->zero) << endl;
-        // Givaro::Integer card;
-        // cerr << _phase2_rns_computation_field->cardinality(card) << endl;
 
         FFLAS::fgemm(
             *_phase2_rns_computation_field, // field

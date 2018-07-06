@@ -96,6 +96,17 @@ class NumPtrVector : public PtrVector<T>
         return true;
     }
 
+    vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
+    {
+        size_t N = this->length();
+        auto vec = new vector<Givaro::Integer>(N);
+        for (size_t i = 0; i < N; i++)
+        {
+            vec->operator[](i) = this->val(i);
+        }
+        return vec;
+    }
+
     friend ostream &operator<<(ostream &out, const NumPtrVector<T> &arr)
     {
         size_t N = arr.size();
