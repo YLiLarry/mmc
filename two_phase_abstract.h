@@ -22,8 +22,6 @@ extern "C"
 #include <vector>
 #include "coprime_gen_abstract.h"
 
-using namespace std;
-
 class TwoPhaseAbstract
 {
   protected:

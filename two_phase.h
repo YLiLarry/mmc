@@ -1,14 +1,6 @@
 #if !defined(H_TWO_STEPS_ALGO)
 #define H_TWO_STEPS_ALGO
 
-namespace CNMA
-{
-extern "C"
-{
-#include "cnma/marge_num.h"
-#include "cnma/reconstruct.h"
-}
-} // namespace CNMA
 #include "containers.h"
 #include "marge_gen.h"
 #include "prime_gen.h"
@@ -20,6 +12,14 @@ extern "C"
 #include <fflas-ffpack/field/rns-double.h>
 #include "two_phase_abstract.h"
 
+namespace CNMA
+{
+extern "C"
+{
+#include "cnma/marge_num.h"
+#include "cnma/reconstruct.h"
+}
+} // namespace CNMA
 // Phase 1:
 // level_1_moduli_count is the number of co-primes moduli, each of bit length 2^B_F.
 // co-primes are stored as T_F type in memory.

@@ -1,7 +1,7 @@
 #ifndef H_COPRIME_GEN_ABSTRACT
 #define H_COPRIME_GEN_ABSTRACT
 
-#include <linbox/integer.h>
+#include <gmp++/gmp++.h>
 #include <vector>
 #include <iterator>
 

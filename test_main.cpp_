@@ -17,8 +17,8 @@ using namespace SIM_RNS;
 
 void test5()
 {
-    const uint_fast64_t input_bit_length = 100;
-    const uint_fast64_t phase1_moduli_bit_length = 100;
+    const uint_fast64_t input_bit_length = 1000;
+    const uint_fast64_t phase1_moduli_bit_length = 500;
     const size_t phase2_moduli_bit_length = 26;
 
     vector<Givaro::Integer> a(4);
@@ -34,20 +34,22 @@ void test5()
     cerr << "input a: " << a << endl;
     cerr << "input b: " << b << endl;
 
-    clock_t _time = clock();
+    clock_t _time;
+
     TwoPhaseMarge algo(input_bit_length, phase1_moduli_bit_length, phase2_moduli_bit_length);
+    _time = clock();
     auto r = algo.matrix_reduce(a, 2, 2);
     auto s = algo.matrix_reduce(b, 2, 2);
     auto t = algo.phase2_mult(r, s);
     auto got = algo.matrix_recover(t);
     _time = clock() - _time;
-    cerr << "It took me " << _time << " clicks (" << static_cast<float>(_time) / CLOCKS_PER_SEC << " seconds)" << endl;
+    // cerr << "It took me " << _time << " clicks (" << static_cast<float>(_time) / CLOCKS_PER_SEC << " seconds)" << endl;
 
     Givaro::IntegerDomain id;
     _time = clock();
     vector<Givaro::Integer> expect = SIM_RNS::fflas_mult_integer(a, b, 2, 2, 2);
     _time = clock() - _time;
-    cerr << "It took me " << _time << " clicks (" << static_cast<float>(_time) / CLOCKS_PER_SEC << " seconds)" << endl;
+    // cerr << "It took me " << _time << " clicks (" << static_cast<float>(_time) / CLOCKS_PER_SEC << " seconds)" << endl;
 
     vector<Givaro::Integer> r_ = algo.matrix_recover(r);
     vector<Givaro::Integer> s_ = algo.matrix_recover(s);

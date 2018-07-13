@@ -5,8 +5,6 @@
 #include <linbox/integer.h>
 #include <linbox/randiter/random-prime.h>
 
-using namespace LinBox;
-
 class LInteger : public LinBox::Integer
 {
   public:
@@ -70,9 +68,9 @@ class LInteger : public LinBox::Integer
     void randomizePrime(const uint_fast64_t p)
     {
 #if PSEUDO_RANDOM_MMC
-        RandomPrimeIter pit{p};
+        LinBox::RandomPrimeIter pit{p};
 #else
-        RandomPrimeIter pit{p, (uint64_t)BaseTimer::seed()};
+        LinBox::RandomPrimeIter pit{p, (uint64_t)LinBox::BaseTimer::seed()};
 #endif
         pit.random_exact(*this);
     }

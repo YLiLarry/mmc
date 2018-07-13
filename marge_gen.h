@@ -34,6 +34,11 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
         _max--;
         while (product_bitsize() <= product_bound)
         {
+            if (prime_bound < 2)
+            {
+                cerr << "we ran out of primes, consider increasing max_bound." << endl;
+                abort();
+            }
             Givaro::Integer marge(1);
             marge <<= (prime_bound % max_bound);
             marge--;

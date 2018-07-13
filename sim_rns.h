@@ -21,8 +21,6 @@
 namespace SIM_RNS
 {
 
-using namespace std;
-
 // class T_L: type used for large integers (inputs of reduction, outputs of
 // recovery) class T_M: type used for moduli and residuals size_t N: how many
 // moduli
@@ -60,56 +58,6 @@ class ReducedInt
 };
 
 template <class T_L, class T_M, size_t N_M>
-vector<ReducedInt<T_M, N_M>> *new_naive_reduce(
-    const vector<const T_L> &inputs,
-    const ConstNumPtrArray<T_M, N_M> &moduli)
-{
-    size_t len_inputs = inputs.size();
-    auto vec = new vector<ReducedInt<T_M, N_M>>(len_inputs);
-    for (size_t input_i = 0; input_i < len_inputs; input_i++)
-    {
-        const T_L &ith_input = *inputs[input_i];
-        vec[input_i] = new ReducedInt<T_M, N_M>(moduli, [&](size_t res_index) {
-            const T_M &m = moduli[res_index];
-            // cerr << "ith_input %= m " << endl
-            //     << ith_input << endl
-            //     << m << endl;
-            T_M *p = new T_M{static_cast<T_M>(ith_input % m)};
-            // cerr << *p << endl;
-            return p;
-        });
-    }
-    return vec;
-}
-
-template <class T_L, class T_M, size_t N_M>
-vector<T_L> *new_naive_recover(const vector<ReducedInt<T_M, N_M>> &inputs)
-{
-    size_t input_len = inputs.size();
-    auto outvec = new vector<T_L>(input_len);
-    if (input_len > 0)
-    {
-        vector<Integer> moduli = inputs[0]->moduli.EXPENSIVE_NEW_VECTOR();
-        for (size_t i = 0; i < input_len; i++)
-        {
-            ReducedInt<T_M, N_M> *reduced_int = inputs[i];
-            // the numbers should have the same moduli
-            assert(reduced_int->moduli == inputs[0]->moduli);
-            // run CRT on reduced_int to produce a T_L*
-            auto prime_res_mapping = [&](auto r, auto f) { return r; };
-            auto primeiter = moduli.begin();
-            typedef LinBox::EarlySingleCRA<Givaro::Modular<T_M>> CRABase;
-            CRABase base{};
-            LinBox::ChineseRemainderSeq<CRABase> cra{base};
-            Integer result;
-            cra(result, prime_res_mapping, primeiter);
-            outvec[i]->EXPENSIVE_COPY(result);
-        }
-    }
-    return outvec;
-}
-
-template <class T_L, class T_M, size_t N_M>
 vector<T_L> *new_sim_recover(
     const vector<ReducedInt<T_M, N_M>> &inputs)
 {
@@ -125,7 +73,7 @@ vector<T_L> *new_sim_recover(
     }
     // assuming all inputs are reduced with the same set of moduli
     const ConstNumPtrArray<T_M, N_M> &moduli = inputs[0].moduli;
-    vector<Integer> *input_vec = moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
+    vector<Givaro::Integer> *input_vec = moduli.EXPENSIVE_NEW_INTEGER_VECTOR();
     // cerr << "check: " << *input_vec << endl;
     FFPACK::rns_double rns(*input_vec);
     delete input_vec;
@@ -346,7 +294,6 @@ vector<Givaro::Integer> fflas_mult_integer(
     const vector<Givaro::Integer> &matrix_b,
     size_t dim_m, size_t dim_n, size_t dim_k)
 {
-    using namespace FFLAS;
     assert(dim_m && dim_n && dim_k);
     // create matrix_c to return
     typedef Givaro::ZRing<Givaro::Integer> ZRing;

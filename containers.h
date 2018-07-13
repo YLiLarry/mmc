@@ -5,11 +5,8 @@
 #include <array>
 #include <cstdint>
 #include <functional>
-#include <linbox/randiter/random-prime.h>
 #include <ostream>
 #include <fflas-ffpack/fflas/fflas.h>
-
-using namespace std;
 
 template <class T>
 bool equals(const vector<T> &a, const vector<T> &b)

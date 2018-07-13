@@ -12,8 +12,6 @@
 #include <iterator>
 #include "coprime_gen_abstract.h"
 
-using namespace std;
-
 // return an array containing unique primes in type T, eg. T = int64_t
 // all primes are exactly B-b   its long, ie, between [2^(B-1), 2^B-1]
 // eg. PrimeGenMost<uint64_t, 10, 64> p{};
@@ -45,9 +43,13 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
         _max_bitsize = prime_bound.bitsize();
         while (product_bitsize() <= product_bound)
         {
-            T prime(prime_bound); // make a copy
-            vector<T>::push_back(prime);
-            _product *= prime;
+            if (prime_bound < 2)
+            {
+                cerr << "we ran out of primes, consider increasing max_bound." << endl;
+                abort();
+            }
+            vector<T>::push_back(prime_bound);
+            _product *= prime_bound;
             _int_prime_domain.prevprimein(prime_bound);
         }
 
