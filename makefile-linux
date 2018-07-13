@@ -6,12 +6,13 @@ FFLAS_LIB=$(BUILD_DIR)/fflas-ffpack/lib
 GIVARO_LIB=$(BUILD_DIR)/givaro/lib
 LINBOX_LIB=$(BUILD_DIR)/linbox/lib
 GIVARO_INCLUDE=$(BUILD_DIR)/givaro/include
+# export C_INCLUDE_PATH := /usr/include
 FFLAS_INCLUDE=$(BUILD_DIR)/fflas-ffpack/include
 BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
 LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig:$(FFLAS_LIB)/pkgconfig
-export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
+# export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
 # export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
 # export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
@@ -19,13 +20,16 @@ export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 # export GIVARO_CFLAGS := -L"$(BLAS_INCLUDE)"
 # export GIVARO_LIBS := "-L$(GIVARO_LIB)"
 
-export fflas:PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
+export fflas: PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
+export givaro: CFLAGS := -static $(CFLAGS)
+export givaro: CXXFLAGS := -static $(CXXFLAGS)
 
 # DEBUG_FLAGS := -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
-C_FLAGS := $(DEBUG_FLAGS) -ferror-limit=1 -g -c -Wall -lgmp
+
+C_FLAGS := $(DEBUG_FLAGS) -fmax-errors=1 -g -c -Wall 
 C_TARGETS := ./cnma/*.c 
 C_OBJECTS := *.o 
-CPP_FLAGS := $(DEBUG_FLAGS) -ferror-limit=1 -g -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp 
+CPP_FLAGS := $(DEBUG_FLAGS) -fmax-errors=1 -static -Wall --std=gnu++14 -I/usr/include -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmpxx -lgmp -fopenmp
 CPP_TARGETS := *.cpp ./cnma/*.cpp
 init:
 	@echo Checking following build tools:
@@ -60,7 +64,7 @@ init:
 	make blas && make install-blas
 	make givaro && make install-givaro
 	make fflas && make install-fflas
-	make linbox && make install linbox
+	make linbox && make install-linbox
 	make me
 
 blas:
