@@ -21,11 +21,11 @@ export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
 
 export fflas:PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
 
-# DEBUG_FLAGS := -g -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
+DEBUG_FLAGS := -g -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
 C_FLAGS := $(DEBUG_FLAGS) -ferror-limit=1 -Ofast -c -Wall
 C_TARGETS := ./cnma/*.c 
 C_OBJECTS := *.o 
-CPP_FLAGS := $(DEBUG_FLAGS) -ferror-limit=1 -Ofast -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp 
+CPP_FLAGS := $(DEBUG_FLAGS) -ferror-limit=3 -Ofast -Wall --std=c++14 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp 
 CPP_TARGETS := *.cpp ./cnma/*.cpp
 init:
 	@echo Checking following build tools:

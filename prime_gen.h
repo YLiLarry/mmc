@@ -9,65 +9,50 @@
 #include <givaro/givintprime.h>
 #include <linbox/randiter/random-prime.h>
 #include <ostream>
+#include <iterator>
+#include "coprime_gen_abstract.h"
+
 using namespace std;
-
-// generate N random primes each of B-bits length
-template <typename T, size_t N, uint_fast64_t B>
-class PrimeGen : public ConstNumPtrArray<T, N>
-{
-  protected:
-    static LinBox::RandomPrimeIter _primeItr;
-
-  public:
-    PrimeGen(const PtrAllocator<T> &allocator)
-        : ConstNumPtrArray<T, N>(allocator)
-    {
-    }
-    ~PrimeGen() = default;
-    PrimeGen(const PrimeGen &) = delete;
-    PrimeGen &operator&=(const PrimeGen &) = delete;
-};
-
-template <typename T, size_t N, uint_fast64_t B>
-
-#if PSEUDO_RANDOM_MMC
-LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{B};
-#else
-LinBox::RandomPrimeIter PrimeGen<T, N, B>::_primeItr{B, (uint64_t)BaseTimer::seed()};
-#endif
 
 // return an array containing unique primes in type T, eg. T = int64_t
 // all primes are exactly B-b   its long, ie, between [2^(B-1), 2^B-1]
-// eg. PrimeGen<uint64_t, 10, 64> p{};
+// eg. PrimeGenMost<uint64_t, 10, 64> p{};
 //     generates 10 primes each exactly 64 bits
 // access primes using p[index]
-template <typename T, size_t N, uint_fast64_t B>
-class PrimeGenExact : public PrimeGen<T, N, B>
+template <typename T>
+class PrimeGenMost : public CoprimeGenAbstract<T>
 {
+  protected:
+    Givaro::IntPrimeDom _int_prime_domain;
+    Givaro::Integer _product = 1;
+    uint_fast64_t _max_bitsize;
+    T _max;
+
   public:
-    PrimeGenExact()
-        : PrimeGen<T, N, B>([&](size_t index) {
-              Integer p;
-              T *t = nullptr;
-              while (t == nullptr)
-              {
-                  PrimeGen<T, N, B>::_primeItr.random_exact(p);
-                  t = new T{p};
-                  for (size_t i = 0; i < index; i++)
-                  {
-                      if (this->val(i) == p)
-                      {
-                          delete t;
-                          t = nullptr;
-                          cerr << "PrimeGenExact generated a duplicated prime, retrying.. If this repeats forever you might be running out of primes within the same bit length." << endl;
-                          break;
-                      }
-                  }
-              }
-              return t;
-          })
+    inline virtual Givaro::Integer product() const override { return _product; }
+    inline virtual uint_fast64_t product_bitsize() const override { return _product.bitsize(); }
+    inline virtual uint_fast64_t max_bitsize() const override { return _max_bitsize; }
+    inline virtual const T &max() const override { return _max; }
+
+  public:
+    PrimeGenMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
+        Givaro::Integer prime_bound = 1;
+        // linbox bug: uint64 could be undefined
+        prime_bound <<= max_bound;
+        _int_prime_domain.prevprimein(prime_bound);
+        _max = prime_bound;
+        _max_bitsize = prime_bound.bitsize();
+        while (product_bitsize() <= product_bound)
+        {
+            T prime(prime_bound); // make a copy
+            vector<T>::push_back(prime);
+            _product *= prime;
+            _int_prime_domain.prevprimein(prime_bound);
+        }
+
 #ifdef TEST_MMC
+        size_t N = this->count();
         Givaro::IntPrimeDom primeDom;
         for (size_t i = 0; i < N; i++)
         {
@@ -78,100 +63,8 @@ class PrimeGenExact : public PrimeGen<T, N, B>
             assert(primeDom.isprime(this->val(i)));
         }
 #endif
-    }
-
-    friend ostream &operator<<(ostream &out, const PrimeGenExact<T, N, B> &arr)
-    {
-        out << "PrimeGenExact [";
-        for (size_t i = 0; i < N; i++)
-        {
-            out << arr[i];
-            if (i != N - 1)
-            {
-                out << " , ";
-            }
-        }
-        out << "]" << endl
-            << " - count: " << arr.count() << endl
-            << " - max bit length " << B << endl
-            << " - product bit length: " << arr.product.bitsize() << endl;
-        if (arr.product.bitsize() < 1024)
-        {
-            out << " - product: " << arr.product << endl;
-        }
-        return out;
-    }
-
-    ~PrimeGenExact() = default;
-
-    PrimeGenExact(const PrimeGenExact &) = delete;
-    PrimeGenExact &operator&=(const PrimeGenExact &) = delete;
-};
-
-// return an array containing primes in type T, eg. T = int64_t
-// all primes are at most B-bits long, ie, between [2, 2^B-1]
-// eg. PrimeGen<uint64_t, 10, 64> p{};
-//     generates 10 primes each at most 64 bits
-// access primes using p[index]
-template <typename T, size_t N, uint_fast64_t B>
-class PrimeGenMost : public PrimeGen<T, N, B>
-{
-  public:
-    PrimeGenMost()
-        : PrimeGen<T, N, B>([&](size_t index) {
-              Integer p;
-              T *t = nullptr;
-              while (t == nullptr)
-              {
-                  PrimeGen<T, N, B>::_primeItr.random(p);
-                  t = new T{p};
-                  for (size_t i = 0; i < index; i++)
-                  {
-                      if (this->val(i) == p)
-                      {
-                          delete t;
-                          t = nullptr;
-                          cerr << "PrimeGenMost generated a duplicated prime, retrying.. If this repeats forever you might be running out of primes within the same bit length." << endl;
-                          break;
-                      }
-                  }
-              }
-              return t;
-          })
-    {
-#ifdef TEST_MMC
-        Givaro::IntPrimeDom primeDom;
-        for (size_t i = 0; i < N; i++)
-        {
-            if (!primeDom.isprime(this->val(i)))
-            {
-                cerr << "assertion failed " << this->val(i) << " is not a prime" << endl;
-            }
-            assert(primeDom.isprime(this->val(i)));
-        }
-#endif
-    }
-
-    friend ostream &operator<<(ostream &out, const PrimeGenMost<T, N, B> &arr)
-    {
-        out << "PrimeGenMost [";
-        for (size_t i = 0; i < N; i++)
-        {
-            out << arr[i];
-            if (i != N - 1)
-            {
-                out << ",";
-            }
-        }
-        out << "]" << endl
-            << " - count: " << arr.count() << endl
-            << " - max bit length " << B << endl
-            << " - product bit length: " << arr.product.bitsize() << endl;
-        if (arr.product.bitsize() < 1024)
-        {
-            out << " - product: " << arr.product << endl;
-        }
-        return out;
+        assert(_max >= 2);
+        assert(_product >= 2);
     }
 
     ~PrimeGenMost() = default;

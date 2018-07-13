@@ -11,6 +11,24 @@
 
 using namespace std;
 
+template <class T>
+bool equals(const vector<T> &a, const vector<T> &b)
+{
+    size_t N = b.size();
+    if (N != a.size())
+    {
+        return false;
+    }
+    for (size_t i = 0; i < N; i++)
+    {
+        if (b[i] != a[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 // a helper class that frees fflas_new allocated memory when destroyed
 template <class Field>
 class FFLAS_Mem
@@ -131,23 +149,6 @@ class LIntegerPtrVector : public NumPtrVector<LInteger>
         : NumPtrVector<LInteger>(size)
     {
     }
-    // LIntegerPtrVector(const NumPtrVector<Givaro::Integer> &other)
-    //     : NumPtrVector<LInteger>(other.size())
-    // {
-    //     size_t size = other.size();
-    //     for (size_t i = 0; i < size; i++)
-    //     {
-    //         LInteger *t = new LInteger(other.val(i));
-    //         this->ptr(i) = t;
-    //     }
-    // }
-
-    // bool equals(const NumPtrVector<Givaro::Integer> &other) const
-    // {
-    //     NumPtrVector<Givaro::Integer>
-    //     LIntegerPtrVector tmp(other);
-    //     return other.equals(tmp);
-    // }
 
     static LIntegerPtrVector *new_random(size_t size, uint_fast64_t bitsize)
     {

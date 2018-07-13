@@ -60,12 +60,12 @@ class ReducedInt
 };
 
 template <class T_L, class T_M, size_t N_M>
-NumPtrVector<ReducedInt<T_M, N_M>> *new_naive_reduce(
-    const NumPtrVector<const T_L> &inputs,
+vector<ReducedInt<T_M, N_M>> *new_naive_reduce(
+    const vector<const T_L> &inputs,
     const ConstNumPtrArray<T_M, N_M> &moduli)
 {
     size_t len_inputs = inputs.size();
-    auto vec = new NumPtrVector<ReducedInt<T_M, N_M>>(len_inputs);
+    auto vec = new vector<ReducedInt<T_M, N_M>>(len_inputs);
     for (size_t input_i = 0; input_i < len_inputs; input_i++)
     {
         const T_L &ith_input = *inputs[input_i];
@@ -83,10 +83,10 @@ NumPtrVector<ReducedInt<T_M, N_M>> *new_naive_reduce(
 }
 
 template <class T_L, class T_M, size_t N_M>
-NumPtrVector<T_L> *new_naive_recover(const NumPtrVector<ReducedInt<T_M, N_M>> &inputs)
+vector<T_L> *new_naive_recover(const vector<ReducedInt<T_M, N_M>> &inputs)
 {
     size_t input_len = inputs.size();
-    auto outvec = new NumPtrVector<T_L>(input_len);
+    auto outvec = new vector<T_L>(input_len);
     if (input_len > 0)
     {
         vector<Integer> moduli = inputs[0]->moduli.EXPENSIVE_NEW_VECTOR();
@@ -110,15 +110,15 @@ NumPtrVector<T_L> *new_naive_recover(const NumPtrVector<ReducedInt<T_M, N_M>> &i
 }
 
 template <class T_L, class T_M, size_t N_M>
-NumPtrVector<T_L> *new_sim_recover(
-    const NumPtrVector<ReducedInt<T_M, N_M>> &inputs)
+vector<T_L> *new_sim_recover(
+    const vector<ReducedInt<T_M, N_M>> &inputs)
 {
 #if DEBUG_MMC
     cerr << "new_sim_recover called with" << endl
          << " - inputs: " << inputs << endl;
 #endif
     size_t len_inputs = inputs.size();
-    auto output_vec = new NumPtrVector<T_L>(len_inputs);
+    auto output_vec = new vector<T_L>(len_inputs);
     if (len_inputs == 0)
     {
         return output_vec;
@@ -172,7 +172,7 @@ NumPtrVector<T_L> *new_sim_recover(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <class RNS_Field, class Int_Field>
-NumPtrVector<typename Int_Field::Element> *fflas_new_sim_recover(
+vector<typename Int_Field::Element> fflas_new_sim_recover(
     const RNS_Field &rns_field, typename RNS_Field::Element_ptr input_A,
     size_t num_integers, const Int_Field &out_field)
 {
@@ -185,8 +185,7 @@ NumPtrVector<typename Int_Field::Element> *fflas_new_sim_recover(
         cerr << endl;
     }
 #endif
-    auto output_vec =
-        new NumPtrVector<typename Int_Field::Element>(num_integers);
+    vector<typename Int_Field::Element> output_vec(num_integers);
     if (num_integers == 0)
     {
         return output_vec;
@@ -199,15 +198,11 @@ NumPtrVector<typename Int_Field::Element> *fflas_new_sim_recover(
     for (size_t idx_out = 0; idx_out < num_integers; idx_out++)
     {
         Givaro::Integer &e = output_A[idx_out];
-        typename Int_Field::Element *t = new typename Int_Field::Element(e);
-        // typename Int_Field::Element *t = new typename Int_Field::Element();
-        // out_field.init(*t, e);
-        // basis_product_int_mod_field.init(*t, e);
-        output_vec->ptr(idx_out) = t;
+        output_vec[idx_out] = typename Int_Field::Element(e);
     }
     FFLAS::fflas_delete(output_A);
 #if DEBUG_MMC
-    cerr << "output_vec: " << *output_vec << endl
+    cerr << "output_vec: " << output_vec << endl
          << "########## fflas_new_sim_recover ends ##########" << endl;
 #endif
     return output_vec;
@@ -216,7 +211,7 @@ NumPtrVector<typename Int_Field::Element> *fflas_new_sim_recover(
 template <class Int_Field, class RNS_Field>
 typename RNS_Field::Element_ptr fflas_new_sim_reduce(
     const Int_Field &int_field,
-    const NumPtrVector<typename Int_Field::Element> &inputs,
+    const vector<typename Int_Field::Element> &inputs,
     const RNS_Field &rns_field)
 {
 #if DEBUG_MMC
@@ -224,7 +219,7 @@ typename RNS_Field::Element_ptr fflas_new_sim_reduce(
          << " - inputs: " << inputs << endl
          << " - moduli: " << rns_field.rns()._basis << endl;
 #endif
-    size_t len_inputs = inputs.length();
+    size_t len_inputs = inputs.size();
     assert(len_inputs > 0);
     typename Int_Field::Element_ptr fflas_inputs =
         FFLAS::fflas_new(int_field, len_inputs);
@@ -264,7 +259,7 @@ typename RNS_Field::Element_ptr fflas_new_sim_reduce(
 
 template <class T_L, class T_M, size_t N_M>
 typename FFPACK::rns_double::Element_ptr fflas_new_sim_reduce(
-    const NumPtrVector<T_L> &inputs,
+    const vector<T_L> &inputs,
     const ConstNumPtrArray<T_M, N_M> &moduli)
 {
 #if DEBUG_MMC
@@ -313,8 +308,8 @@ typename FFPACK::rns_double::Element_ptr fflas_new_sim_reduce(
 
 // calls the algorithm for simultaneous reduction to RNS on inputs using moduli
 template <class T_L, class T_M, size_t N_M>
-NumPtrVector<ReducedInt<T_M, N_M>> *new_sim_reduce(
-    const NumPtrVector<T_L> &inputs, const ConstNumPtrArray<T_M, N_M> &moduli)
+vector<ReducedInt<T_M, N_M>> *new_sim_reduce(
+    const vector<T_L> &inputs, const ConstNumPtrArray<T_M, N_M> &moduli)
 {
 #if DEBUG_MMC
     cerr << "new_sim_reduce called with" << endl
@@ -325,7 +320,7 @@ NumPtrVector<ReducedInt<T_M, N_M>> *new_sim_reduce(
     size_t len_inputs = inputs.size();
     typename FFPACK::RNSInteger<FFPACK::rns_double>::Element_ptr output_A =
         fflas_new_sim_reduce<T_L, T_M, N_M>(inputs, moduli);
-    auto output_vec = new NumPtrVector<ReducedInt<T_M, N_M>>(len_inputs);
+    auto output_vec = new vector<ReducedInt<T_M, N_M>>(len_inputs);
     for (size_t idx_out = 0; idx_out < len_inputs; idx_out++)
     {
         ReducedInt<T_M, N_M> *ptr =
