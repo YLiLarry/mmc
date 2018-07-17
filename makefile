@@ -36,9 +36,6 @@ init:
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
 
-	@printf "\tdo you have %s? -- " autogen
-	@which autogen
-
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
 
@@ -61,7 +58,7 @@ init:
 	make blas && make install-blas
 	make givaro && make install-givaro
 	make fflas && make install-fflas
-	make linbox && make install linbox
+	make linbox && make install-linbox
 	make me
 
 blas:
