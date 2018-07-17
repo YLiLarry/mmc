@@ -1,12 +1,7 @@
 #include "marge_num.h"
 #include "../nocopy_integer.h"
-#include <givaro/modular-integer.h>
-#include <linbox/integer.h>
+#include <gmp++/gmp++.h>
 #include <ostream>
-
-using namespace LinBox;
-using namespace Givaro;
-using namespace std;
 
 // void dc_reduce_minus(LInteger& a, const LInteger& moduli)
 // {

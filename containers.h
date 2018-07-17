@@ -5,11 +5,48 @@
 #include <array>
 #include <cstdint>
 #include <functional>
-#include <linbox/randiter/random-prime.h>
+#include <vector>
 #include <ostream>
 #include <fflas-ffpack/fflas/fflas.h>
 
-using namespace std;
+template <class T>
+bool equals(const vector<T> &a, const vector<T> &b)
+{
+    size_t N = b.size();
+    if (N != a.size())
+    {
+        return false;
+    }
+    for (size_t i = 0; i < N; i++)
+    {
+        if (b[i] != a[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T>
+ostream &operator<<(ostream &out, vector<T> arr)
+{
+    size_t N = arr.size();
+    out << " [";
+    for (size_t i = 0; i < 16 && i < N; i++)
+    {
+        out << arr[i];
+        if (i != N - 1)
+        {
+            out << " , ";
+        }
+    }
+    if (N > 16)
+    {
+        out << " ... ";
+    }
+    out << "]";
+    return out;
+}
 
 // a helper class that frees fflas_new allocated memory when destroyed
 template <class Field>
@@ -96,6 +133,17 @@ class NumPtrVector : public PtrVector<T>
         return true;
     }
 
+    vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
+    {
+        size_t N = this->length();
+        auto vec = new vector<Givaro::Integer>(N);
+        for (size_t i = 0; i < N; i++)
+        {
+            vec->operator[](i) = this->val(i);
+        }
+        return vec;
+    }
+
     friend ostream &operator<<(ostream &out, const NumPtrVector<T> &arr)
     {
         size_t N = arr.size();
@@ -120,23 +168,6 @@ class LIntegerPtrVector : public NumPtrVector<LInteger>
         : NumPtrVector<LInteger>(size)
     {
     }
-    // LIntegerPtrVector(const NumPtrVector<Givaro::Integer> &other)
-    //     : NumPtrVector<LInteger>(other.size())
-    // {
-    //     size_t size = other.size();
-    //     for (size_t i = 0; i < size; i++)
-    //     {
-    //         LInteger *t = new LInteger(other.val(i));
-    //         this->ptr(i) = t;
-    //     }
-    // }
-
-    // bool equals(const NumPtrVector<Givaro::Integer> &other) const
-    // {
-    //     NumPtrVector<Givaro::Integer>
-    //     LIntegerPtrVector tmp(other);
-    //     return other.equals(tmp);
-    // }
 
     static LIntegerPtrVector *new_random(size_t size, uint_fast64_t bitsize)
     {

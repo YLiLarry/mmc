@@ -57,7 +57,11 @@
         "cfenv": "cpp",
         "__functional_03": "cpp",
         "istream": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "cmath": "cpp",
+        "complex": "c",
+        "cstdlib": "c",
+        "*.tcc": "cpp"
     },
     "files.autoSave": "onFocusChange",
     "editor.formatOnType": false,

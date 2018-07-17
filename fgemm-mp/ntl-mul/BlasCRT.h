@@ -12,29 +12,24 @@
 
 NTL_CLIENT
 
-using namespace std;
+class BlasCRT
+{
 
-class BlasCRT{
+    vec_ZZ prod_vec;
+    double *reductionMatrix; // for words of 60 bits
+    double *crtMatrix;
 
-  vec_ZZ prod_vec;
-  double * reductionMatrix; // for words of 60 bits
-  double * crtMatrix;
-    
-public:
-  
-  // size is in 20 bits, size60 in 60 bits
-  long size, size60, sizeM, numPrimes;
-  long split (double *data, long step, const ZZ& z);
-  long split (double *data, long step, const ZZ_p& z);
+  public:
+    // size is in 20 bits, size60 in 60 bits
+    long size, size60, sizeM, numPrimes;
+    long split(double *data, long step, const ZZ &z);
+    long split(double *data, long step, const ZZ_p &z);
 
-  void reduce(Unique2DArray<long>& a, const vec_ZZ_p& coeffs);
-  void CRT(vec_ZZ& coeffs, const vec_vec_long& a);
+    void reduce(Unique2DArray<long> &a, const vec_ZZ_p &coeffs);
+    void CRT(vec_ZZ &coeffs, const vec_vec_long &a);
 
-  BlasCRT();
-  ~BlasCRT();
-
+    BlasCRT();
+    ~BlasCRT();
 };
 
-
 #endif /* BIGINTMAT_H_ */
-

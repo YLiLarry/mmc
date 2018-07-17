@@ -4,8 +4,8 @@
 
 void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
 {
-#if DEBUG_CNMA
-    gmp_fprintf(stderr, "precompute_Mi called\n");
+#if DEBUG_MMC || TIME_MMC
+    gmp_fprintf(stderr, ".......... precompute_Mi ..........\n");
 #endif
     // line 1
     mpz_t M;
@@ -16,11 +16,10 @@ void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
     {
         mpz_mul(M, M, m[i - 1]);    // line 3
         mpz_invert(Mi[i], M, m[i]); // line 4
-#if DEBUG_CNMA
+#if DEBUG_MMC
         gmp_fprintf(stderr, "precompute_Mi iteration#%d: M=%Zd, Mi[%d]=%Zd\n", i, M, i, Mi[i]);
 #endif
-#if DEBUG_CNMA
-        gmp_fprintf(stderr, "precompute_Mi finished\n");
+#if DEBUG_MMC
         gmp_fprintf(stderr, " - M: %Zd\n", M);
         gmp_fprintf(stderr, " - Mi: [");
         gmp_fprintf(stderr, " %Zd ", Mi[1]);
@@ -31,15 +30,19 @@ void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
         gmp_fprintf(stderr, "]\n");
 #endif
     }
-
+#if DEBUG_MMC || TIME_MMC
+    gmp_fprintf(stderr, ".......... precompute_Mi ends ..........\n");
+#endif
     // outputs M, Mi
 }
 
 // Mi: precomputed array
 void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
 {
-#if DEBUG_CNMA
+#if DEBUG_MMC
     gmp_fprintf(stderr, "########## garner ##########\n");
+#endif
+#if DEBUG_MMC
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
@@ -87,11 +90,13 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
         mpz_add(a, a, arr[i]);
     } // line for line 20
 
-#if DEBUG_CNMA
+#if DEBUG_MMC
     gmp_fprintf(stderr, " - a: %Zd\n", a);
+#endif
+#if DEBUG_MMC
     gmp_fprintf(stderr, "########## garner ends ##########\n");
 #endif
-    // outputs a
+    // outputs in a
 }
 
 void prod(mpz_t M, mpz_t Mi, mpz_t *m, int N)

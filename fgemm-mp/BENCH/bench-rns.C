@@ -42,12 +42,12 @@ using namespace std;
 #include "fflas-ffpack/utils/args-parser.h"
 #include "fflas-ffpack/utils/timer.h"
 #include "givaro/givinteger.h"
-#include "givaro/modular-integer.h"
+#include <gmp++/gmp++.h>
 #include "givaro/zring.h"
 #include <givaro/givrns.h>
 
-#define __GMP_BITS_PER_MP_LIMB 64
-extern "C" {
+#define __
+{
 #include "flint/flint.h"
 #include "flint/fmpz.h"
 #include "flint/fmpz_mat.h"
@@ -61,15 +61,17 @@ extern "C" {
 #include "algebramix/matrix_integer.hpp"
 
 template <typename T>
-void write_matrix(Givaro::Integer p, size_t m, size_t n, T* C, size_t ldc)
+void write_matrix(Givaro::Integer p, size_t m, size_t n, T *C, size_t ldc)
 {
 
     size_t www = (p.bitsize() * log(2.)) / log(10.);
-    for (size_t i = 0; i < m; ++i) {
+    for (size_t i = 0; i < m; ++i)
+    {
         cout << "[ ";
         cout.width(www + 1);
         cout << std::right << C[i * ldc];
-        for (size_t j = 1; j < n; ++j) {
+        for (size_t j = 1; j < n; ++j)
+        {
             cout << " ";
             cout.width(www);
             cout << std::right << C[i * ldc + j];
@@ -93,7 +95,8 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
     size_t bits = b;
     auto start = std::chrono::system_clock::now();
     auto end = std::chrono::system_clock::now();
-    for (; (loop < iters || std::chrono::duration<double>(end - start) < std::chrono::seconds(10)); loop++) {
+    for (; (loop < iters || std::chrono::duration<double>(end - start) < std::chrono::seconds(10)); loop++)
+    {
         //cout<<loop<<" "<<end-start<<endl;
         Givaro::Integer::random_exact_2exp(p, bits);
         //nextprime(p,p);
@@ -119,22 +122,23 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             fmpz_mat_init(AA, n, n);
             for (size_t i = 0; i < n; ++i)
                 for (size_t j = 0; j < n; ++j)
-                    fmpz_set_mpz(fmpz_mat_entry(AA, i, j), *(reinterpret_cast<const mpz_t*>(A + i * n + j)));
+                    fmpz_set_mpz(fmpz_mat_entry(AA, i, j), *(reinterpret_cast<const mpz_t *>(A + i * n + j)));
 
             fmpz_comb_t comb;
             fmpz_comb_temp_t comb_temp;
-            nmod_mat_t* mod_A;
-            mp_limb_t* primes;
-            mp_limb_t* residues;
+            nmod_mat_t *mod_A;
+            mp_limb_t *primes;
+            mp_limb_t *residues;
             size_t num_primes = (bits + primes_bits - 1) / primes_bits;
 
             /* FLINT RNS initialization */
-            residues = (mp_limb_t*)flint_malloc(sizeof(mp_limb_t) * num_primes);
-            mod_A = (nmod_mat_t*)flint_malloc(sizeof(nmod_mat_t) * num_primes);
-            primes = (mp_limb_t*)flint_malloc(sizeof(mp_limb_t) * num_primes);
+            residues = (mp_limb_t *)flint_malloc(sizeof(mp_limb_t) * num_primes);
+            mod_A = (nmod_mat_t *)flint_malloc(sizeof(nmod_mat_t) * num_primes);
+            primes = (mp_limb_t *)flint_malloc(sizeof(mp_limb_t) * num_primes);
             primes[0] = n_nextprime(UWORD(1) << primes_bits, 0);
             nmod_mat_init(mod_A[0], AA->r, AA->c, primes[0]);
-            for (size_t i = 1; i < num_primes; i++) {
+            for (size_t i = 1; i < num_primes; i++)
+            {
                 primes[i] = n_nextprime(primes[i - 1], 0);
                 nmod_mat_init(mod_A[i], AA->r, AA->c, primes[i]);
             }
@@ -149,8 +153,10 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.start();
 
             /* Calculate residues of AA */
-            for (long i = 0; i < AA->r; i++) {
-                for (long j = 0; j < AA->c; j++) {
+            for (long i = 0; i < AA->r; i++)
+            {
+                for (long j = 0; j < AA->c; j++)
+                {
                     fmpz_multi_mod_ui(residues, &(AA->rows[i][j]), comb, comb_temp);
                     for (size_t k = 0; k < num_primes; k++)
                         mod_A[k]->rows[i][j] = residues[k];
@@ -163,8 +169,10 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.start();
 
             /* Chinese remaindering */
-            for (long i = 0; i < AA->r; i++) {
-                for (long j = 0; j < AA->c; j++) {
+            for (long i = 0; i < AA->r; i++)
+            {
+                for (long j = 0; j < AA->c; j++)
+                {
                     for (size_t k = 0; k < num_primes; k++)
                         residues[k] = mod_A[k]->rows[i][j];
                     fmpz_multi_CRT_ui(&AA->rows[i][j], residues, comb, comb_temp, 1);
@@ -192,18 +200,20 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             mmx::matrix<mT, mM> BB(1, n, n);
             for (size_t i = 0; i < n; ++i)
                 for (size_t j = 0; j < n; ++j)
-                    mpz_set(*AA(i, j), *(reinterpret_cast<const mpz_t*>((A + i * n + j))));
+                    mpz_set(*AA(i, j), *(reinterpret_cast<const mpz_t *>((A + i * n + j))));
 
             /* compute RNS structure*/
 
             const mmx::nat mbit = 20; //8 * sizeof(modulus_base) - 12;
-            struct mat_crt_naive {
+            struct mat_crt_naive
+            {
                 typedef mmx::integer base;
                 typedef int modulus_base;
                 typedef mmx::modulus_int_preinverse<mbit> modulus_base_variant;
                 typedef mmx::Modulus_variant(mmx::integer) modulus_variant;
             };
-            struct mat_crt_dicho {
+            struct mat_crt_dicho
+            {
                 typedef mmx::integer base;
                 typedef mmx::integer modulus_base;
                 typedef mmx::modulus_integer_naive modulus_base_variant;
@@ -221,10 +231,11 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.clear();
             chrono.start();
             typedef mmx::moduli_helper<mmx::integer, Modulus,
-                mmx::pr_prime_sequence_int<mbit>>
+                                       mmx::pr_prime_sequence_int<mbit>>
                 Sequence;
 
-            if (!Sequence::covering(primes, bits)) {
+            if (!Sequence::covering(primes, bits))
+            {
                 std::cerr << "MMX prime for slow CRT error" << std::endl;
                 return;
             }
@@ -235,17 +246,18 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             timeMMXPrecomp += chrono.usertime();
 
             // do not count memory allocation
-            Matrix_modular* mm1 = mmx::mmx_new<Matrix_modular>(nn);
+            Matrix_modular *mm1 = mmx::mmx_new<Matrix_modular>(nn);
             for (mmx::nat k = 0; k < nn; k++)
                 mm1[k] = Matrix_modular(Modular(), n, n);
-            I* aux = mmx::mmx_new<I>(nn);
+            I *aux = mmx::mmx_new<I>(nn);
 
             chrono.clear();
             chrono.start();
 
             /* Calculate residues of A */
             for (mmx::nat i = 0; i < n; i++)
-                for (mmx::nat j = 0; j < n; j++) {
+                for (mmx::nat j = 0; j < n; j++)
+                {
                     mmx::direct_crt(aux, AA(i, j), crter);
                     for (mmx::nat k = 0; k < nn; k++)
                         mm1[k](i, j) = aux[k];
@@ -257,7 +269,8 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.start();
             /* Chinese remaindering */
             for (mmx::nat i = 0; i < n; i++)
-                for (mmx::nat j = 0; j < n; j++) {
+                for (mmx::nat j = 0; j < n; j++)
+                {
                     for (mmx::nat k = 0; k < nn; k++)
                         aux[k] = *mm1[k](i, j);
                     mmx::inverse_crt(BB(i, j), aux, crter);
@@ -279,18 +292,20 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             mmx::matrix<mT, mM> BB(1, n, n);
             for (size_t i = 0; i < n; ++i)
                 for (size_t j = 0; j < n; ++j)
-                    mpz_set(*AA(i, j), *(reinterpret_cast<const mpz_t*>((A + i * n + j))));
+                    mpz_set(*AA(i, j), *(reinterpret_cast<const mpz_t *>((A + i * n + j))));
 
             /* compute RNS structure*/
 
             const mmx::nat mbit = 20; //8 * sizeof(modulus_base) - 12;
-            struct mat_crt_naive {
+            struct mat_crt_naive
+            {
                 typedef mmx::integer base;
                 typedef int modulus_base;
                 typedef mmx::modulus_int_preinverse<mbit> modulus_base_variant;
                 typedef mmx::Modulus_variant(mmx::integer) modulus_variant;
             };
-            struct mat_crt_dicho {
+            struct mat_crt_dicho
+            {
                 typedef mmx::integer base;
                 typedef mmx::integer modulus_base;
                 typedef mmx::modulus_integer_naive modulus_base_variant;
@@ -309,10 +324,11 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.start();
 
             typedef mmx::moduli_helper<mmx::integer, Modulus,
-                mmx::pr_prime_sequence_int<mbit>>
+                                       mmx::pr_prime_sequence_int<mbit>>
                 Sequence;
 
-            if (!Sequence::covering(primes, bits)) {
+            if (!Sequence::covering(primes, bits))
+            {
                 std::cerr << "MMX prime for slow CRT error" << std::endl;
                 return;
             }
@@ -324,17 +340,18 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             timeMMXPrecomp2 += chrono.usertime();
 
             // do not count memory allocation
-            Matrix_modular* mm1 = mmx::mmx_new<Matrix_modular>(nn);
+            Matrix_modular *mm1 = mmx::mmx_new<Matrix_modular>(nn);
             for (mmx::nat k = 0; k < nn; k++)
                 mm1[k] = Matrix_modular(Modular(), n, n);
-            I* aux = mmx::mmx_new<I>(nn);
+            I *aux = mmx::mmx_new<I>(nn);
 
             chrono.clear();
             chrono.start();
 
             /* Calculate residues of A */
             for (mmx::nat i = 0; i < n; i++)
-                for (mmx::nat j = 0; j < n; j++) {
+                for (mmx::nat j = 0; j < n; j++)
+                {
                     mmx::direct_crt(aux, AA(i, j), crter);
                     for (mmx::nat k = 0; k < nn; k++)
                         mm1[k](i, j) = aux[k];
@@ -346,7 +363,8 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
             chrono.start();
             /* Chinese remaindering */
             for (mmx::nat i = 0; i < n; i++)
-                for (mmx::nat j = 0; j < n; j++) {
+                for (mmx::nat j = 0; j < n; j++)
+                {
                     for (mmx::nat k = 0; k < nn; k++)
                         aux[k] = *mm1[k](i, j);
                     mmx::inverse_crt(BB(i, j), aux, crter);
@@ -419,7 +437,7 @@ void run_bench(size_t n, size_t primes_bits, size_t b, size_t iters, size_t seed
     cout << endl;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     //srand((int)time(NULL));
     //srand48(time(NULL));
@@ -433,14 +451,13 @@ int main(int argc, char** argv)
     //static size_t k = 512 ;
     //static size_t n = 512 ;
     static Argument as[] = {
-        { 'b', "-b B", "Set the bitsize of the matrix entries.", TYPE_INT, &b },
-        { 'p', "-p B", "Set the bitsize of the RNS Prime.", TYPE_INT, &p },
-        { 'm', "-m M", "Set the dimension m of the matrix.", TYPE_INT, &m },
-        { 'i', "-i R", "Set minimal number of repetitions.", TYPE_INT, &iters },
-        { 'l', "-l Y", "Running a long benchmark .", TYPE_BOOL, &longbench },
-        { 't', "-t Y", "Running a matmul size benchmark .", TYPE_BOOL, &matmul },
-        END_OF_ARGUMENTS
-    };
+        {'b', "-b B", "Set the bitsize of the matrix entries.", TYPE_INT, &b},
+        {'p', "-p B", "Set the bitsize of the RNS Prime.", TYPE_INT, &p},
+        {'m', "-m M", "Set the dimension m of the matrix.", TYPE_INT, &m},
+        {'i', "-i R", "Set minimal number of repetitions.", TYPE_INT, &iters},
+        {'l', "-l Y", "Running a long benchmark .", TYPE_BOOL, &longbench},
+        {'t', "-t Y", "Running a matmul size benchmark .", TYPE_BOOL, &matmul},
+        END_OF_ARGUMENTS};
     FFLAS::parseArguments(argc, argv, as);
 
     size_t seed = time(NULL);
@@ -468,20 +485,22 @@ int main(int argc, char** argv)
 
     if (!longbench)
         run_bench<Field>(m, p, b, iters, seed, matmul);
-    else {
+    else
+    {
         size_t matdim = 128;
         std::vector<std::pair<size_t, size_t>> data = {
-            { matdim, (1 << 7) },
-            { matdim, (1 << 8) },
-            { matdim, (1 << 9) },
-            { matdim, (1 << 10) },
-            { matdim, (1 << 11) },
-            { matdim, (1 << 12) },
-            { matdim, (1 << 13) },
-            { matdim, (1 << 14) },
-            { matdim, (1 << 15) },
-            { matdim, (1 << 16) },
-            { matdim, (1 << 17) },
+            {matdim, (1 << 7)},
+            {matdim, (1 << 8)},
+            {matdim, (1 << 9)},
+            {matdim, (1 << 10)},
+            {matdim, (1 << 11)},
+            {matdim, (1 << 12)},
+            {matdim, (1 << 13)},
+            {matdim, (1 << 14)},
+            {matdim, (1 << 15)},
+            {matdim, (1 << 16)},
+            {matdim, (1 << 17)},
+            {matdim, (1 << 18)},
             { matdim, (1 << 18) },
         };
 
