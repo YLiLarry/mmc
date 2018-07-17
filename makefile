@@ -12,7 +12,7 @@ BLAS_INCLUDE=$(BUILD_DIR)/OpenBLAS/include
 LINBOX_INCLUDE=$(BUILD_DIR)/linbox/include
 
 export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig:$(FFLAS_LIB)/pkgconfig:$(LINBOX_LIB)/pkgconfig
-# export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB)
+export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB):$(LINBOX_LIB)
 
 # export CXXFLAGS := -I"$(GIVARO_INCLUDE)" -I"$(BLAS_INCLUDE)" 
 # export LDFLAGS := -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)"
@@ -22,25 +22,14 @@ export PKG_CONFIG_PATH := $(BLAS_LIB)/pkgconfig:$(GIVARO_LIB)/pkgconfig:$(FFLAS_
 
 # export fflas: PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
 
-# DEBUG_FLAGS := -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
+DEBUG_FLAGS := -DPROFILE_FGEMM_MP=1 -DBENCH_TWO_PHASE=1 -DTIME_MMC=1 #-g -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
 
-# C_FLAGS := $(DEBUG_FLAGS) -fmax-errors=1 -g -c -Wall 
-# C_TARGETS := ./cnma/*.c 
-# C_OBJECTS := *.o 
-# CPP_FLAGS := $(DEBUG_FLAGS) -fmax-errors=1 -static -Wall --std=gnu++14 -I/usr/include -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmpxx -lgmp -fopenmp
-
-DEBUG_FLAGS := -DPROFILE_FGEMM_MP=1 -DBENCH_TWO_PHASE=1 -g -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=0 -DDEBUG_CNMA=1 	
-
-CC := clang-6.0
-CXX := clang++-6.0
-
-export LD_LIBRARY_PATH := $(BLAS_LIB):$(GIVARO_LIB):$(FFLAS_LIB):$(LINBOX_LIB)
-
-C_FLAGS := $(DEBUG_FLAGS) -ferror-limit=3 -Ofast -c -Wall 
+CC := gcc
+CXX := g++
+C_FLAGS := $(DEBUG_FLAGS) -std=c11 -Ofast -c -Wall 
 C_TARGETS := ./cnma/*.c 
 C_OBJECTS := *.o 
-CPP_INCLUDES := -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)"
-CPP_FLAGS := $(DEBUG_FLAGS) -v -ferror-limit=3 -Ofast -Wall --std=c++14 -L"$(LD_LIBRARY_PATH)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp -l:libomp.so
+CPP_FLAGS := $(DEBUG_FLAGS) -Ofast -Wall --std=c++11 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp -fopenmp 
 CPP_TARGETS := *.cpp ./cnma/*.cpp
 
 init:
@@ -50,9 +39,6 @@ init:
 
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
-
-	@printf "\tdo you have %s? -- " autogen
-	@which autogen
 
 	@printf "\tdo you have %s? -- " autoreconf
 	@which autoreconf
@@ -113,7 +99,7 @@ clean:
 
 me:
 	$(CC) $(C_TARGETS) $(C_FLAGS)
-	$(CXX) $(CPP_INCLUDES) $(CPP_TARGETS) $(C_OBJECTS) $(CPP_FLAGS)
+	$(CXX) $(CPP_TARGETS) $(C_OBJECTS) $(CPP_FLAGS)
 	make run
 
 check:
