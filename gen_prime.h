@@ -10,15 +10,15 @@
 #include <linbox/randiter/random-prime.h>
 #include <ostream>
 #include <iterator>
-#include "coprime_gen_abstract.h"
+#include "gen_coprime_abstract.h"
 
 // return an array containing unique primes in type T, eg. T = int64_t
 // all primes are exactly B-b   its long, ie, between [2^(B-1), 2^B-1]
-// eg. PrimeGenMost<uint64_t, 10, 64> p{};
+// eg. GenPrimeMost<uint64_t, 10, 64> p{};
 //     generates 10 primes each exactly 64 bits
 // access primes using p[index]
 template <typename T>
-class PrimeGenMost : public CoprimeGenAbstract<T>
+class GenPrimeMost : public GenCoprimeAbstract<T>
 {
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
@@ -31,7 +31,7 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
     inline virtual const T &max() const override { return this->operator[](0); }
 
   public:
-    PrimeGenMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
+    GenPrimeMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
         assert(product_bound > 1);
         assert(max_bound > 1);
@@ -43,7 +43,7 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
         {
             if (prime_bound < 2)
             {
-                cerr << "we ran out of primes, consider increasing max_bound." << endl;
+                cerr << "We ran out of primes, consider increasing max_bound." << endl;
                 abort();
             }
             vector<T>::push_back(prime_bound);
@@ -51,7 +51,7 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
             _int_prime_domain.prevprimein(prime_bound);
         }
 
-#ifdef TEST_MMC
+#if CHECK_MMC
         size_t N = this->count();
         Givaro::IntPrimeDom primeDom;
         for (size_t i = 0; i < N; i++)
@@ -67,10 +67,10 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
         assert(product() >= 2);
     }
 
-    ~PrimeGenMost() = default;
+    ~GenPrimeMost() = default;
 
-    PrimeGenMost(const PrimeGenMost &) = delete;
-    PrimeGenMost &operator&=(const PrimeGenMost &) = delete;
+    GenPrimeMost(const GenPrimeMost &) = delete;
+    GenPrimeMost &operator&=(const GenPrimeMost &) = delete;
 };
 
 #endif // H_PRIME_GEN

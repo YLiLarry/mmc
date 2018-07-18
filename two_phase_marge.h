@@ -2,8 +2,8 @@
 #define H_TWO_STEPS_ALGO
 
 #include "containers.h"
-#include "marge_gen.h"
-#include "prime_gen.h"
+#include "gen_marge.h"
+#include "gen_prime.h"
 #include "sim_rns.h"
 #include <iostream>
 #include <gmp++/gmp++.h>
@@ -15,7 +15,7 @@ namespace CNMA
 extern "C"
 {
 #include "cnma/marge_num.h"
-#include "cnma/reconstruct.h"
+#include "cnma/reconstruct_marge.h"
 }
 } // namespace CNMA
 // Phase 1:
@@ -31,8 +31,8 @@ class TwoPhaseMarge : public TwoPhaseAbstract
     TwoPhaseMarge(uint_fast64_t input_bound,
                   uint_fast64_t level_1_moduli_bound,
                   uint_fast64_t level_2_moduli_bound)
-        : TwoPhaseAbstract(new MargeGenMost(2 * input_bound, level_1_moduli_bound),
-                           new PrimeGenMost<double>(2 * level_1_moduli_bound, level_2_moduli_bound))
+        : TwoPhaseAbstract(new GenMargeMost(2 * input_bound, level_1_moduli_bound),
+                           new GenPrimeMost<double>(2 * level_1_moduli_bound, level_2_moduli_bound))
     {
     }
 
@@ -109,9 +109,7 @@ class TwoPhaseMarge : public TwoPhaseAbstract
                 const Phase1_Int &in = phase2_recovered[i * level_1_moduli_count + f];
                 if (in >= level_1_moduli->product())
                 {
-                    cerr << "Intermediate value overflows. "
-                         << "You may need larger/more first level moduli, "
-                         << "or smaller/fewer second level moduli. " << endl;
+                    cerr << "Computation overflows. Recovered an integer that is greater than the product of level 1 moduli." << endl;
                 }
                 assert(in < level_1_moduli->product());
                 mpz_mod(_r[f], in.get_mpz(), level_1_moduli->val(f).get_mpz());

@@ -2,14 +2,14 @@
 #define H_MARGE_GEN
 
 #include <gmp++/gmp++.h>
-#include "prime_gen.h"
+#include "gen_prime.h"
 #include <cmath>
 #include <iterator>
 
 // generates N co-primes of form 2^n - 1,
 // starting from the largets one 2^max_bound, and count down
 // until the product is larger than 2^product_bound
-class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
+class GenMargeMost : public GenCoprimeAbstract<Givaro::Integer>
 {
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
@@ -22,7 +22,7 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
     inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
   public:
-    MargeGenMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
+    GenMargeMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
         assert(product_bound > 1);
         assert(max_bound > 1);
@@ -32,7 +32,7 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
         {
             if (prime_bound < 2)
             {
-                cerr << "we ran out of primes, consider increasing max_bound." << endl;
+                cerr << "We ran out of marge coprimes, consider increasing max_bound." << endl;
                 abort();
             }
             Givaro::Integer marge(1);
@@ -43,7 +43,7 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
             _product *= marge;
             _int_prime_domain.prevprimein(prime_bound);
         }
-#ifdef TEST_MMC
+#if CHECK_MMC
         size_t N = this->count();
         for (size_t i = 0; i < N; i++)
         {
@@ -51,7 +51,7 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
             {
                 if (i != j && gcd(this->val(i), this->val(j)) != 1)
                 {
-                    cerr << "MargeGenMost is not generating coprimes." << endl
+                    cerr << "GenMargeMost is not generating coprimes." << endl
                          << " - got: " << this->val(i) << " and " << this->val(j) << endl;
                     abort();
                 }
@@ -62,8 +62,8 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
         assert(product() >= 3);
     }
 
-    ~MargeGenMost() = default;
-    MargeGenMost(MargeGenMost &) = delete;
+    ~GenMargeMost() = default;
+    GenMargeMost(GenMargeMost &) = delete;
 };
 
 #endif // H_MARGE_GEN

@@ -22,15 +22,16 @@ export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB):$(LINBOX_LIB)
 
 # export fflas: PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
 
-DEBUG_FLAGS := -DPROFILE_FGEMM_MP=1 -DBENCH_TWO_PHASE=1 -DTIME_MMC=1 #-g -DPSEUDO_RANDOM_MMC=1 -DTEST_MMC=1 -DTIME_MMC=1 -DDEBUG_MMC=1 -DDEBUG_CNMA=1 -DDEBUG_MMC=1
+DEBUG_FLAGS := -DPROFILE_FGEMM_MP=1 -DBENCH_TWO_PHASE=1 -DTIME_MMC=1 -DCHECK_MMC=1 -DPSEUDO_RANDOM_MMC=1 -DDEBUG_MMC=0 -g
 
 CC := gcc
 CXX := g++
 C_FLAGS := $(DEBUG_FLAGS) -std=c11 -Ofast -c -Wall 
-C_TARGETS := ./cnma/*.c 
+C_OTHERS := ./cnma/*.c 
 C_OBJECTS := *.o 
 CPP_FLAGS := $(DEBUG_FLAGS) -Ofast -Wall --std=c++11 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp -fopenmp 
-CPP_TARGETS := *.cpp ./cnma/*.cpp
+CPP_OTHERS := ./cnma/*.cpp
+
 
 init:
 	@echo Checking following build tools:
@@ -97,9 +98,16 @@ clean:
 	rm -f *.o
 	git submodule foreach "git reset --hard && git clean -fdx"
 
-me:
-	$(CC) $(C_TARGETS) $(C_FLAGS)
-	$(CXX) $(CPP_TARGETS) $(C_OBJECTS) $(CPP_FLAGS)
+.PHONY: test
+test:
+	$(CC) $(C_OTHERS) $(C_FLAGS)
+	$(CXX) main_test.cpp $(CPP_OTHERS) $(C_OBJECTS) $(CPP_FLAGS)
+	make run
+
+.PHONY: bench
+bench:
+	$(CC) $(C_OTHERS) $(C_FLAGS)
+	$(CXX) main_benchmark_fgemm_mp.cpp $(CPP_OTHERS) $(C_OBJECTS) $(CPP_FLAGS)
 	make run
 
 check:

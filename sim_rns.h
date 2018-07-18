@@ -6,7 +6,7 @@
 #include <fflas-ffpack/field/rns-integer.h>
 #include <fflas-ffpack/utils/timer.h>
 #include "nocopy_integer.h"
-#include "prime_gen.h"
+#include "gen_prime.h"
 #include <gmp++/gmp++.h>
 #include <memory>
 #include <vector>
@@ -104,7 +104,7 @@ typename RNS_Field::Element_ptr fflas_new_sim_reduce(
     typename Int_Field::Element max_input = inputs[0];
     for (size_t i = 0; i < len_inputs; i++)
     {
-#if TEST_MMC
+#if CHECK_MMC
         assert(inputs[i] < rns_field.rns()._M &&
                "At least of one the input integers is too large.");
 #endif

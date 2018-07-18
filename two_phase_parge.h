@@ -1,17 +1,17 @@
-#ifndef H_TWO_PHASE_FERMAT
-#define H_TWO_PHASE_FERMAT
+#ifndef H_TWO_PHASE_PARGE
+#define H_TWO_PHASE_PARGE
 
 #include "two_phase_abstract.h"
 #include <vector>
 #include <gmp++/gmp++.h>
-#include "gen_fermat.h"
+#include "gen_parge.h"
 
 namespace CNMA
 {
 extern "C"
 {
 #include "cnma/parge_num.h"
-#include "cnma/reconstruct_marge.h"
+#include "cnma/reconstruct_parge.h"
 }
 } // namespace CNMA
 // Phase 1:
@@ -21,25 +21,25 @@ extern "C"
 // N_M is the number of prime moduli, each of bit length B_M.
 // primes are stored as T_M type in memory.
 // The following relation must be true: N_M * B_M > 2^B_F
-class TwoPhaseFermat : public TwoPhaseAbstract
+class TwoPhaseParge : public TwoPhaseAbstract
 {
   public:
-    TwoPhaseFermat(uint_fast64_t input_bound,
-                   uint_fast64_t level_1_moduli_bound,
-                   uint_fast64_t level_2_moduli_bound)
-        : TwoPhaseAbstract(new GenFermatMost(2 * input_bound, level_1_moduli_bound),
+    TwoPhaseParge(uint_fast64_t input_bound,
+                  uint_fast64_t level_1_moduli_bound,
+                  uint_fast64_t level_2_moduli_bound)
+        : TwoPhaseAbstract(new GenPargeMost(2 * input_bound, level_1_moduli_bound),
                            new GenPrimeMost<double>(2 * level_1_moduli_bound, level_2_moduli_bound))
     {
     }
 
-    ~TwoPhaseFermat()
+    ~TwoPhaseParge()
     {
         delete this->level_1_moduli;
         delete this->level_2_moduli;
     }
 
-    TwoPhaseFermat(const TwoPhaseFermat &) = delete;
-    TwoPhaseFermat &operator=(const TwoPhaseFermat &) = delete;
+    TwoPhaseParge(const TwoPhaseParge &) = delete;
+    TwoPhaseParge &operator=(const TwoPhaseParge &) = delete;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -95,7 +95,7 @@ class TwoPhaseFermat : public TwoPhaseAbstract
             mpz_init(_r[i]);
             mpz_init_set(_f[i], level_1_moduli->val(i).get_mpz());
         }
-        CNMA::precompute_Mi(_Mi, _f, level_1_moduli_count);
+        CNMA::precompute_Mi_parge(_Mi, _f, level_1_moduli_count);
         // recover
         for (size_t i = 0; i < out_len; i++)
         {
@@ -110,7 +110,7 @@ class TwoPhaseFermat : public TwoPhaseAbstract
                 assert(in < level_1_moduli->product());
                 mpz_mod(_r[f], in.get_mpz(), level_1_moduli->val(f).get_mpz());
             }
-            CNMA::garner(t.get_mpz(), level_1_moduli_count, _r, _f, _Mi);
+            CNMA::garner_parge(t.get_mpz(), level_1_moduli_count, _r, _f, _Mi);
             mpz_mod(t.get_mpz(), t.get_mpz(), level_1_moduli->product().get_mpz());
 #if TIME_MMC
             if (i % 100 == 0)

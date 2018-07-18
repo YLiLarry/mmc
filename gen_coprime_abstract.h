@@ -6,19 +6,19 @@
 #include <iterator>
 
 template <class T>
-class CoprimeGenAbstract : public vector<T>
+class GenCoprimeAbstract : public vector<T>
 {
       public:
         virtual const T &max() const = 0;
         virtual Givaro::Integer product() const = 0;
         virtual uint_fast64_t product_bitsize() const = 0;
         virtual uint_fast64_t max_bitsize() const = 0;
-        virtual ~CoprimeGenAbstract() = default;
+        virtual ~GenCoprimeAbstract() = default;
 
         inline const T &val(size_t i) const { return vector<T>::operator[](i); }
         inline size_t count() const { return vector<T>::size(); } // alias
 
-        friend ostream &operator<<(ostream &out, const CoprimeGenAbstract<T> &arr)
+        friend ostream &operator<<(ostream &out, const GenCoprimeAbstract<T> &arr)
         {
 #if DEBUG_MMC
                 size_t N = arr.count();

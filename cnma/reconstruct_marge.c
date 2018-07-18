@@ -1,5 +1,5 @@
 #include "matrix.h"
-#include "reconstruct.h"
+#include "reconstruct_marge.h"
 #include <assert.h>
 
 void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
@@ -47,7 +47,7 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
-#if TEST_MMC
+#if CHECK_MMC
         assert(mpz_cmp(r[i], m[i]) < 0);
 #endif
     }
@@ -61,11 +61,7 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     mpz_set_ui(a, 0);
     // initialize array
     mpz_t arr[N];
-    for (int i = 0; i < N; i++)
-    {
-        mpz_init(arr[i]);
-    }
-    mpz_set(arr[0], r[0]);
+    mpz_init_set(arr[0], r[0]);
     // initialize temporary vars
     mpz_t t;
     mpz_init(t);
@@ -75,6 +71,7 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     // starting from line 7 in Eugene's paper
     for (int i = 1; i < N; i++)
     {
+        mpz_init(arr[i]);
         mpz_set(t, arr[i - 1]); // line 8
         for (int j = i - 2; j >= 0; j--)
         {                          // for loop line 9
@@ -90,14 +87,11 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     { // line 17
         mpz_mul(a, a, m[i]);
         mpz_add(a, a, arr[i]);
+        mpz_clear(arr[i]);
     } // line for line 20
     // free used temporary vars
     mpz_clear(t);
     mpz_clear(temp);
-    for (int i = 0; i < N; i++)
-    {
-        mpz_clear(arr[i]);
-    }
     // outputs in a
 #if DEBUG_MMC
     gmp_fprintf(stderr, " - a: %Zd\n", a);
