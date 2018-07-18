@@ -23,33 +23,33 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
     inline virtual uint_fast64_t max_bitsize() const override { return max().bitsize(); }
     inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
-    // because it never makes sense to use a single Fermat number as the level 1 moduli,
-    // and Fermat numbers have the property, F{n} = ! F{n-1}, we favor using (n-1) Fermat 
-    // numbers under the max_bound rather than F{n}.
   public:
-    GenFermatMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
+    GenFermatMost(uint_fast64_t product_bound, uint_fast64_t max_bound, uint_fast64_t coefficient)
     {
-        assert(product_bound > max_bound);
-        assert(max_bound > 1);
-        assert(std::floor(Givaro::logtwo(max_bound)) == std::ceil(Givaro::logtwo(max_bound)) && 
-                "For Fermat numbers the max_bound (max exponent) must be a power of two");
+        assert(product_bound > max_bound && "The product of moduli must be greater than any moduli.");
+        assert(max_bound > 1 && "Any moduli must be at least 2 bits");
 
-        max_bound <<= 1; // find the previous power of 2
-        while (product_bitsize() <= product_bound)
+        assert(max_bound % coefficient == 0 && "For Fermat-like 2^(n*c) + 1 numbers the max bitsize (n*c) must be divisiable by the coefficient c.");
+        assert(std::floor(Givaro::logtwo(max_bound)) == std::ceil(Givaro::logtwo(max_bound)) &&
+               "For Fermat-like numbers the max bitsize must be a power of two");
+
+        uint_fast64_t n = max_bound / coefficient;
+        while (product_bitsize() < product_bound)
         {
-            if (max_bound < 1)
+            if (n < 1)
             {
-                std::cerr << "We ran out of Fermat numbers, consider increasing max_bound" << std::endl;
+                std::cerr << "Failure to generate coprimes: We ran out of Fermat-like numbers. Consider increasing max bitsize bound." << std::endl;
                 std::cerr << " - currently generated: " << std::endl
                           << *this << std::endl;
+                abort();
             }
-            assert(max_bound >= 1);
+            assert(n >= 1);
             Givaro::Integer t = 1;
-            t <<= max_bound;
+            t <<= (coefficient * n);
             t++;
-            this->push_back(t); // t = 2^(2^max_bound) + 1
+            this->push_back(t); // t = 2^(2^n * c) + 1
             _product *= t;
-            max_bound <<= 1; // find the previous power of 2
+            n >>= 1; // max_bound = previous 2^n
         }
 #if CHECK_MMC
         size_t N = this->size();
@@ -59,7 +59,7 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
             {
                 if (i != j && gcd(this->val(i), this->val(j)) != 1)
                 {
-                    cerr << "GenMargeMost is not generating coprimes." << endl
+                    cerr << "GenFermatMost is not generating coprimes." << endl
                          << " - got: " << this->val(i) << " and " << this->val(j) << endl;
                     abort();
                 }

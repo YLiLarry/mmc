@@ -33,17 +33,17 @@ class GenPrimeMost : public GenCoprimeAbstract<T>
   public:
     GenPrimeMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
-        assert(product_bound > max_bound);
-        assert(max_bound > 1);
+        assert(product_bound > max_bound && "The product of moduli must be greater than any moduli.");
+        assert(max_bound > 1 && "Any moduli must be at least 2 bits");
         Givaro::Integer prime_bound = 1;
         // linbox bug: uint64 could be undefined
         prime_bound <<= max_bound;
         _int_prime_domain.prevprimein(prime_bound);
-        while (product_bitsize() <= product_bound)
+        while (product_bitsize() < product_bound)
         {
             if (prime_bound < 2)
             {
-                cerr << "We ran out of primes, consider increasing max_bound." << endl;
+                cerr << "Failure to generate coprimes: We ran out of primes. Consider increasing max bitsize bound." << endl;
                 abort();
             }
             vector<T>::push_back(prime_bound);

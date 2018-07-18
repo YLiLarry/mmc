@@ -208,7 +208,8 @@ class TwoPhaseAbstract
         cerr << "########## matrix_reduce ##########" << endl;
 #endif
 #if DEBUG_MMC
-        cerr << inputs << endl;
+        cerr << "inputs: " << endl
+             << inputs << endl;
 #endif
 #if CHECK_MMCC
         for (size_t i = 0; i < len_inputs; i++)
@@ -220,6 +221,10 @@ class TwoPhaseAbstract
         cerr << "..... phase 1 reduce ....." << endl;
 #endif
         vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(inputs);
+#if DEBUG_MMC
+        cerr << "phase 1 reduced: " << endl
+             << p1_reduced << endl;
+#endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 reduce ends ....." << endl;
 #endif

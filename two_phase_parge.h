@@ -24,11 +24,11 @@ extern "C"
 class TwoPhaseParge : public TwoPhaseAbstract
 {
   public:
-    TwoPhaseParge(uint_fast64_t input_bound,
-                  uint_fast64_t level_1_moduli_bound,
-                  uint_fast64_t level_2_moduli_bound)
-        : TwoPhaseAbstract(new GenPargeMost(2 * input_bound, level_1_moduli_bound),
-                           new GenPrimeMost<double>(2 * level_1_moduli_bound, level_2_moduli_bound))
+    TwoPhaseParge(uint_fast64_t input_bitsize,
+                  uint_fast64_t level_1_moduli_bitsize,
+                  uint_fast64_t level_2_moduli_bitsize)
+        : TwoPhaseAbstract(new GenPargeMost(2 * input_bitsize, level_1_moduli_bitsize),
+                           new GenPrimeMost<double>(2 * level_1_moduli_bitsize, level_2_moduli_bitsize))
     {
     }
 

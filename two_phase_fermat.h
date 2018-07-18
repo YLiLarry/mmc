@@ -24,11 +24,12 @@ extern "C"
 class TwoPhaseFermat : public TwoPhaseAbstract
 {
   public:
-    TwoPhaseFermat(uint_fast64_t input_bound,
-                   uint_fast64_t level_1_moduli_bound,
-                   uint_fast64_t level_2_moduli_bound)
-        : TwoPhaseAbstract(new GenFermatMost(2 * input_bound, level_1_moduli_bound),
-                           new GenPrimeMost<double>(2 * level_1_moduli_bound, level_2_moduli_bound))
+    TwoPhaseFermat(uint_fast64_t input_bitsize,
+                   uint_fast64_t level_1_fermat_like_moduli_bitsize,
+                   uint_fast64_t level_1_fermat_like_moduli_bitsize_coefficient,
+                   uint_fast64_t level_2_moduli_bitsize)
+        : TwoPhaseAbstract(new GenFermatMost(2 * input_bitsize, level_1_fermat_like_moduli_bitsize, level_1_fermat_like_moduli_bitsize_coefficient),
+                           new GenPrimeMost<double>(2 * level_1_fermat_like_moduli_bitsize, level_2_moduli_bitsize))
     {
     }
 

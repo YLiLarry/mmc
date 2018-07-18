@@ -81,4 +81,5 @@
         "**/bower_components": true
     },
     "workbench.editor.enablePreview": false,
+    "git.ignoreLimitWarning": true,
 }
