@@ -125,6 +125,12 @@ class TwoPhaseMarge : public TwoPhaseAbstract
             }
 #endif
         }
+        for (size_t i = 0; i < level_1_moduli_count; i++)
+        {
+            mpz_clear(_Mi[i]);
+            mpz_clear(_r[i]);
+            mpz_clear(_f[i]);
+        }
 #if TIME_MMC
         cerr << endl;
 #endif

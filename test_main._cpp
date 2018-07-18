@@ -10,8 +10,6 @@ using namespace std;
 #include <gmp++/gmp++.h>
 #include <ostream>
 #include <time.h>
-#include <linbox/matrix/matrix-domain.h>
-#include <linbox/algorithms/matrix-blas3/mul.h>
 // #include <istringstream>
 
 using namespace LinBox;
@@ -199,9 +197,8 @@ void test3()
 */
 int main()
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 100; i++)
     {
         test5();
-        // test2();
     }
 }

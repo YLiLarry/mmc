@@ -23,24 +23,22 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
     Givaro::Integer _product = 1;
-    uint_fast64_t _max_bitsize;
-    T _max;
 
   public:
     inline virtual Givaro::Integer product() const override { return _product; }
-    inline virtual uint_fast64_t product_bitsize() const override { return _product.bitsize(); }
-    inline virtual uint_fast64_t max_bitsize() const override { return _max_bitsize; }
-    inline virtual const T &max() const override { return _max; }
+    inline virtual uint_fast64_t product_bitsize() const override { return product().bitsize(); }
+    inline virtual uint_fast64_t max_bitsize() const override { return Givaro::Integer(max()).bitsize(); }
+    inline virtual const T &max() const override { return this->operator[](0); }
 
   public:
     PrimeGenMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
+        assert(product_bound > 1);
+        assert(max_bound > 1);
         Givaro::Integer prime_bound = 1;
         // linbox bug: uint64 could be undefined
         prime_bound <<= max_bound;
         _int_prime_domain.prevprimein(prime_bound);
-        _max = prime_bound;
-        _max_bitsize = prime_bound.bitsize();
         while (product_bitsize() <= product_bound)
         {
             if (prime_bound < 2)
@@ -65,8 +63,8 @@ class PrimeGenMost : public CoprimeGenAbstract<T>
             assert(primeDom.isprime(this->val(i)));
         }
 #endif
-        assert(_max >= 2);
-        assert(_product >= 2);
+        assert(max() >= 2);
+        assert(product() >= 2);
     }
 
     ~PrimeGenMost() = default;

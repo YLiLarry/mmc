@@ -71,10 +71,10 @@ extern "C"
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 14);
-static size_t m = 512;
-static size_t k = 512;
-static size_t n = 512;
+static unsigned long b = (1 << 15);
+static size_t m = 64;
+static size_t k = 64;
+static size_t n = 64;
 static int nbw = -1;
 static size_t seed = time(NULL);
 static Argument as[] = {

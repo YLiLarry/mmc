@@ -14,24 +14,20 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
     Givaro::Integer _product = 1;
-    Givaro::Integer _max = 1;
-    uint_fast64_t _max_bitsize;
 
   public:
     inline virtual Givaro::Integer product() const override { return _product; }
-    inline virtual uint_fast64_t product_bitsize() const override { return _product.bitsize(); }
-    inline virtual uint_fast64_t max_bitsize() const override { return _max_bitsize; }
-    inline virtual const Givaro::Integer &max() const override { return _max; }
+    inline virtual uint_fast64_t product_bitsize() const override { return product().bitsize(); }
+    inline virtual uint_fast64_t max_bitsize() const override { return max().bitsize(); }
+    inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
   public:
     MargeGenMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
         assert(product_bound > 1);
+        assert(max_bound > 1);
         Givaro::Integer prime_bound = max_bound;
         _int_prime_domain.prevprimein(prime_bound);
-        _max_bitsize = prime_bound % max_bound;
-        _max <<= _max_bitsize;
-        _max--;
         while (product_bitsize() <= product_bound)
         {
             if (prime_bound < 2)
@@ -62,8 +58,8 @@ class MargeGenMost : public CoprimeGenAbstract<Givaro::Integer>
             }
         }
 #endif
-        assert(_max >= 3);
-        assert(_product >= 3);
+        assert(max() >= 3);
+        assert(product() >= 3);
     }
 
     ~MargeGenMost() = default;

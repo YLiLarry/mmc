@@ -30,10 +30,11 @@ void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
         gmp_fprintf(stderr, "]\n");
 #endif
     }
+    mpz_clear(M);
+    // outputs Mi[]
 #if DEBUG_MMC || TIME_MMC
     gmp_fprintf(stderr, ".......... precompute_Mi ends ..........\n");
 #endif
-    // outputs M, Mi
 }
 
 // Mi: precomputed array
@@ -65,10 +66,13 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
         mpz_init(arr[i]);
     }
     mpz_set(arr[0], r[0]);
-    // initialize t
+    // initialize temporary vars
     mpz_t t;
     mpz_init(t);
-    // garner main body // starting from line 7
+    mpz_t temp;
+    mpz_init(temp);
+    // garner main body
+    // starting from line 7 in Eugene's paper
     for (int i = 1; i < N; i++)
     {
         mpz_set(t, arr[i - 1]); // line 8
@@ -78,8 +82,6 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
             mpz_add(t, t, arr[j]); // line 11
         }                          // end for
         mpz_sub(t, r[i], t);       // line 13
-        mpz_t temp;
-        mpz_init(temp);
         mpz_mod(temp, Mi[i], m[i]);
         mpz_mul(arr[i], t, temp); // line 14
     }                             // end for line 15
@@ -89,14 +91,20 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
         mpz_mul(a, a, m[i]);
         mpz_add(a, a, arr[i]);
     } // line for line 20
-
+    // free used temporary vars
+    mpz_clear(t);
+    mpz_clear(temp);
+    for (int i = 0; i < N; i++)
+    {
+        mpz_clear(arr[i]);
+    }
+    // outputs in a
 #if DEBUG_MMC
     gmp_fprintf(stderr, " - a: %Zd\n", a);
 #endif
 #if DEBUG_MMC
     gmp_fprintf(stderr, "########## garner ends ##########\n");
 #endif
-    // outputs in a
 }
 
 void prod(mpz_t M, mpz_t Mi, mpz_t *m, int N)
@@ -109,4 +117,5 @@ void prod(mpz_t M, mpz_t Mi, mpz_t *m, int N)
         mpz_mul(M, M, m[i - 1]);
         mpz_gcdext(plchldr, Mi, plchldr, M, m[i]);
     }
+    mpz_clear(plchldr);
 }
