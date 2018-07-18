@@ -23,32 +23,33 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
     inline virtual uint_fast64_t max_bitsize() const override { return max().bitsize(); }
     inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
+    // because it never makes sense to use a single Fermat number as the level 1 moduli,
+    // and Fermat numbers have the property, F{n} = ! F{n-1}, we favor using (n-1) Fermat 
+    // numbers under the max_bound rather than F{n}.
   public:
     GenFermatMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
-        assert(product_bound > 1);
+        assert(product_bound > max_bound);
         assert(max_bound > 1);
-        uint_fast64_t n = 1;
-        max_bound >>= 1; // find the cloest power of 2
-        while (n < max_bound)
-        {
-            n <<= 1;
-        }
+        assert(std::floor(Givaro::logtwo(max_bound)) == std::ceil(Givaro::logtwo(max_bound)) && 
+                "For Fermat numbers the max_bound (max exponent) must be a power of two");
+
+        max_bound <<= 1; // find the previous power of 2
         while (product_bitsize() <= product_bound)
         {
-            if (n < 1)
+            if (max_bound < 1)
             {
                 std::cerr << "We ran out of Fermat numbers, consider increasing max_bound" << std::endl;
                 std::cerr << " - currently generated: " << std::endl
                           << *this << std::endl;
             }
-            assert(n >= 1);
+            assert(max_bound >= 1);
             Givaro::Integer t = 1;
-            t <<= n;
+            t <<= max_bound;
             t++;
-            this->push_back(t); // t = 2^(2^n) + 1
+            this->push_back(t); // t = 2^(2^max_bound) + 1
             _product *= t;
-            n >>= 1;
+            max_bound <<= 1; // find the previous power of 2
         }
 #if CHECK_MMC
         size_t N = this->size();

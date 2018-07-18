@@ -26,7 +26,7 @@ class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
   public:
     GenPargeMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
-        assert(product_bound > 1);
+        assert(product_bound > max_bound);
         assert(max_bound > 1);
         uint_fast64_t n = 1;
         max_bound >>= 1; // find the cloest power of 2
@@ -38,7 +38,7 @@ class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
         {
             if (n < 1)
             {
-                std::cerr << "We ran out of Parge numbers, consider increasing max_bound" << std::endl;
+                std::cerr << "We ran out of parge numbers, consider increasing max_bound" << std::endl;
                 std::cerr << " - currently generated: " << std::endl
                           << *this << std::endl;
             }
