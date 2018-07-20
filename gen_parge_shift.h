@@ -11,7 +11,7 @@
 // the product of them are at most 2^product_bits bits long,
 // since there are not many fermat numbers we don't generate randomly
 // we just start from the largest and count down until the product is large enough
-class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
+class GenPargeShift : public GenCoprimeAbstract<Givaro::Integer>
 {
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
@@ -24,21 +24,21 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
     inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
   public:
-    GenFermatMost(uint_fast64_t product_bound, uint_fast64_t max_bound, uint_fast64_t coefficient)
+    GenPargeShift(uint_fast64_t product_bound, uint_fast64_t max_bound, uint_fast64_t coefficient)
     {
         assert(product_bound > max_bound && "The product of moduli must be greater than any moduli.");
         assert(max_bound > 1 && "Any moduli must be at least 2 bits");
 
-        assert(max_bound % coefficient == 0 && "For Fermat-like 2^(n*c) + 1 numbers the max bitsize (n*c) must be divisiable by the coefficient c.");
+        assert(max_bound % coefficient == 0 && "For Parge 2^(n*c) + 1 numbers the max bitsize (n*c) must be divisiable by the coefficient c.");
         assert(std::floor(Givaro::logtwo(max_bound)) == std::ceil(Givaro::logtwo(max_bound)) &&
-               "For Fermat-like numbers the max bitsize must be a power of two");
+               "For Parge numbers the max bitsize must be a power of two");
 
         uint_fast64_t n = max_bound / coefficient;
         while (product_bitsize() < product_bound)
         {
             if (n < 1)
             {
-                std::cerr << "Failure to generate coprimes: We ran out of Fermat-like numbers. Consider increasing max bitsize bound." << std::endl;
+                std::cerr << "Failure to generate coprimes: We ran out of Parge numbers. Consider increasing max bitsize bound." << std::endl;
                 std::cerr << " - currently generated: " << std::endl
                           << *this << std::endl;
                 abort();
@@ -59,7 +59,7 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
             {
                 if (i != j && gcd(this->val(i), this->val(j)) != 1)
                 {
-                    cerr << "GenFermatMost is not generating coprimes." << endl
+                    cerr << "GenPargeShift is not generating coprimes." << endl
                          << " - got: " << this->val(i) << " and " << this->val(j) << endl;
                     abort();
                 }
@@ -68,8 +68,8 @@ class GenFermatMost : public GenCoprimeAbstract<Givaro::Integer>
 #endif
     }
 
-    ~GenFermatMost() = default;
-    GenFermatMost(GenFermatMost &) = delete;
+    ~GenPargeShift() = default;
+    GenPargeShift(GenPargeShift &) = delete;
 };
 
 #endif // H_FERMAT_GEN

@@ -4,8 +4,8 @@ using namespace std;
 #include "nocopy_integer.h"
 #include "sim_rns.h"
 #include "two_phase_marge.h"
-#include "two_phase_fermat.h"
-#include "two_phase_parge.h"
+#include "two_phase_parge_shift.h"
+#include "two_phase_parge_block.h"
 #include <array>
 #include <gmp++/gmp++.h>
 #include <ostream>
@@ -16,18 +16,19 @@ using namespace SIM_RNS;
 
 void test(bool test_marge, bool test_parge, bool test_fermat)
 {
-    const uint_fast64_t input_bit_length = (1 << 10);
+    const uint_fast64_t input_bitsize = (1 << 10);
+    const uint_fast64_t output_bitsize = input_bitsize * 2;
 
     vector<Givaro::Integer> a(4);
-    a[0] = LInteger::random_exact(input_bit_length);
-    a[1] = LInteger::random_exact(input_bit_length);
-    a[2] = LInteger::random_exact(input_bit_length);
-    a[3] = LInteger::random_exact(input_bit_length);
+    a[0] = LInteger::random_exact(input_bitsize);
+    a[1] = LInteger::random_exact(input_bitsize);
+    a[2] = LInteger::random_exact(input_bitsize);
+    a[3] = LInteger::random_exact(input_bitsize);
     vector<Givaro::Integer> b(4);
-    b[0] = LInteger::random_exact(input_bit_length);
-    b[1] = LInteger::random_exact(input_bit_length);
-    b[2] = LInteger::random_exact(input_bit_length);
-    b[3] = LInteger::random_exact(input_bit_length);
+    b[0] = LInteger::random_exact(input_bitsize);
+    b[1] = LInteger::random_exact(input_bitsize);
+    b[2] = LInteger::random_exact(input_bitsize);
+    b[3] = LInteger::random_exact(input_bitsize);
     cerr << "input a: " << a << endl;
     cerr << "input b: " << b << endl;
 
@@ -43,10 +44,10 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
     cerr << "========== Testing TwoPhaseMarge ==========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bit_length = input_bit_length / 2;
-        const size_t phase2_moduli_bit_length = 21;
+        const uint_fast64_t phase1_moduli_bitsize = input_bitsize / 2;
+        const size_t phase2_moduli_bitsize = 21;
 
-        TwoPhaseMarge algo_marge(input_bit_length, phase1_moduli_bit_length, phase2_moduli_bit_length);
+        TwoPhaseMarge algo_marge(input_bitsize, phase1_moduli_bitsize, phase2_moduli_bitsize);
 
         auto r = algo_marge.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> r_ = algo_marge.matrix_recover(r);
@@ -76,33 +77,33 @@ end_test_marge:
         goto end_test_parge;
     }
     cerr << "===========================================" << endl;
-    cerr << "========= Testing TwoPhaseParge ==========" << endl;
+    cerr << "========= Testing TwoPhasePargeBlock ==========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bit_length = input_bit_length / 2;
-        const size_t phase2_moduli_bit_length = 21;
+        const uint_fast64_t phase1_moduli_bitsize = input_bitsize;
+        const size_t phase2_moduli_bitsize = 21;
 
-        TwoPhaseParge algo_parge(input_bit_length, phase1_moduli_bit_length, phase2_moduli_bit_length);
+        TwoPhasePargeBlock algo_parge_block(output_bitsize, phase1_moduli_bitsize, phase2_moduli_bitsize);
 
-        auto r = algo_parge.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> r_ = algo_parge.matrix_recover(r);
+        auto r = algo_parge_block.matrix_reduce(a, 2, 2);
+        vector<Givaro::Integer> r_ = algo_parge_block.matrix_recover(r);
         assert(equals(a, r_));
 
-        auto s = algo_parge.matrix_reduce(b, 2, 2);
-        vector<Givaro::Integer> s_ = algo_parge.matrix_recover(s);
+        auto s = algo_parge_block.matrix_reduce(b, 2, 2);
+        vector<Givaro::Integer> s_ = algo_parge_block.matrix_recover(s);
         assert(equals(b, s_));
 
-        auto t = algo_parge.phase2_mult(r, s);
-        auto got = algo_parge.matrix_recover(t);
+        auto t = algo_parge_block.phase2_mult(r, s);
+        auto got = algo_parge_block.matrix_recover(t);
 
         if (!equals(got, expect))
         {
-            cerr << "TwoPhaseParge failed" << endl
+            cerr << "TwoPhasePargeBlock failed" << endl
                  << " - expect: " << expect << endl
                  << " - got: " << got << endl;
             abort();
         }
-        cerr << "TwoPhaseParge passed!" << endl;
+        cerr << "TwoPhasePargeBlock passed!" << endl;
     }
 
 end_test_parge:
@@ -112,33 +113,33 @@ end_test_parge:
         goto end_test_fermat;
     }
     cerr << "===========================================" << endl;
-    cerr << "========= Testing TwoPhaseFermat ==========" << endl;
+    cerr << "========= Testing TwoPhasePargeShift ==========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bit_length = 1024;
-        const size_t phase2_moduli_bit_length = 21;
+        const uint_fast64_t phase1_moduli_bitsize = 1024;
+        const size_t phase2_moduli_bitsize = 21;
 
-        TwoPhaseFermat algo_fermat(input_bit_length, phase1_moduli_bit_length, 512, phase2_moduli_bit_length);
+        TwoPhasePargeShift algo_parge_shift(output_bitsize, phase1_moduli_bitsize, 1, phase2_moduli_bitsize);
 
-        auto r = algo_fermat.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> r_ = algo_fermat.matrix_recover(r);
+        auto r = algo_parge_shift.matrix_reduce(a, 2, 2);
+        vector<Givaro::Integer> r_ = algo_parge_shift.matrix_recover(r);
         assert(equals(a, r_));
 
-        auto s = algo_fermat.matrix_reduce(b, 2, 2);
-        vector<Givaro::Integer> s_ = algo_fermat.matrix_recover(s);
+        auto s = algo_parge_shift.matrix_reduce(b, 2, 2);
+        vector<Givaro::Integer> s_ = algo_parge_shift.matrix_recover(s);
         assert(equals(b, s_));
 
-        auto t = algo_fermat.phase2_mult(r, s);
-        auto got = algo_fermat.matrix_recover(t);
+        auto t = algo_parge_shift.phase2_mult(r, s);
+        auto got = algo_parge_shift.matrix_recover(t);
 
         if (!equals(got, expect))
         {
-            cerr << "TwoPhaseFermat failed" << endl
+            cerr << "TwoPhasePargeShift failed" << endl
                  << " - expect: " << expect << endl
                  << " - got: " << got << endl;
             abort();
         }
-        cerr << "TwoPhaseFermat passed!" << endl;
+        cerr << "TwoPhasePargeShift passed!" << endl;
     }
 
 end_test_fermat:
@@ -150,6 +151,6 @@ int main()
 {
     for (int i = 0; i < 3; i++)
     {
-        test(true, true, false);
+        test(false, false, true);
     }
 }

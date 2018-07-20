@@ -8,7 +8,7 @@
 #include <bitset>
 
 // generate parge numbers using the block generation scheme
-class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
+class GenPargeBlock : public GenCoprimeAbstract<Givaro::Integer>
 {
   protected:
     Givaro::IntPrimeDom _int_prime_domain;
@@ -21,7 +21,7 @@ class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
     inline virtual const Givaro::Integer &max() const override { return this->operator[](0); }
 
   public:
-    GenPargeMost(uint_fast64_t product_bound, uint_fast64_t max_bound)
+    GenPargeBlock(uint_fast64_t product_bound, uint_fast64_t max_bound)
     {
         assert(product_bound > max_bound && "The product of moduli must be greater than any moduli.");
         assert(max_bound > 1 && "Any moduli must be at least 2 bits");
@@ -59,7 +59,7 @@ class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
             {
                 if (i != j && gcd(this->val(i), this->val(j)) != 1)
                 {
-                    cerr << "GenPargeMost is not generating coprimes." << endl
+                    cerr << "GenPargeBlock is not generating coprimes." << endl
                          << " - got: " << this->val(i) << " and " << this->val(j) << endl;
                     abort();
                 }
@@ -68,8 +68,8 @@ class GenPargeMost : public GenCoprimeAbstract<Givaro::Integer>
 #endif
     }
 
-    ~GenPargeMost() = default;
-    GenPargeMost(GenPargeMost &) = delete;
+    ~GenPargeBlock() = default;
+    GenPargeBlock(GenPargeBlock &) = delete;
 };
 
 #endif // H_GEN_PARGE
