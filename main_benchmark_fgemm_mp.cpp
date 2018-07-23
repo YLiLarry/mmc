@@ -51,7 +51,8 @@ using namespace std;
 #ifdef BENCH_RECINT
 #include "recint/recint.h"
 #endif
-#include "two_phase_marge.h"
+#include "two_phase_marge_least.h"
+#include "two_phase_marge_most.h"
 #include "two_phase_parge_block.h"
 #include <ostream>
 
@@ -72,7 +73,7 @@ extern "C"
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 16);
+static unsigned long b = (1 << 17);
 static size_t m = 32;
 static size_t k = 32;
 static size_t n = 32;
@@ -89,7 +90,9 @@ static Argument as[] = {
     {'s', "-s S", "Sets seed.", TYPE_INT, &seed},
     END_OF_ARGUMENTS};
 
-#define BENCH_TWO_PHASE_PARGE_BLOCK 1
+#define BENCH_TWO_PHASE_PARGE_BLOCK 0
+#define BENCH_TWO_PHASE_MARGE_LEAST 1
+#define BENCH_TWO_PHASE_MARGE_MOST 0
 
 template <typename Ints>
 int tmain()
@@ -106,9 +109,10 @@ int tmain()
 #ifdef BENCH_FLINT
     double timeFlint = 0.;
 #endif
-#if BENCH_TWO_PHASE_MARGE || BENCH_TWO_PHASE_PARGE_BLOCK
-    double time_two_phase_marge = 0.;
-    double time_two_phase_page_block = 0.;
+#if BENCH_TWO_PHASE_MARGE_LEAST || BENCH_TWO_PHASE_MARGE_MOST || BENCH_TWO_PHASE_PARGE_BLOCK
+    double time_two_phase_marge_least = 0.;
+    double time_two_phase_marge_most = 0.;
+    double time_two_phase_parge_block = 0.;
 #endif
     double time_naive = 0.;
     for (size_t loop = 0; loop < iters; loop++)
@@ -123,7 +127,7 @@ int tmain()
 
         Field F;
         ModularField MF(p);
-        cerr << "benchmarking with Givaro::Modular<Ints>(" << p << ")" << endl;
+        cerr << "benchmarking with random inputs in Givaro::Modular<Ints>(integer of " << p.bitsize() << " bits)" << endl;
         size_t lda, ldb, ldc;
         lda = k;
         ldb = n;
@@ -202,44 +206,76 @@ int tmain()
         fmpz_mat_clear(BB);
 #endif
 
+    cerr << "===========================================" << endl;
+    cerr << "============= Benchmark Naive =============" << endl;
+    cerr << "===========================================" << endl;
         chrono.clear();
         chrono.start();
         auto C__ = SIM_RNS::fflas_mult_integer(A_, B_, m, k, n);
         chrono.stop();
         time_naive += chrono.usertime();
 
-#if BENCH_TWO_PHASE_MARGE
+#if BENCH_TWO_PHASE_MARGE_LEAST
         {
-            TwoPhaseMarge algo(2 * b,
-                               b / 20,
-                               b / 10,
-                               21);
+    cerr << "===========================================" << endl;
+    cerr << "======= Benchmark TwoPhaseMargeLeast ======" << endl;
+    cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
+            TwoPhaseMargeLeast algo(2 * b,
+                               0,
+                               2 * 1949 + 5,
+                               21);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
             auto C_ = algo.matrix_recover(c);
             chrono.stop();
-            time_two_phase_marge += chrono.usertime();
+            time_two_phase_marge_least += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
             assert(equals(C_, C__));
         }
 #endif
-#if BENCH_TWO_PHASE_PARGE_BLOCK
+
+#if BENCH_TWO_PHASE_MARGE_MOST
         {
-            TwoPhasePargeBlock algo(2 * b,
-                                    b / 4,
-                                    b / 2 + 5,
-                                    21);
+    cerr << "===========================================" << endl;
+    cerr << "======= Benchmark TwoPhaseMargeMost =======" << endl;
+    cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
+            TwoPhaseMargeMost algo(2 * b,
+                               b / 20,
+                               2 * b / 20 + 5,
+                               21);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
             auto C_ = algo.matrix_recover(c);
             chrono.stop();
-            time_two_phase_page_block += chrono.usertime();
+            time_two_phase_marge_most += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            assert(equals(C_, C__));
+        }
+#endif
+
+#if BENCH_TWO_PHASE_PARGE_BLOCK
+        {
+    cerr << "===========================================" << endl;
+    cerr << "====== Benchmark TwoPhasePargeBlock =======" << endl;
+    cerr << "===========================================" << endl;
+            chrono.clear();
+            chrono.start();
+            TwoPhasePargeBlock algo(2 * b,
+                                    b / 4,
+                                    2 * b / 4 + 5,
+                                    21);
+            auto a = algo.matrix_reduce(A_, m, k);
+            auto b = algo.matrix_reduce(B_, k, n);
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_parge_block += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
             assert(equals(C_, C__));
         }
@@ -290,14 +326,17 @@ int tmain()
          << typeid(Ints).name()
          << "  | perword: " << (Gflops * double(p.bitsize())) / 64.;
 
-    FFLAS::writeCommandString(std::cout << '|' << p << " (" << p.bitsize() << ")|", as) << "  | Freivalds: " << timev / double(iters) << std::endl;
+        std::cout << '|' << "benchmarked with random inputs in Givaro::Modular<Ints>(integer of " << p.bitsize() << " bits)|";
+        FFLAS::writeCommandString(std::cout, as);
+        std::cout << "  | Freivalds: " << timev / double(iters) << std::endl;
 
 #ifdef BENCH_FLINT
     cout << "Time FLINT: " << timeFlint << endl;
 #endif
-#if BENCH_TWO_PHASE_MARGE || BENCH_TWO_PHASE_PARGE_BLOCK
-    cout << "Time TwoPhase: " << time_two_phase_marge << endl;
-    cout << "Time TwoPhase: " << time_two_phase_page_block << endl;
+#if BENCH_TWO_PHASE_MARGE_LEAST || BENCH_TWO_PHASE_MARGE_MOST || BENCH_TWO_PHASE_PARGE_BLOCK
+    cout << "Time TwoPhaseMargeLeast: " << time_two_phase_marge_least << endl;
+    cout << "Time TwoPhaseMargeMost: " << time_two_phase_marge_most << endl;
+    cout << "Time TwoPhasePargeBlock: " << time_two_phase_parge_block << endl;
 #endif
     cout << "Time Naive: " << time_naive << endl;
 

@@ -2,10 +2,10 @@
 #include "reconstruct_marge.h"
 #include <assert.h>
 
-void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
+void precompute_Mi_marge(mpz_t Mi[], const mpz_t m[], const size_t N)
 {
 #if DEBUG_MMC || TIME_MMC
-    gmp_fprintf(stderr, ".......... precompute_Mi ..........\n");
+    gmp_fprintf(stderr, ".......... precompute_Mi_marge ..........\n");
 #endif
     // line 1
     mpz_t M;
@@ -17,7 +17,7 @@ void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
         mpz_mul(M, M, m[i - 1]);    // line 3
         mpz_invert(Mi[i], M, m[i]); // line 4
 #if DEBUG_MMC
-        gmp_fprintf(stderr, "precompute_Mi iteration#%d: M=%Zd, Mi[%d]=%Zd\n", i, M, i, Mi[i]);
+        gmp_fprintf(stderr, "precompute_Mi_marge iteration#%d: M=%Zd, Mi[%d]=%Zd\n", i, M, i, Mi[i]);
 #endif
 #if DEBUG_MMC
         gmp_fprintf(stderr, " - M: %Zd\n", M);
@@ -33,15 +33,16 @@ void precompute_Mi(mpz_t Mi[], const mpz_t m[], const size_t N)
     mpz_clear(M);
     // outputs Mi[]
 #if DEBUG_MMC || TIME_MMC
-    gmp_fprintf(stderr, ".......... precompute_Mi ends ..........\n");
+    gmp_fprintf(stderr, ".......... precompute_Mi_marge ends ..........\n");
 #endif
 }
 
+
 // Mi: precomputed array
-void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
+void garner_marge(mpz_t a, int N, const mpz_t r[], const uint64_t expo[], const mpz_t m[], const mpz_t Mi[])
 {
 #if DEBUG_MMC
-    gmp_fprintf(stderr, "########## garner ##########\n");
+    gmp_fprintf(stderr, "########## garner_marge ##########\n");
 #endif
 #if DEBUG_MMC
     for (size_t i = 0; i < N; i++)
@@ -67,25 +68,29 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     mpz_init(t);
     mpz_t temp;
     mpz_init(temp);
-    // garner main body
+    // garner_marge main body
     // starting from line 7 in Eugene's paper
     for (int i = 1; i < N; i++)
     {
         mpz_init(arr[i]);
         mpz_set(t, arr[i - 1]); // line 8
         for (int j = i - 2; j >= 0; j--)
-        {                          // for loop line 9
-            mpz_mul(t, t, m[j]);   // line 10
-            mpz_add(t, t, arr[j]); // line 11
-        }                          // end for
-        mpz_sub(t, r[i], t);       // line 13
-        mpz_mod(temp, Mi[i], m[i]);
-        mpz_mul(arr[i], t, temp); // line 14
-    }                             // end for line 15
-    mpz_set(a, arr[N - 1]);       // line 16
+        { // for loop line 9
+            // mpz_mul(t, t, m[j]);
+            // line 10
+            mpz_mul_2exp(temp, t, expo[j]);
+            mpz_sub(temp, temp, t);
+            mpz_add(t, temp, arr[j]); // line 11
+        }                             // end for
+        mpz_sub(t, r[i], t);          // line 13
+        mpz_mul(temp, t, Mi[i]);      // line 14
+        mpz_mod(arr[i], temp, m[i]);
+    }                       // end for line 15
+    mpz_set(a, arr[N - 1]); // line 16
     for (int i = N - 1; i >= 0; i--)
     { // line 17
-        mpz_mul(a, a, m[i]);
+        mpz_mul_2exp(temp, a, expo[i]);
+        mpz_sub(a, temp, a);
         mpz_add(a, a, arr[i]);
         mpz_clear(arr[i]);
     } // line for line 20
@@ -97,7 +102,53 @@ void garner(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
     gmp_fprintf(stderr, " - a: %Zd\n", a);
 #endif
 #if DEBUG_MMC
-    gmp_fprintf(stderr, "########## garner ends ##########\n");
+    gmp_fprintf(stderr, "########## garner_marge ends ##########\n");
+#endif
+}
+
+// Mi: precomputed array
+void garner_simple_marge(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
+{
+#if DEBUG_MMC
+    gmp_fprintf(stderr, "########## garner_simple_marge ##########\n");
+#endif
+#if DEBUG_MMC
+    for (size_t i = 0; i < N; i++)
+    {
+        gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
+#if CHECK_MMC
+        assert(mpz_cmp(r[i], m[i]) < 0);
+#endif
+    }
+#endif
+    assert(N > 0);
+    mpz_set(a, r[0]); // line 6
+    if (N == 1)
+    {
+        return;
+    }
+    // line 7
+    mpz_t M;
+    mpz_init_set(M, m[0]);
+    mpz_t t;
+    mpz_init(t);
+    // line 8
+    for (int i = 1; i < N; i++)
+    {
+        mpz_sub(t, r[i], a);  // line 8
+        mpz_mul(t, t, Mi[i]); // line 9
+        mpz_mod(t, t, m[i]);  // line 10
+        mpz_addmul(a, t, M);  // line 11
+        mpz_mul(M, M, m[i]);  // line 12
+    }                         // end for line 15
+    mpz_clear(t);
+    mpz_clear(M);
+    // outputs in a
+#if DEBUG_MMC
+    gmp_fprintf(stderr, " - a: %Zd\n", a);
+#endif
+#if DEBUG_MMC
+    gmp_fprintf(stderr, "########## garner_simple_marge ends ##########\n");
 #endif
 }
 

@@ -1,18 +1,8 @@
 #ifndef H_TWO_PHASE_ABSTRACT
 #define H_TWO_PHASE_ABSTRACT
 
-namespace CNMA
-{
-extern "C"
-{
-#include "cnma/marge_num.h"
-#include "cnma/reconstruct_marge.h"
-}
-} // namespace CNMA
-
 #include "containers.h"
-#include "gen_marge.h"
-#include "gen_prime.h"
+#include "gen_coprime_abstract.h"
 #include "sim_rns.h"
 #include <iostream>
 #include <gmp++/gmp++.h>
@@ -25,7 +15,7 @@ extern "C"
 class TwoPhaseAbstract
 {
   protected:
-    // Phase2_RNS_Field uses level_2_moduli repeats level_1_moduli_count times as modulis
+    // Phase2_RNS_Field uses m_level_2_moduli repeats m_level_1_moduli_count times as modulis
     typedef FFPACK::rns_double Phase2_RNS_Rep;
     Phase2_RNS_Rep *m_phase2_rns_rep;
     Phase2_RNS_Rep *m_phase2_rns_computation_rep;
@@ -40,41 +30,41 @@ class TwoPhaseAbstract
     typedef Phase1_Field::Element Phase1_Int;
     typedef Phase1_Field::Element_ptr Phase1_Int_Ptr;
     Phase1_Field *m_phase1_field;
-    const GenCoprimeAbstract<Givaro::Integer> *level_1_moduli;
-    const GenCoprimeAbstract<double> *level_2_moduli;
-    const size_t level_1_moduli_count;
-    const size_t level_2_moduli_count;
+    const GenCoprimeAbstract<Givaro::Integer> *m_level_1_moduli;
+    const GenCoprimeAbstract<double> *m_level_2_moduli;
+    const size_t m_level_1_moduli_count;
+    const size_t m_level_2_moduli_count;
 
   public:
-    TwoPhaseAbstract(const GenCoprimeAbstract<Givaro::Integer> *level_1_moduli,
-                     const GenCoprimeAbstract<double> *level_2_moduli)
-        : level_1_moduli(level_1_moduli),
-          level_2_moduli(level_2_moduli),
-          level_1_moduli_count(level_1_moduli->count()),
-          level_2_moduli_count(level_2_moduli->count())
+    TwoPhaseAbstract(const GenCoprimeAbstract<Givaro::Integer> *m_level_1_moduli,
+                     const GenCoprimeAbstract<double> *m_level_2_moduli)
+        : m_level_1_moduli(m_level_1_moduli),
+          m_level_2_moduli(m_level_2_moduli),
+          m_level_1_moduli_count(m_level_1_moduli->count()),
+          m_level_2_moduli_count(m_level_2_moduli->count())
     {
 #if DEBUG_MMC || TIME_MMC
         cerr << "########## TwoPhaseAlgo constructor ##########" << endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
-        cerr << " - level_1_moduli: " << *level_1_moduli << endl;
-        cerr << " - level_2_moduli: " << *level_2_moduli << endl;
+        cerr << " - m_level_1_moduli: " << *m_level_1_moduli << endl;
+        cerr << " - m_level_2_moduli: " << *m_level_2_moduli << endl;
 #endif
-        assert(level_1_moduli->product() > level_2_moduli->product() && "chosen RNS size must make sense.");
-        // level_2_moduli repeats level_1_moduli_count times
-        vector<Givaro::Integer> tmp(level_2_moduli_count * level_1_moduli_count);
-        for (size_t i = 0; i < level_1_moduli_count; i++)
+        assert(m_level_1_moduli->product() > m_level_2_moduli->product() && "chosen RNS size must make sense.");
+        // m_level_2_moduli repeats m_level_1_moduli_count times
+        vector<Givaro::Integer> tmp(m_level_2_moduli_count * m_level_1_moduli_count);
+        for (size_t i = 0; i < m_level_1_moduli_count; i++)
         {
-            for (size_t j = 0; j < level_2_moduli_count; j++)
+            for (size_t j = 0; j < m_level_2_moduli_count; j++)
             {
-                tmp[i * level_2_moduli_count + j] = level_2_moduli->val(j);
+                tmp[i * m_level_2_moduli_count + j] = m_level_2_moduli->val(j);
             }
         }
         m_phase2_rns_computation_rep = new Phase2_RNS_Rep{tmp};
         m_phase2_rns_computation_field = new Phase2_RNS_Field(*m_phase2_rns_computation_rep);
-        m_phase2_rns_rep = new Phase2_RNS_Rep{*level_2_moduli};
+        m_phase2_rns_rep = new Phase2_RNS_Rep{*m_level_2_moduli};
         m_phase2_rns_field = new Phase2_RNS_Field(*m_phase2_rns_rep);
-        m_phase1_field = new Phase1_Field(level_2_moduli->product());
+        m_phase1_field = new Phase1_Field(m_level_2_moduli->product());
 #if DEBUG_MMC
         cerr << " - m_phase2_rns_field: " << m_phase2_rns_field->rns()._basis << endl;
         cerr << " - m_phase2_rns_computation_field: " << m_phase2_rns_computation_field->rns()._basis << endl;
@@ -83,13 +73,13 @@ class TwoPhaseAbstract
         cerr << "########## TwoPhaseAlgo constructor ends ##########" << endl;
 #endif
 #if CHECK_MMCC
-        for (size_t f = 0; f < level_1_moduli_count; f++)
+        for (size_t f = 0; f < m_level_1_moduli_count; f++)
         {
-            if (level_1_moduli->val(f) >= level_2_moduli->product())
+            if (m_level_1_moduli->val(f) >= m_level_2_moduli->product())
             {
-                cerr << "level 1 moduli " << level_1_moduli->val(f) << " is not smaller than the product of level 2 modulis " << level_2_moduli->product() << endl;
+                cerr << "level 1 moduli " << m_level_1_moduli->val(f) << " is not smaller than the product of level 2 modulis " << m_level_2_moduli->product() << endl;
             }
-            assert(level_1_moduli->val(f) < level_2_moduli->product() && "level 2 moduli product must be large enough");
+            assert(m_level_1_moduli->val(f) < m_level_2_moduli->product() && "level 2 moduli product must be large enough");
         }
 #endif
     };
@@ -116,8 +106,8 @@ class TwoPhaseAbstract
         size_t dim_m;
         size_t dim_n;
         size_t count;
-        size_t level_1_moduli_count;
-        size_t level_2_moduli_count;
+        size_t m_level_1_moduli_count;
+        size_t m_level_2_moduli_count;
         inline const Phase2_RNS_Int_Ptr &data() const { return _data->data; }
 
         Phase2_Matrix() = default;
@@ -127,8 +117,8 @@ class TwoPhaseAbstract
               dim_m(dim_m),
               dim_n(dim_n),
               count(dim_n * dim_m),
-              level_1_moduli_count(f.level_1_moduli_count),
-              level_2_moduli_count(f.level_2_moduli_count)
+              m_level_1_moduli_count(f.m_level_1_moduli_count),
+              m_level_2_moduli_count(f.m_level_2_moduli_count)
         {
             assert(this->data()._stride == this->count);
         }
@@ -140,8 +130,8 @@ class TwoPhaseAbstract
               dim_m(dim_m),
               dim_n(dim_n),
               count(dim_n * dim_m),
-              level_1_moduli_count(f.level_1_moduli_count),
-              level_2_moduli_count(f.level_2_moduli_count)
+              m_level_1_moduli_count(f.m_level_1_moduli_count),
+              m_level_2_moduli_count(f.m_level_2_moduli_count)
         {
             assert(this->data()._stride == this->count);
         }
@@ -151,7 +141,7 @@ class TwoPhaseAbstract
 
         const Phase2_RNS_Int ref(size_t r, size_t c, size_t f, size_t m) const
         {
-            return data()[f * count * level_2_moduli_count + m * count + r * dim_n + c];
+            return data()[f * count * m_level_2_moduli_count + m * count + r * dim_n + c];
         }
 
         friend ostream &operator<<(ostream &out, const Phase2_Matrix &mat)
@@ -159,13 +149,13 @@ class TwoPhaseAbstract
             out << "Phase2_Matrix: " << endl;
             for (size_t r = 0; r < mat.dim_m; r++)
             {
-                for (size_t f = 0; f < mat.level_1_moduli_count; f++)
+                for (size_t f = 0; f < mat.m_level_1_moduli_count; f++)
                 {
                     if (f != 0)
                     {
                         out << " ---";
                     }
-                    for (size_t m = 0; m < mat.level_2_moduli_count; m++)
+                    for (size_t m = 0; m < mat.m_level_2_moduli_count; m++)
                     {
                         if (m != 0)
                         {
@@ -215,7 +205,7 @@ class TwoPhaseAbstract
 #if CHECK_MMCC
         for (size_t i = 0; i < len_inputs; i++)
         {
-            assert(inputs[i] < level_1_moduli->product() && "Inputs must be less than the product of first level moduli.");
+            assert(inputs[i] < m_level_1_moduli->product() && "Inputs must be less than the product of first level moduli.");
         }
 #endif
 #if DEBUG_MMC || TIME_MMC
@@ -256,11 +246,11 @@ class TwoPhaseAbstract
             for (size_t c = 0; c < dim_n; c++)
             {
                 size_t i = r * mat.dim_n + c;
-                for (size_t f = 0; f < level_1_moduli_count; f++)
+                for (size_t f = 0; f < m_level_1_moduli_count; f++)
                 {
-                    for (size_t m = 0; m < level_2_moduli_count; m++)
+                    for (size_t m = 0; m < m_level_2_moduli_count; m++)
                     {
-                        mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat.count * level_1_moduli_count) + (i * level_1_moduli_count) + f]._ptr[0];
+                        mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat.count * m_level_1_moduli_count) + (i * m_level_1_moduli_count) + f]._ptr[0];
                     }
                 }
             }
@@ -349,11 +339,11 @@ class TwoPhaseAbstract
                 for (size_t c = 0; c < dim_n; c++)
                 {
                     size_t i = r * mat.dim_n + c;
-                    for (size_t f = 0; f < level_1_moduli_count; f++)
+                    for (size_t f = 0; f < m_level_1_moduli_count; f++)
                     {
-                        for (size_t m = 0; m < level_2_moduli_count; m++)
+                        for (size_t m = 0; m < m_level_2_moduli_count; m++)
                         {
-                            mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat.count * level_1_moduli_count) + (i * level_1_moduli_count) + f]._ptr[0];
+                            mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat.count * m_level_1_moduli_count) + (i * m_level_1_moduli_count) + f]._ptr[0];
                         }
                     }
                 }
@@ -377,18 +367,18 @@ class TwoPhaseAbstract
     */
     virtual vector<Phase1_Int> matrix_recover_phase_2(const Phase2_Matrix &mat) const
     {
-        Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*m_phase2_rns_field, level_1_moduli_count * mat.count);
+        Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*m_phase2_rns_field, m_level_1_moduli_count * mat.count);
         for (size_t r = 0; r < mat.dim_m; r++)
         {
             for (size_t c = 0; c < mat.dim_n; c++)
             {
                 size_t i = r * mat.dim_n + c;
-                for (size_t f = 0; f < level_1_moduli_count; f++)
+                for (size_t f = 0; f < m_level_1_moduli_count; f++)
                 {
-                    for (size_t m = 0; m < level_2_moduli_count; m++)
+                    for (size_t m = 0; m < m_level_2_moduli_count; m++)
                     {
-                        // phase2_inputs[(level_2_moduli_count * level_1_moduli_count) * i + f * level_2_moduli_count + m]._ptr[0] = mat.ref(r, c, f, m)._ptr[0];
-                        phase2_inputs[m * (mat.count * level_1_moduli_count) + (i * level_1_moduli_count) + f]._ptr[0] = mat.ref(r, c, f, m)._ptr[0];
+                        // phase2_inputs[(m_level_2_moduli_count * m_level_1_moduli_count) * i + f * m_level_2_moduli_count + m]._ptr[0] = mat.ref(r, c, f, m)._ptr[0];
+                        phase2_inputs[m * (mat.count * m_level_1_moduli_count) + (i * m_level_1_moduli_count) + f]._ptr[0] = mat.ref(r, c, f, m)._ptr[0];
                     }
                 }
             }
@@ -398,7 +388,7 @@ class TwoPhaseAbstract
         cerr << ".......... fflas_new_sim_recover .........." << endl;
 #endif
         // phase 2 recovery begins
-        auto result = SIM_RNS::fflas_new_sim_recover(*m_phase2_rns_field, phase2_inputs, mat.count * level_1_moduli_count, *m_phase1_field);
+        auto result = SIM_RNS::fflas_new_sim_recover(*m_phase2_rns_field, phase2_inputs, mat.count * m_level_1_moduli_count, *m_phase1_field);
 #if DEBUG_MMC || TIME_MMC
         cerr << ".......... fflas_new_sim_recover ends .........." << endl;
 #endif
@@ -503,7 +493,7 @@ class TwoPhaseAbstract
         // create matrix_c to return
         Phase2_RNS_Int_Ptr matrix_c = FFLAS::fflas_new(*m_phase2_rns_computation_field, dim_m, dim_k);
 
-        assert(m_phase2_rns_computation_field->size() == level_2_moduli_count * level_1_moduli_count);
+        assert(m_phase2_rns_computation_field->size() == m_level_2_moduli_count * m_level_1_moduli_count);
         assert(matrix_a._stride == dim_m * dim_n);
         assert(matrix_b._stride == dim_n * dim_k);
         assert(matrix_c._stride == dim_m * dim_k);

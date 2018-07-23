@@ -1,5 +1,5 @@
-#if !defined(H_GEN_PARGE)
-#define H_GEN_PARGE
+#if !defined(H_GEN_PARGE_BLOCK)
+#define H_GEN_PARGE_BLOCK
 
 #include <gmp++/gmp++.h>
 #include "gen_prime.h"
@@ -72,4 +72,4 @@ class GenPargeBlock : public GenCoprimeAbstract<Givaro::Integer>
     GenPargeBlock(GenPargeBlock &) = delete;
 };
 
-#endif // H_GEN_PARGE
+#endif // H_GEN_PARGE_BLOCK

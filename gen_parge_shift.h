@@ -1,5 +1,5 @@
-#if !defined(H_FERMAT_GEN)
-#define H_FERMAT_GEN
+#if !defined(H_GEN_PARGE_SHIFT)
+#define H_GEN_PARGE_SHIFT
 
 #include <gmp++/gmp++.h>
 #include "gen_prime.h"
@@ -72,4 +72,4 @@ class GenPargeShift : public GenCoprimeAbstract<Givaro::Integer>
     GenPargeShift(GenPargeShift &) = delete;
 };
 
-#endif // H_FERMAT_GEN
+#endif // H_GEN_PARGE_SHIFT

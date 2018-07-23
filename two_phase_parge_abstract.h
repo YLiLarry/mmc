@@ -1,5 +1,5 @@
-#ifndef H_TWO_PHASE_PARGE
-#define H_TWO_PHASE_PARGE
+#ifndef H_TWO_PHASE_PARGE_ABSTRACT
+#define H_TWO_PHASE_PARGE_ABSTRACT
 
 #include "two_phase_abstract.h"
 #include <vector>
@@ -17,9 +17,9 @@ class TwoPhasePargeAbstract : public TwoPhaseAbstract
 {
 
   public:
-    TwoPhasePargeAbstract(const GenCoprimeAbstract<Givaro::Integer> *level_1_moduli,
-                          const GenCoprimeAbstract<double> *level_2_moduli)
-        : TwoPhaseAbstract(level_1_moduli, level_2_moduli) {}
+    TwoPhasePargeAbstract(const GenCoprimeAbstract<Givaro::Integer> *m_level_1_moduli,
+                          const GenCoprimeAbstract<double> *m_level_2_moduli)
+        : TwoPhaseAbstract(m_level_1_moduli, m_level_2_moduli) {}
     TwoPhasePargeAbstract(const TwoPhasePargeAbstract &) = delete;
     TwoPhasePargeAbstract &operator=(const TwoPhasePargeAbstract &) = delete;
 
@@ -34,14 +34,14 @@ class TwoPhasePargeAbstract : public TwoPhaseAbstract
         size_t len_inputs = inputs.size();
         // phase 1 begins
         // p1_reduced stores multi-moduli representation of each input
-        vector<Phase1_Int> p1_reduced(len_inputs * level_1_moduli_count);
+        vector<Phase1_Int> p1_reduced(len_inputs * m_level_1_moduli_count);
         for (size_t i = 0; i < len_inputs; i++)
         {
-            for (size_t f = 0; f < level_1_moduli_count; f++)
+            for (size_t f = 0; f < m_level_1_moduli_count; f++)
             {
-                Phase1_Int &t = p1_reduced[i * level_1_moduli_count + f];
+                Phase1_Int &t = p1_reduced[i * m_level_1_moduli_count + f];
                 t = inputs[i];
-                CNMA::dc_reduce_plus(t.get_mpz(), (level_1_moduli->val(f) - 1).bitsize() - 1);
+                CNMA::dc_reduce_plus(t.get_mpz(), (m_level_1_moduli->val(f) - 1).bitsize() - 1);
             }
 #if TIME_MMC
             // print a dot for every 100 entries

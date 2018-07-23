@@ -1,5 +1,5 @@
-#if !defined(H_PRIME_GEN)
-#define H_PRIME_GEN
+#if !defined(H_GEN_PRIME)
+#define H_GEN_PRIME
 
 #include "containers.h"
 #include "nocopy_integer.h"
@@ -73,4 +73,4 @@ class GenPrimeMost : public GenCoprimeAbstract<T>
     GenPrimeMost &operator&=(const GenPrimeMost &) = delete;
 };
 
-#endif // H_PRIME_GEN
+#endif // H_GEN_PRIME

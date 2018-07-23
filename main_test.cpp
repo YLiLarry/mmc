@@ -3,7 +3,7 @@ using namespace std;
 
 #include "nocopy_integer.h"
 #include "sim_rns.h"
-#include "two_phase_marge.h"
+#include "two_phase_marge_most.h"
 #include "two_phase_parge_shift.h"
 #include "two_phase_parge_block.h"
 #include <array>
