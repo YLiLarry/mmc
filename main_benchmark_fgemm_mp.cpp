@@ -73,7 +73,7 @@ extern "C"
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 17);
+static unsigned long b = (1 << 18);
 static size_t m = 32;
 static size_t k = 32;
 static size_t n = 32;
@@ -90,9 +90,9 @@ static Argument as[] = {
     {'s', "-s S", "Sets seed.", TYPE_INT, &seed},
     END_OF_ARGUMENTS};
 
-#define BENCH_TWO_PHASE_PARGE_BLOCK 0
-#define BENCH_TWO_PHASE_MARGE_LEAST 1
-#define BENCH_TWO_PHASE_MARGE_MOST 0
+#define BENCH_TWO_PHASE_PARGE_BLOCK 1
+#define BENCH_TWO_PHASE_MARGE_LEAST 0
+#define BENCH_TWO_PHASE_MARGE_MOST 1
 
 template <typename Ints>
 int tmain()
@@ -206,9 +206,9 @@ int tmain()
         fmpz_mat_clear(BB);
 #endif
 
-    cerr << "===========================================" << endl;
-    cerr << "============= Benchmark Naive =============" << endl;
-    cerr << "===========================================" << endl;
+        cerr << "===========================================" << endl;
+        cerr << "============= Benchmark Naive =============" << endl;
+        cerr << "===========================================" << endl;
         chrono.clear();
         chrono.start();
         auto C__ = SIM_RNS::fflas_mult_integer(A_, B_, m, k, n);
@@ -217,15 +217,15 @@ int tmain()
 
 #if BENCH_TWO_PHASE_MARGE_LEAST
         {
-    cerr << "===========================================" << endl;
-    cerr << "======= Benchmark TwoPhaseMargeLeast ======" << endl;
-    cerr << "===========================================" << endl;
+            cerr << "===========================================" << endl;
+            cerr << "======= Benchmark TwoPhaseMargeLeast ======" << endl;
+            cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
             TwoPhaseMargeLeast algo(2 * b,
-                               0,
-                               2 * 1949 + 5,
-                               21);
+                                    0,
+                                    2 * 3906 + 5,
+                                    21);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -239,15 +239,15 @@ int tmain()
 
 #if BENCH_TWO_PHASE_MARGE_MOST
         {
-    cerr << "===========================================" << endl;
-    cerr << "======= Benchmark TwoPhaseMargeMost =======" << endl;
-    cerr << "===========================================" << endl;
+            cerr << "===========================================" << endl;
+            cerr << "======= Benchmark TwoPhaseMargeMost =======" << endl;
+            cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
             TwoPhaseMargeMost algo(2 * b,
-                               b / 20,
-                               2 * b / 20 + 5,
-                               21);
+                                   b / 20,
+                                   2 * b / 20 + 5,
+                                   21);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -261,9 +261,9 @@ int tmain()
 
 #if BENCH_TWO_PHASE_PARGE_BLOCK
         {
-    cerr << "===========================================" << endl;
-    cerr << "====== Benchmark TwoPhasePargeBlock =======" << endl;
-    cerr << "===========================================" << endl;
+            cerr << "===========================================" << endl;
+            cerr << "====== Benchmark TwoPhasePargeBlock =======" << endl;
+            cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
             TwoPhasePargeBlock algo(2 * b,
@@ -320,15 +320,16 @@ int tmain()
 
     double Gflops = (2. * double(m) / 1000. * double(n) / 1000. * double(k) / 1000.0) / time * double(iters);
     // 	Gflops*=p.bitsize()/16.;
-    cout << "Time: " << (time / double(iters))
+    cout << "Time fgemm: " << (time / double(iters))
          << " Gfops: " << Gflops
          << " (total:" << time << ") "
          << typeid(Ints).name()
-         << "  | perword: " << (Gflops * double(p.bitsize())) / 64.;
+         << " | perword: " << (Gflops * double(p.bitsize())) / 64.;
 
-        std::cout << '|' << "benchmarked with random inputs in Givaro::Modular<Ints>(integer of " << p.bitsize() << " bits)|";
-        FFLAS::writeCommandString(std::cout, as);
-        std::cout << "  | Freivalds: " << timev / double(iters) << std::endl;
+    std::cout << " | "
+              << "benchmarked with random inputs in Givaro::Modular<Ints>(integer of " << p.bitsize() << " bits) | ";
+    FFLAS::writeCommandString(std::cout, as);
+    std::cout << "  | Freivalds: " << timev / double(iters) << std::endl;
 
 #ifdef BENCH_FLINT
     cout << "Time FLINT: " << timeFlint << endl;

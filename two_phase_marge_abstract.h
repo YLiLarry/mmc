@@ -81,13 +81,13 @@ class TwoPhaseMargeAbstract : public TwoPhaseAbstract
         mpz_t input_Mi[m_level_1_moduli_count]; // tmp
         mpz_t input_f[m_level_1_moduli_count];
         mpz_t input_r[m_level_1_moduli_count];
-        // uint64_t input_f_expo[m_level_1_moduli_count];
+        uint64_t input_f_expo[m_level_1_moduli_count];
         for (size_t i = 0; i < m_level_1_moduli_count; i++)
         {
             mpz_init(input_Mi[i]);
             mpz_init(input_r[i]);
             mpz_init_set(input_f[i], m_level_1_moduli->val(i).get_mpz());
-            // input_f_expo[i] = (m_level_1_moduli->val(i) + 1).bitsize() - 1;
+            input_f_expo[i] = (m_level_1_moduli->val(i) + 1).bitsize() - 1;
         }
         CNMA::precompute_Mi_marge(input_Mi, input_f, m_level_1_moduli_count);
         // recover
@@ -104,8 +104,8 @@ class TwoPhaseMargeAbstract : public TwoPhaseAbstract
                 assert(in < m_level_1_moduli->product());
                 mpz_mod(input_r[f], in.get_mpz(), m_level_1_moduli->val(f).get_mpz());
             }
-            // CNMA::garner_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f_expo, input_f, input_Mi);
-            CNMA::garner_simple_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f, input_Mi);
+            CNMA::garner_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f_expo, input_f, input_Mi);
+            // CNMA::garner_simple_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f, input_Mi);
             mpz_mod(t.get_mpz(), t.get_mpz(), m_level_1_moduli->product().get_mpz());
 #if TIME_MMC
             if (i % 100 == 0)

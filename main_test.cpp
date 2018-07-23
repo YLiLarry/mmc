@@ -16,8 +16,7 @@ using namespace SIM_RNS;
 
 void test(bool test_marge, bool test_parge, bool test_fermat)
 {
-    const uint_fast64_t input_bitsize = (1 << 10);
-    const uint_fast64_t output_bitsize = input_bitsize * 2;
+    const uint_fast64_t input_bitsize = (1 << 6);
 
     vector<Givaro::Integer> a(4);
     a[0] = LInteger::random_exact(input_bitsize);
@@ -41,33 +40,33 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
     }
 
     cerr << "===========================================" << endl;
-    cerr << "========== Testing TwoPhaseMarge ==========" << endl;
+    cerr << "======== Testing TwoPhaseMargeMost ========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bitsize = input_bitsize / 2;
-        const size_t phase2_moduli_bitsize = 21;
+        TwoPhaseMargeMost algo(2 * input_bitsize,
+                               input_bitsize / 2,
+                               input_bitsize,
+                               21);
 
-        TwoPhaseMarge algo_marge(input_bitsize, phase1_moduli_bitsize, phase2_moduli_bitsize);
-
-        auto r = algo_marge.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> a_ = algo_marge.matrix_recover(r);
+        auto r = algo.matrix_reduce(a, 2, 2);
+        vector<Givaro::Integer> a_ = algo.matrix_recover(r);
         assert(equals(a, a_));
 
-        auto s = algo_marge.matrix_reduce(b, 2, 2);
-        vector<Givaro::Integer> s_ = algo_marge.matrix_recover(s);
+        auto s = algo.matrix_reduce(b, 2, 2);
+        vector<Givaro::Integer> s_ = algo.matrix_recover(s);
         assert(equals(b, s_));
 
-        auto t = algo_marge.phase2_mult(r, s);
-        auto got = algo_marge.matrix_recover(t);
+        auto t = algo.phase2_mult(r, s);
+        auto got = algo.matrix_recover(t);
 
         if (!equals(got, expect))
         {
-            cerr << "TwoPhaseMarge failed" << endl
+            cerr << "TwoPhaseMargeMost failed" << endl
                  << " - expect: " << expect << endl
                  << " - got: " << got << endl;
             abort();
         }
-        cerr << "TwoPhaseMarge passed!" << endl;
+        cerr << "TwoPhaseMargeMost passed!" << endl;
     }
 
 end_test_marge:
@@ -80,10 +79,10 @@ end_test_marge:
     cerr << "======= Testing TwoPhasePargeBlock ========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bitsize = output_bitsize / 2;
-        const size_t phase2_moduli_bitsize = 21;
-
-        TwoPhasePargeBlock algo_parge_block(output_bitsize, phase1_moduli_bitsize, 2 * phase1_moduli_bitsize, phase2_moduli_bitsize);
+        TwoPhasePargeBlock algo_parge_block(2 * input_bitsize,
+                                            input_bitsize / 2,
+                                            input_bitsize,
+                                            21);
 
         auto r = algo_parge_block.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo_parge_block.matrix_recover(r);
@@ -116,10 +115,10 @@ end_test_parge:
     cerr << "======= Testing TwoPhasePargeShift ========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bitsize = output_bitsize / 2;
-        const size_t phase2_moduli_bitsize = 21;
-
-        TwoPhasePargeShift algo_parge_shift(output_bitsize, phase1_moduli_bitsize, 1, phase2_moduli_bitsize);
+        TwoPhasePargeShift algo_parge_shift(2 * input_bitsize,
+                                            input_bitsize,
+                                            1,
+                                            21);
 
         auto r = algo_parge_shift.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo_parge_shift.matrix_recover(r);
@@ -151,6 +150,6 @@ int main()
 {
     for (int i = 0; i < 100; i++)
     {
-        test(false, true, false);
+        test(true, false, false);
     }
 }

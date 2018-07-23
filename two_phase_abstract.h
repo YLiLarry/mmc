@@ -506,17 +506,17 @@ class TwoPhaseAbstract
                         FFLAS::ModeCategories::DefaultTag,
                         FFLAS::ParSeqHelper::Sequential>
             tag;
-        FFLAS::fgemm<Phase2_RNS_Rep>(
-            (Phase2_RNS_Field)*m_phase2_rns_computation_field, // field
-            FFLAS::FflasNoTrans,                               // transpose matrix_a?
-            FFLAS::FflasNoTrans,                               // transpose matrix_b?
+        fgemm<Phase2_RNS_Rep>(
+            (Phase2_RNS_Field)*m_phase2_rns_field, // field
+            FFLAS::FflasNoTrans,                   // transpose matrix_a?
+            FFLAS::FflasNoTrans,                   // transpose matrix_b?
             dim_m, dim_n, dim_k,
-            m_phase2_rns_computation_field->one, // coefficient before matrix_a*matrix_b
+            m_phase2_rns_field->one, // coefficient before matrix_a*matrix_b
             matrix_a,
             dim_n, // row length of matrix_a
             matrix_b,
-            dim_k,                                // row length of matrix_b
-            m_phase2_rns_computation_field->zero, // constant matrix to add
+            dim_k,                    // row length of matrix_b
+            m_phase2_rns_field->zero, // constant matrix to add
             matrix_c,
             dim_k, // row length of matrix_c
             tag);
@@ -524,7 +524,50 @@ class TwoPhaseAbstract
         cerr << ".......... fgemm ends .........." << endl;
 #endif
         return matrix_c;
-    };
+    }
+
+    // fgemm for RnsInteger sequential version
+    template <typename RNS>
+    inline typename FFPACK::RNSInteger<RNS>::Element_ptr
+    fgemm(const FFPACK::RNSInteger<RNS> &F,
+          const FFLAS::FFLAS_TRANSPOSE ta,
+          const FFLAS::FFLAS_TRANSPOSE tb,
+          const size_t m, const size_t n, const size_t k,
+          const typename FFPACK::RNSInteger<RNS>::Element alpha,
+          typename FFPACK::RNSInteger<RNS>::ConstElement_ptr Ad, const size_t lda,
+          typename FFPACK::RNSInteger<RNS>::ConstElement_ptr Bd, const size_t ldb,
+          const typename FFPACK::RNSInteger<RNS>::Element beta,
+          typename FFPACK::RNSInteger<RNS>::Element_ptr Cd, const size_t ldc,
+          FFLAS::MMHelper<FFPACK::RNSInteger<RNS>, FFLAS::MMHelperAlgo::Classic, FFLAS::ModeCategories::DefaultTag, FFLAS::ParSeqHelper::Sequential> &H) const
+    {
+        // compute each fgemm componentwise
+#ifdef PROFILE_FGEMM_MP
+        Givaro::Timer t;
+        t.start();
+#endif
+        for (size_t f = 0; f < m_level_1_moduli_count; f++)
+        {
+            for (size_t m = 0; m < F.size(); m++)
+            {
+                size_t i = f * m_level_2_moduli_count + m;
+                FFLAS::MMHelper<typename RNS::ModField, FFLAS::MMHelperAlgo::Winograd> H2(F.rns()._field_rns[m], H.recLevel, H.parseq);
+                FFLAS::fgemm(F.rns()._field_rns[m], ta, tb,
+                             m, n, k, alpha._ptr[i * alpha._stride],
+                             Ad._ptr + i * Ad._stride, lda,
+                             Bd._ptr + i * Bd._stride, ldb,
+                             beta._ptr[i * beta._stride],
+                             Cd._ptr + i * Cd._stride, ldc, H2);
+            }
+        }
+#ifdef PROFILE_FGEMM_MP
+        t.stop();
+
+        std::cerr << "==========================================" << std::endl
+                  << "Pointwise fgemm : " << t.realtime() << " (" << F.size() << ") moduli " << std::endl
+                  << "==========================================" << std::endl;
+#endif
+        return Cd;
+    }
 };
 
 #endif
