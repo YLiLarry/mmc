@@ -10,7 +10,7 @@
 #include <fflas-ffpack/fflas/fflas.h>
 
 template <class T>
-bool equals(const vector<T> &a, const vector<T> &b)
+bool equals(const std::vector<T> &a, const std::vector<T> &b)
 {
     size_t N = b.size();
     if (N != a.size())
@@ -28,7 +28,7 @@ bool equals(const vector<T> &a, const vector<T> &b)
 }
 
 template <class T>
-ostream &operator<<(ostream &out, vector<T> arr)
+std::ostream &operator<<(std::ostream &out, std::vector<T> arr)
 {
     size_t N = arr.size();
     out << " [";
@@ -53,7 +53,7 @@ template <class Field>
 class FFLAS_Mem
 {
   public:
-    const typename Field::Element_ptr data;
+    typename Field::Element_ptr data;
     FFLAS_Mem(const typename Field::Element_ptr &data)
         : data(data)
     {
@@ -65,11 +65,11 @@ class FFLAS_Mem
 };
 
 template <class T>
-class PtrVector : public vector<T *>
+class PtrVector : public std::vector<T *>
 {
   public:
     PtrVector(size_t len)
-        : vector<T *>(len)
+        : std::vector<T *>(len)
     {
     }
     T &val(size_t i) const { return *(this->operator[](i)); }
@@ -96,7 +96,7 @@ class NumPtrVector : public PtrVector<T>
         return this->val(i);
     }
 
-    bool equals(const vector<T> &other) const
+    bool equals(const std::vector<T> &other) const
     {
         size_t N = this->size();
         if (N != other.size())
@@ -133,10 +133,10 @@ class NumPtrVector : public PtrVector<T>
         return true;
     }
 
-    vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
+    std::vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
     {
         size_t N = this->length();
-        auto vec = new vector<Givaro::Integer>(N);
+        auto vec = new std::vector<Givaro::Integer>(N);
         for (size_t i = 0; i < N; i++)
         {
             vec->operator[](i) = this->val(i);
@@ -144,7 +144,7 @@ class NumPtrVector : public PtrVector<T>
         return vec;
     }
 
-    friend ostream &operator<<(ostream &out, const NumPtrVector<T> &arr)
+    friend std::ostream &operator<<(std::ostream &out, const NumPtrVector<T> &arr)
     {
         size_t N = arr.size();
         out << "NumPtrVector [";
@@ -231,7 +231,7 @@ class PtrArray : public array<T *, N>
 
     size_t count() const { return N; }
 
-    friend ostream &operator<<(ostream &out, const PtrArray<T, N> &arr)
+    friend std::ostream &operator<<(std::ostream &out, const PtrArray<T, N> &arr)
     {
         out << "PtrArray [";
         for (size_t i = 0; i < N; i++)
@@ -273,9 +273,9 @@ class NumPtrArray : public PtrArray<T, N>
         return vec;
     }
 
-    vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
+    std::vector<Givaro::Integer> *EXPENSIVE_NEW_INTEGER_VECTOR() const
     {
-        auto vec = new vector<Givaro::Integer>(N);
+        auto vec = new std::vector<Givaro::Integer>(N);
         for (size_t i = 0; i < N; i++)
         {
             vec->operator[](i) = this->val(i);
@@ -283,7 +283,7 @@ class NumPtrArray : public PtrArray<T, N>
         return vec;
     }
 
-    friend ostream &operator<<(ostream &out, const NumPtrArray<T, N> &arr)
+    friend std::ostream &operator<<(std::ostream &out, const NumPtrArray<T, N> &arr)
     {
         out << "NumPtrArray [";
         for (size_t i = 0; i < N; i++)
@@ -365,8 +365,8 @@ class ConstNumPtrArray : public NumPtrArray<const T, N>
         return vec;
     }
 
-    friend ostream &operator<<(ostream &out,
-                               const ConstNumPtrArray<T, N> &arr)
+    friend std::ostream &operator<<(std::ostream &out,
+                                    const ConstNumPtrArray<T, N> &arr)
     {
         out << "ConstNumPtrArray [";
         for (size_t i = 0; i < N; i++)

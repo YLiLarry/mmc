@@ -6,7 +6,7 @@
 #include <iterator>
 
 template <class T>
-class GenCoprimeAbstract : public vector<T>
+class GenCoprimeAbstract : public std::vector<T>
 {
   public:
     virtual const T &max() const = 0;
@@ -15,10 +15,10 @@ class GenCoprimeAbstract : public vector<T>
     virtual uint_fast64_t max_bitsize() const = 0;
     virtual ~GenCoprimeAbstract() = default;
 
-    inline const T &val(size_t i) const { return vector<T>::operator[](i); }
-    inline size_t count() const { return vector<T>::size(); } // alias
+    inline const T &val(size_t i) const { return std::vector<T>::operator[](i); }
+    inline size_t count() const { return std::vector<T>::size(); } // alias
 
-    friend ostream &operator<<(ostream &out, const GenCoprimeAbstract<T> &arr)
+    friend std::ostream &operator<<(std::ostream &out, const GenCoprimeAbstract<T> &arr)
     {
 #if DEBUG_MMC
         size_t N = arr.count();

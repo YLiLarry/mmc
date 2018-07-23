@@ -5,6 +5,7 @@
 #include "gen_coprime_abstract.h"
 #include "sim_rns.h"
 #include <iostream>
+#include <memory>
 #include <gmp++/gmp++.h>
 #include <fflas-ffpack/field/rns-double.h>
 #include <fflas-ffpack/fflas/fflas_fgemm/fgemm_classical_mp.inl>
@@ -18,13 +19,13 @@ class TwoPhaseAbstract
     // Phase2_RNS_Field uses m_level_2_moduli repeats m_level_1_moduli_count times as modulis
     typedef FFPACK::rns_double Phase2_RNS_Rep;
     Phase2_RNS_Rep *m_phase2_rns_rep;
-    Phase2_RNS_Rep *m_phase2_rns_computation_rep;
+    // Phase2_RNS_Rep *m_phase2_rns_computation_rep;
 
     typedef FFPACK::RNSInteger<Phase2_RNS_Rep> Phase2_RNS_Field;
     typedef Phase2_RNS_Field::Element Phase2_RNS_Int;
     typedef Phase2_RNS_Field::Element_ptr Phase2_RNS_Int_Ptr;
     Phase2_RNS_Field *m_phase2_rns_field;
-    Phase2_RNS_Field *m_phase2_rns_computation_field;
+    // Phase2_RNS_Field *m_phase2_rns_computation_field;
 
     typedef Givaro::Modular<Givaro::Integer> Phase1_Field;
     typedef Phase1_Field::Element Phase1_Int;
@@ -52,7 +53,7 @@ class TwoPhaseAbstract
 #endif
         assert(m_level_1_moduli->product() > m_level_2_moduli->product() && "chosen RNS size must make sense.");
         // m_level_2_moduli repeats m_level_1_moduli_count times
-        vector<Givaro::Integer> tmp(m_level_2_moduli_count * m_level_1_moduli_count);
+        std::vector<Givaro::Integer> tmp(m_level_2_moduli_count * m_level_1_moduli_count);
         for (size_t i = 0; i < m_level_1_moduli_count; i++)
         {
             for (size_t j = 0; j < m_level_2_moduli_count; j++)
@@ -60,14 +61,14 @@ class TwoPhaseAbstract
                 tmp[i * m_level_2_moduli_count + j] = m_level_2_moduli->val(j);
             }
         }
-        m_phase2_rns_computation_rep = new Phase2_RNS_Rep{tmp};
-        m_phase2_rns_computation_field = new Phase2_RNS_Field(*m_phase2_rns_computation_rep);
+        // m_phase2_rns_computation_rep = new Phase2_RNS_Rep{tmp};
+        // m_phase2_rns_computation_field = new Phase2_RNS_Field(*m_phase2_rns_computation_rep);
         m_phase2_rns_rep = new Phase2_RNS_Rep{*m_level_2_moduli};
         m_phase2_rns_field = new Phase2_RNS_Field(*m_phase2_rns_rep);
         m_phase1_field = new Phase1_Field(m_level_2_moduli->product());
 #if DEBUG_MMC
         cerr << " - m_phase2_rns_field: " << m_phase2_rns_field->rns()._basis << endl;
-        cerr << " - m_phase2_rns_computation_field: " << m_phase2_rns_computation_field->rns()._basis << endl;
+        // cerr << " - m_phase2_rns_computation_field: " << m_phase2_rns_computation_field->rns()._basis << endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "########## TwoPhaseAlgo constructor ends ##########" << endl;
@@ -89,8 +90,8 @@ class TwoPhaseAbstract
         delete m_phase1_field;
         delete m_phase2_rns_rep;
         delete m_phase2_rns_field;
-        delete m_phase2_rns_computation_rep;
-        delete m_phase2_rns_computation_field;
+        // delete m_phase2_rns_computation_rep;
+        // delete m_phase2_rns_computation_field;
     };
     TwoPhaseAbstract(const TwoPhaseAbstract &) = delete;
     TwoPhaseAbstract &operator=(const TwoPhaseAbstract &) = delete;
@@ -100,7 +101,7 @@ class TwoPhaseAbstract
     {
         // shared ptr will be deleted when no Phase2_Matrix holds the FFLAS_Mem
         // so that FFLAS::fflas_delete is called
-        shared_ptr<FFLAS_Mem<Phase2_RNS_Field>> _data;
+        shared_ptr<FFLAS_Mem<Phase2_RNS_Field>> m_data;
 
       public:
         size_t dim_m;
@@ -108,31 +109,34 @@ class TwoPhaseAbstract
         size_t count;
         size_t m_level_1_moduli_count;
         size_t m_level_2_moduli_count;
-        inline const Phase2_RNS_Int_Ptr &data() const { return _data->data; }
+        inline Phase2_RNS_Int_Ptr &data() { return m_data->data; }
+        inline const Phase2_RNS_Int_Ptr &data() const { return m_data->data; }
 
         Phase2_Matrix() = default;
 
         Phase2_Matrix(const TwoPhaseAbstract &f, size_t dim_m, size_t dim_n)
-            : _data(make_shared<FFLAS_Mem<Phase2_RNS_Field>>(FFLAS::fflas_new(*(f.m_phase2_rns_computation_field), dim_m, dim_n))),
+            : m_data(std::make_shared<FFLAS_Mem<Phase2_RNS_Field>>(FFLAS::fflas_new(*(f.m_phase2_rns_field), f.m_level_1_moduli_count * dim_m * dim_n))),
               dim_m(dim_m),
               dim_n(dim_n),
               count(dim_n * dim_m),
               m_level_1_moduli_count(f.m_level_1_moduli_count),
               m_level_2_moduli_count(f.m_level_2_moduli_count)
         {
+            m_data->data._stride = this->count;
             assert(this->data()._stride == this->count);
         }
 
         Phase2_Matrix(const TwoPhaseAbstract &f,
                       const Phase2_RNS_Int_Ptr &arr,
                       size_t dim_m, size_t dim_n)
-            : _data(make_shared<FFLAS_Mem<Phase2_RNS_Field>>(arr)),
+            : m_data(std::make_shared<FFLAS_Mem<Phase2_RNS_Field>>(arr)),
               dim_m(dim_m),
               dim_n(dim_n),
               count(dim_n * dim_m),
               m_level_1_moduli_count(f.m_level_1_moduli_count),
               m_level_2_moduli_count(f.m_level_2_moduli_count)
         {
+            m_data->data._stride = this->count;
             assert(this->data()._stride == this->count);
         }
 
@@ -144,9 +148,9 @@ class TwoPhaseAbstract
             return data()[f * count * m_level_2_moduli_count + m * count + r * dim_n + c];
         }
 
-        friend ostream &operator<<(ostream &out, const Phase2_Matrix &mat)
+        friend std::ostream &operator<<(std::ostream &out, const Phase2_Matrix &mat)
         {
-            out << "Phase2_Matrix: " << endl;
+            out << "Phase2_Matrix: " << std::endl;
             for (size_t r = 0; r < mat.dim_m; r++)
             {
                 for (size_t f = 0; f < mat.m_level_1_moduli_count; f++)
@@ -167,7 +171,7 @@ class TwoPhaseAbstract
                         }
                     }
                 }
-                out << endl;
+                out << std::endl;
             }
             return out;
         }
@@ -177,19 +181,19 @@ class TwoPhaseAbstract
     /*
         this helper method is used by matrix_product(...)
     */
-    virtual const vector<Phase1_Int> matrix_reduce_phase_1(const vector<Givaro::Integer> &inputs) const = 0;
+    virtual const std::vector<Phase1_Int> matrix_reduce_phase_1(const std::vector<Givaro::Integer> &inputs) const = 0;
 
   protected:
     /* 
         use this method to recover from a phase 1 representations to integers
     */
-    virtual const vector<Givaro::Integer> matrix_recover_phase_1(const vector<Phase1_Int> &phase2_recovered) const = 0;
+    virtual const std::vector<Givaro::Integer> matrix_recover_phase_1(const std::vector<Phase1_Int> &phase2_recovered) const = 0;
 
   public:
     /* 
         use this method to reduce a single matrix to level 2
     */
-    Phase2_Matrix matrix_reduce(const vector<Givaro::Integer> &inputs, size_t dim_m, size_t dim_n) const
+    Phase2_Matrix matrix_reduce(const std::vector<Givaro::Integer> &inputs, size_t dim_m, size_t dim_n) const
     {
         size_t len_inputs = inputs.size();
         assert(len_inputs == dim_m * dim_n && "input matrix dimension is incorrect");
@@ -215,7 +219,7 @@ class TwoPhaseAbstract
         Givaro::Timer timer;
         timer.start();
 #endif
-        vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(inputs);
+        std::vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(inputs);
 #if TIME_MMC
         timer.stop();
         cerr << "Timer: " << timer << endl;
@@ -271,7 +275,7 @@ class TwoPhaseAbstract
         use this method to reduce multiple matrices to level 2
         shoule be faster than reducing one by one
     */
-    const vector<Phase2_Matrix> matrix_reduce(const vector<Givaro::Integer> &matrices, const vector<size_t> &dimensions)
+    const std::vector<Phase2_Matrix> matrix_reduce(const std::vector<Givaro::Integer> &matrices, const std::vector<size_t> &dimensions)
     {
         size_t len_inputs = matrices.size();
         size_t num_matrices = dimensions.size();
@@ -301,7 +305,7 @@ class TwoPhaseAbstract
         Givaro::Timer timer;
         timer.start();
 #endif
-        const vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(matrices);
+        const std::vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(matrices);
 #if TIME_MMC
         timer.stop();
         cerr << "Timer: " << timer << endl;
@@ -328,7 +332,7 @@ class TwoPhaseAbstract
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 2 reduce ends ....." << endl;
 #endif
-        vector<Phase2_Matrix> outputs(num_matrices);
+        std::vector<Phase2_Matrix> outputs(num_matrices);
         for (size_t o = 1; o < num_matrices; o++)
         {
             size_t dim_m = dimensions[o - 1];
@@ -365,7 +369,7 @@ class TwoPhaseAbstract
     /* 
         use this method to recover from a single reduced matrix to phase 1 representations
     */
-    virtual vector<Phase1_Int> matrix_recover_phase_2(const Phase2_Matrix &mat) const
+    virtual std::vector<Phase1_Int> matrix_recover_phase_2(const Phase2_Matrix &mat) const
     {
         Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*m_phase2_rns_field, m_level_1_moduli_count * mat.count);
         for (size_t r = 0; r < mat.dim_m; r++)
@@ -400,7 +404,7 @@ class TwoPhaseAbstract
     */
 
   public:
-    vector<Givaro::Integer> matrix_recover(const Phase2_Matrix &mat) const
+    std::vector<Givaro::Integer> matrix_recover(const Phase2_Matrix &mat) const
     {
 #if DEBUG_MMC || TIME_MMC
         cerr << "########## matrix_recover ##########" << endl;
@@ -415,7 +419,7 @@ class TwoPhaseAbstract
         Givaro::Timer timer;
         timer.start();
 #endif
-        const vector<Phase1_Int> phase2_recovered = matrix_recover_phase_2(mat);
+        const std::vector<Phase1_Int> phase2_recovered = matrix_recover_phase_2(mat);
 #if TIME_MMC
         timer.stop();
         cerr << "Timer: " << timer << endl;
@@ -431,7 +435,7 @@ class TwoPhaseAbstract
         timer.clear();
         timer.start();
 #endif
-        const vector<Givaro::Integer> phase1_recovered = matrix_recover_phase_1(phase2_recovered);
+        const std::vector<Givaro::Integer> phase1_recovered = matrix_recover_phase_1(phase2_recovered);
 #if TIME_MMC
         timer.stop();
         cerr << "Timer: " << timer << endl;
@@ -491,9 +495,10 @@ class TwoPhaseAbstract
 
         assert(dim_m && dim_n && dim_k);
         // create matrix_c to return
-        Phase2_RNS_Int_Ptr matrix_c = FFLAS::fflas_new(*m_phase2_rns_computation_field, dim_m, dim_k);
+        Phase2_RNS_Int_Ptr matrix_c = FFLAS::fflas_new(*m_phase2_rns_field, m_level_1_moduli_count * dim_m * dim_k);
+        matrix_c._stride = dim_m * dim_k;
 
-        assert(m_phase2_rns_computation_field->size() == m_level_2_moduli_count * m_level_1_moduli_count);
+        // assert(m_phase2_rns_field->size() == m_level_2_moduli_count * m_level_1_moduli_count);
         assert(matrix_a._stride == dim_m * dim_n);
         assert(matrix_b._stride == dim_n * dim_k);
         assert(matrix_c._stride == dim_m * dim_k);
@@ -532,7 +537,7 @@ class TwoPhaseAbstract
     fgemm(const FFPACK::RNSInteger<RNS> &F,
           const FFLAS::FFLAS_TRANSPOSE ta,
           const FFLAS::FFLAS_TRANSPOSE tb,
-          const size_t m, const size_t n, const size_t k,
+          const size_t dim_m, const size_t dim_n, const size_t dim_k,
           const typename FFPACK::RNSInteger<RNS>::Element alpha,
           typename FFPACK::RNSInteger<RNS>::ConstElement_ptr Ad, const size_t lda,
           typename FFPACK::RNSInteger<RNS>::ConstElement_ptr Bd, const size_t ldb,
@@ -549,13 +554,20 @@ class TwoPhaseAbstract
         {
             for (size_t m = 0; m < F.size(); m++)
             {
-                size_t i = f * m_level_2_moduli_count + m;
-                FFLAS::MMHelper<typename RNS::ModField, FFLAS::MMHelperAlgo::Winograd> H2(F.rns()._field_rns[m], H.recLevel, H.parseq);
-                FFLAS::fgemm(F.rns()._field_rns[m], ta, tb,
-                             m, n, k, alpha._ptr[i * alpha._stride],
+                size_t i = f * F.size() + m;
+                auto field = F.rns()._field_rns[m];
+                FFLAS::MMHelper<typename RNS::ModField, FFLAS::MMHelperAlgo::Winograd> H2(field, H.recLevel, H.parseq);
+#if CHECK_MMC
+                assert(dim_m * dim_n == Ad._stride);
+                assert(dim_n * dim_k == Bd._stride);
+                assert(dim_m * dim_k == Cd._stride);
+#endif
+                FFLAS::fgemm(field, ta, tb,
+                             dim_m, dim_n, dim_k,
+                             alpha._ptr[m * alpha._stride],
                              Ad._ptr + i * Ad._stride, lda,
                              Bd._ptr + i * Bd._stride, ldb,
-                             beta._ptr[i * beta._stride],
+                             beta._ptr[m * beta._stride],
                              Cd._ptr + i * Cd._stride, ldc, H2);
             }
         }
