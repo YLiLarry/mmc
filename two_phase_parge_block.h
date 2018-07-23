@@ -4,15 +4,24 @@
 #include "two_phase_parge_abstract.h"
 #include "gen_parge_block.h"
 
+namespace CNMA
+{
+extern "C"
+{
+#include "cnma/parge_num.h"
+#include "cnma/reconstruct_parge_block.h"
+}
+} // namespace CNMA
+
 class TwoPhasePargeBlock : public TwoPhasePargeAbstract
 {
   public:
-
     TwoPhasePargeBlock(uint_fast64_t level_1_product_bitsize,
                        uint_fast64_t level_1_moduli_bitsize,
+                       uint_fast64_t level_2_product_bitsize,
                        uint_fast64_t level_2_moduli_bitsize)
         : TwoPhasePargeAbstract(new GenPargeBlock(level_1_product_bitsize, level_1_moduli_bitsize),
-                           new GenPrimeMost<double>(level_1_moduli_bitsize, level_2_moduli_bitsize))
+                                new GenPrimeMost<double>(level_2_product_bitsize, level_2_moduli_bitsize))
     {
     }
 
@@ -21,7 +30,6 @@ class TwoPhasePargeBlock : public TwoPhasePargeAbstract
         delete this->level_1_moduli;
         delete this->level_2_moduli;
     }
-
 
   protected:
     /* 
@@ -34,16 +42,18 @@ class TwoPhasePargeBlock : public TwoPhasePargeAbstract
         vector<Givaro::Integer> phase1_recovered(out_len);
 
         // initialization
-        mpz_t _Mi[level_1_moduli_count]; // tmp
-        mpz_t _f[level_1_moduli_count];
-        mpz_t _r[level_1_moduli_count];
+        mpz_t input_Mi[level_1_moduli_count]; // tmp
+        mpz_t input_f[level_1_moduli_count];
+        uint64_t input_f_expo[level_1_moduli_count];
+        mpz_t input_r[level_1_moduli_count];
         for (size_t i = 0; i < level_1_moduli_count; i++)
         {
-            mpz_init(_Mi[i]);
-            mpz_init(_r[i]);
-            mpz_init_set(_f[i], level_1_moduli->val(i).get_mpz());
+            mpz_init(input_Mi[i]);
+            mpz_init(input_r[i]);
+            mpz_init_set(input_f[i], level_1_moduli->val(i).get_mpz());
+            input_f_expo[i] = (level_1_moduli->val(i) - 1).bitsize() - 1;
         }
-        CNMA::precompute_Mi(_Mi, _f, level_1_moduli_count);
+        CNMA::precompute_Mi_parge_block(input_Mi, input_f, level_1_moduli_count);
         // recover
         for (size_t i = 0; i < out_len; i++)
         {
@@ -56,9 +66,9 @@ class TwoPhasePargeBlock : public TwoPhasePargeAbstract
                     cerr << "Computation overflows. Recovered an integer that is greater than the product of level 1 moduli." << endl;
                 }
                 assert(in < level_1_moduli->product());
-                mpz_mod(_r[f], in.get_mpz(), level_1_moduli->val(f).get_mpz());
+                mpz_mod(input_r[f], in.get_mpz(), level_1_moduli->val(f).get_mpz());
             }
-            CNMA::garner(t.get_mpz(), level_1_moduli_count, _r, _f, _Mi);
+            CNMA::garner_parge_block(t.get_mpz(), level_1_moduli_count, input_r, input_f_expo, input_f, input_Mi);
             mpz_mod(t.get_mpz(), t.get_mpz(), level_1_moduli->product().get_mpz());
 #if TIME_MMC
             if (i % 100 == 0)
@@ -69,9 +79,9 @@ class TwoPhasePargeBlock : public TwoPhasePargeAbstract
         }
         for (size_t i = 0; i < level_1_moduli_count; i++)
         {
-            mpz_clear(_Mi[i]);
-            mpz_clear(_r[i]);
-            mpz_clear(_f[i]);
+            mpz_clear(input_Mi[i]);
+            mpz_clear(input_r[i]);
+            mpz_clear(input_f[i]);
         }
 #if TIME_MMC
         cerr << endl;

@@ -10,7 +10,6 @@ namespace CNMA
 extern "C"
 {
 #include "cnma/parge_num.h"
-#include "cnma/reconstruct_parge.h"
 }
 } // namespace CNMA
 
@@ -19,8 +18,8 @@ class TwoPhasePargeAbstract : public TwoPhaseAbstract
 
   public:
     TwoPhasePargeAbstract(const GenCoprimeAbstract<Givaro::Integer> *level_1_moduli,
-                     const GenCoprimeAbstract<double> *level_2_moduli)
-                     : TwoPhaseAbstract(level_1_moduli, level_2_moduli) {}
+                          const GenCoprimeAbstract<double> *level_2_moduli)
+        : TwoPhaseAbstract(level_1_moduli, level_2_moduli) {}
     TwoPhasePargeAbstract(const TwoPhasePargeAbstract &) = delete;
     TwoPhasePargeAbstract &operator=(const TwoPhasePargeAbstract &) = delete;
 
@@ -42,7 +41,7 @@ class TwoPhasePargeAbstract : public TwoPhaseAbstract
             {
                 Phase1_Int &t = p1_reduced[i * level_1_moduli_count + f];
                 t = inputs[i];
-                CNMA::dc_reduce_plus(t.get_mpz(), (level_1_moduli->val(f) + 1).bitsize() - 1);
+                CNMA::dc_reduce_plus(t.get_mpz(), (level_1_moduli->val(f) - 1).bitsize() - 1);
             }
 #if TIME_MMC
             // print a dot for every 100 entries
@@ -57,7 +56,6 @@ class TwoPhasePargeAbstract : public TwoPhaseAbstract
 #endif
         return p1_reduced;
     }
-
 };
 
 #endif

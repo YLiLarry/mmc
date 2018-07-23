@@ -52,6 +52,7 @@ using namespace std;
 #include "recint/recint.h"
 #endif
 #include "two_phase_marge.h"
+#include "two_phase_parge_block.h"
 #include <ostream>
 
 #include "containers.h"
@@ -71,10 +72,10 @@ extern "C"
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 15);
-static size_t m = 64;
-static size_t k = 64;
-static size_t n = 64;
+static unsigned long b = (1 << 16);
+static size_t m = 32;
+static size_t k = 32;
+static size_t n = 32;
 static int nbw = -1;
 static size_t seed = time(NULL);
 static Argument as[] = {
@@ -87,6 +88,8 @@ static Argument as[] = {
     {'i', "-i R", "Set number of repetitions.", TYPE_INT, &iters},
     {'s', "-s S", "Sets seed.", TYPE_INT, &seed},
     END_OF_ARGUMENTS};
+
+#define BENCH_TWO_PHASE_PARGE_BLOCK 1
 
 template <typename Ints>
 int tmain()
@@ -103,10 +106,11 @@ int tmain()
 #ifdef BENCH_FLINT
     double timeFlint = 0.;
 #endif
-#if BENCH_TWO_PHASE
-    double timeTwoPhase = 0.;
+#if BENCH_TWO_PHASE_MARGE || BENCH_TWO_PHASE_PARGE_BLOCK
+    double time_two_phase_marge = 0.;
+    double time_two_phase_page_block = 0.;
 #endif
-    double timeNaive = 0.;
+    double time_naive = 0.;
     for (size_t loop = 0; loop < iters; loop++)
     {
         Givaro::Integer::random_exact_2exp(p, b);
@@ -197,16 +201,48 @@ int tmain()
         fmpz_mat_clear(AA);
         fmpz_mat_clear(BB);
 #endif
-        TwoPhaseMarge algo(b, b / 20, 21);
-#if BENCH_TWO_PHASE
+
         chrono.clear();
         chrono.start();
-        auto a = algo.matrix_reduce(A_, m, k);
-        auto b = algo.matrix_reduce(B_, k, n);
-        auto c = algo.phase2_mult(a, b);
-        auto C_ = algo.matrix_recover(c);
+        auto C__ = SIM_RNS::fflas_mult_integer(A_, B_, m, k, n);
         chrono.stop();
-        timeTwoPhase += chrono.usertime();
+        time_naive += chrono.usertime();
+
+#if BENCH_TWO_PHASE_MARGE
+        {
+            TwoPhaseMarge algo(2 * b,
+                               b / 20,
+                               b / 10,
+                               21);
+            chrono.clear();
+            chrono.start();
+            auto a = algo.matrix_reduce(A_, m, k);
+            auto b = algo.matrix_reduce(B_, k, n);
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_marge += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            assert(equals(C_, C__));
+        }
+#endif
+#if BENCH_TWO_PHASE_PARGE_BLOCK
+        {
+            TwoPhasePargeBlock algo(2 * b,
+                                    b / 4,
+                                    b / 2 + 5,
+                                    21);
+            chrono.clear();
+            chrono.start();
+            auto a = algo.matrix_reduce(A_, m, k);
+            auto b = algo.matrix_reduce(B_, k, n);
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_page_block += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            assert(equals(C_, C__));
+        }
 #endif
         //END FLINT CODE //
         using FFLAS::CuttingStrategy::Recursive;
@@ -225,20 +261,8 @@ int tmain()
         chrono.stop();
         time += chrono.usertime();
 
-        vector<Givaro::Integer> expect(C, C + m * n);
-
-        chrono.clear();
-        chrono.start();
-        auto C__ = SIM_RNS::fflas_mult_integer(A_, B_, m, k, n);
-        chrono.stop();
-        timeNaive += chrono.usertime();
-
         // FFLAS::WriteMatrix(cerr, F, m, k, C, k);
         // cerr << C_ << endl;
-
-        // this line asserts our result is the same as FFLAS::fgemm
-        assert(equals(C_, expect));
-        assert(equals(C_, C__));
 
         TimFreivalds.start();
         bool pass = FFLAS::freivalds(F, FFLAS::FflasNoTrans, FFLAS::FflasNoTrans, m, n, k, alpha, A, k, B, n, C, n);
@@ -271,8 +295,11 @@ int tmain()
 #ifdef BENCH_FLINT
     cout << "Time FLINT: " << timeFlint << endl;
 #endif
-    cout << "Time TwoPhase: " << timeTwoPhase << endl;
-    cout << "Time Naive: " << timeNaive << endl;
+#if BENCH_TWO_PHASE_MARGE || BENCH_TWO_PHASE_PARGE_BLOCK
+    cout << "Time TwoPhase: " << time_two_phase_marge << endl;
+    cout << "Time TwoPhase: " << time_two_phase_page_block << endl;
+#endif
+    cout << "Time Naive: " << time_naive << endl;
 
     return 0;
 }

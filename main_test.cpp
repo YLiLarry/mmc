@@ -50,8 +50,8 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
         TwoPhaseMarge algo_marge(input_bitsize, phase1_moduli_bitsize, phase2_moduli_bitsize);
 
         auto r = algo_marge.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> r_ = algo_marge.matrix_recover(r);
-        assert(equals(a, r_));
+        vector<Givaro::Integer> a_ = algo_marge.matrix_recover(r);
+        assert(equals(a, a_));
 
         auto s = algo_marge.matrix_reduce(b, 2, 2);
         vector<Givaro::Integer> s_ = algo_marge.matrix_recover(s);
@@ -77,21 +77,21 @@ end_test_marge:
         goto end_test_parge;
     }
     cerr << "===========================================" << endl;
-    cerr << "========= Testing TwoPhasePargeBlock ==========" << endl;
+    cerr << "======= Testing TwoPhasePargeBlock ========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bitsize = input_bitsize;
+        const uint_fast64_t phase1_moduli_bitsize = output_bitsize / 2;
         const size_t phase2_moduli_bitsize = 21;
 
-        TwoPhasePargeBlock algo_parge_block(output_bitsize, phase1_moduli_bitsize, phase2_moduli_bitsize);
+        TwoPhasePargeBlock algo_parge_block(output_bitsize, phase1_moduli_bitsize, 2 * phase1_moduli_bitsize, phase2_moduli_bitsize);
 
         auto r = algo_parge_block.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> r_ = algo_parge_block.matrix_recover(r);
-        assert(equals(a, r_));
+        vector<Givaro::Integer> a_ = algo_parge_block.matrix_recover(r);
+        assert(equals(a, a_));
 
         auto s = algo_parge_block.matrix_reduce(b, 2, 2);
-        vector<Givaro::Integer> s_ = algo_parge_block.matrix_recover(s);
-        assert(equals(b, s_));
+        vector<Givaro::Integer> b_ = algo_parge_block.matrix_recover(s);
+        assert(equals(b, b_));
 
         auto t = algo_parge_block.phase2_mult(r, s);
         auto got = algo_parge_block.matrix_recover(t);
@@ -113,21 +113,21 @@ end_test_parge:
         goto end_test_fermat;
     }
     cerr << "===========================================" << endl;
-    cerr << "========= Testing TwoPhasePargeShift ==========" << endl;
+    cerr << "======= Testing TwoPhasePargeShift ========" << endl;
     cerr << "===========================================" << endl;
     {
-        const uint_fast64_t phase1_moduli_bitsize = 1024;
+        const uint_fast64_t phase1_moduli_bitsize = output_bitsize / 2;
         const size_t phase2_moduli_bitsize = 21;
 
         TwoPhasePargeShift algo_parge_shift(output_bitsize, phase1_moduli_bitsize, 1, phase2_moduli_bitsize);
 
         auto r = algo_parge_shift.matrix_reduce(a, 2, 2);
-        vector<Givaro::Integer> r_ = algo_parge_shift.matrix_recover(r);
-        assert(equals(a, r_));
+        vector<Givaro::Integer> a_ = algo_parge_shift.matrix_recover(r);
+        assert(equals(a, a_));
 
         auto s = algo_parge_shift.matrix_reduce(b, 2, 2);
-        vector<Givaro::Integer> s_ = algo_parge_shift.matrix_recover(s);
-        assert(equals(b, s_));
+        vector<Givaro::Integer> b_ = algo_parge_shift.matrix_recover(s);
+        assert(equals(b, b_));
 
         auto t = algo_parge_shift.phase2_mult(r, s);
         auto got = algo_parge_shift.matrix_recover(t);
@@ -149,8 +149,8 @@ end_test_fermat:
 
 int main()
 {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 100; i++)
     {
-        test(false, false, true);
+        test(false, true, false);
     }
 }

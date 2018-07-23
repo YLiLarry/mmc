@@ -4,6 +4,15 @@
 #include "two_phase_parge_abstract.h"
 #include "gen_parge_shift.h"
 
+namespace CNMA
+{
+extern "C"
+{
+#include "cnma/parge_num.h"
+#include "cnma/reconstruct_parge_shift.h"
+}
+} // namespace CNMA
+
 class TwoPhasePargeShift : public TwoPhasePargeAbstract
 {
     uint_fast64_t _level_1_moduli_bitsize_coefficient;
@@ -14,8 +23,8 @@ class TwoPhasePargeShift : public TwoPhasePargeAbstract
                        uint_fast64_t level_1_moduli_bitsize_coefficient,
                        uint_fast64_t level_2_moduli_bitsize)
         : TwoPhasePargeAbstract(new GenPargeShift(level_1_product_bitsize, level_1_moduli_bitsize, level_1_moduli_bitsize_coefficient),
-                           new GenPrimeMost<double>(level_1_moduli_bitsize, level_2_moduli_bitsize))
-                           , _level_1_moduli_bitsize_coefficient(level_1_moduli_bitsize_coefficient)
+                                new GenPrimeMost<double>(level_1_moduli_bitsize, level_2_moduli_bitsize)),
+          _level_1_moduli_bitsize_coefficient(level_1_moduli_bitsize_coefficient)
     {
     }
 
@@ -57,7 +66,7 @@ class TwoPhasePargeShift : public TwoPhasePargeAbstract
                 assert(in < level_1_moduli->product());
                 mpz_mod(_r[f], in.get_mpz(), level_1_moduli->val(f).get_mpz());
             }
-            CNMA::garner_parge(t.get_mpz(), level_1_moduli_count, _r, _f, _level_1_moduli_bitsize_coefficient);
+            CNMA::garner_parge_shift(t.get_mpz(), level_1_moduli_count, _r, _f, _level_1_moduli_bitsize_coefficient);
             mpz_mod(t.get_mpz(), t.get_mpz(), level_1_moduli->product().get_mpz());
 #if TIME_MMC
             if (i % 100 == 0)

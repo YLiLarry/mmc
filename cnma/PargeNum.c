@@ -15,8 +15,8 @@ void dc_reduce_plus(mpz_t a, long unsigned int n)
     mpz_t t;
     mpz_init(t);
     dc_reduce_minus(a, 2 * n);
-    mpz_tdiv_q_2exp(t, a, n);
-    mpz_tdiv_r_2exp(a, a, n);
+    mpz_tdiv_q_2exp(t, a, n); // right shift
+    mpz_tdiv_r_2exp(a, a, n); // 
     mpz_sub(a, a, t);
     if (mpz_cmp_ui(a, 0) < 0)
     {

@@ -20,25 +20,26 @@ extern "C"
 #include <fflas-ffpack/fflas/fflas_fgemm/fgemm_classical_mp.inl>
 #include <vector>
 #include "gen_coprime_abstract.h"
+#include <givaro/givtimer.h>
 
 class TwoPhaseAbstract
 {
   protected:
     // Phase2_RNS_Field uses level_2_moduli repeats level_1_moduli_count times as modulis
     typedef FFPACK::rns_double Phase2_RNS_Rep;
-    Phase2_RNS_Rep *_phase2_rns_rep;
-    Phase2_RNS_Rep *_phase2_rns_computation_rep;
+    Phase2_RNS_Rep *m_phase2_rns_rep;
+    Phase2_RNS_Rep *m_phase2_rns_computation_rep;
 
     typedef FFPACK::RNSInteger<Phase2_RNS_Rep> Phase2_RNS_Field;
     typedef Phase2_RNS_Field::Element Phase2_RNS_Int;
     typedef Phase2_RNS_Field::Element_ptr Phase2_RNS_Int_Ptr;
-    Phase2_RNS_Field *_phase2_rns_field;
-    Phase2_RNS_Field *_phase2_rns_computation_field;
+    Phase2_RNS_Field *m_phase2_rns_field;
+    Phase2_RNS_Field *m_phase2_rns_computation_field;
 
     typedef Givaro::Modular<Givaro::Integer> Phase1_Field;
     typedef Phase1_Field::Element Phase1_Int;
     typedef Phase1_Field::Element_ptr Phase1_Int_Ptr;
-    Phase1_Field *_phase1_field;
+    Phase1_Field *m_phase1_field;
     const GenCoprimeAbstract<Givaro::Integer> *level_1_moduli;
     const GenCoprimeAbstract<double> *level_2_moduli;
     const size_t level_1_moduli_count;
@@ -69,14 +70,14 @@ class TwoPhaseAbstract
                 tmp[i * level_2_moduli_count + j] = level_2_moduli->val(j);
             }
         }
-        _phase2_rns_computation_rep = new Phase2_RNS_Rep{tmp};
-        _phase2_rns_computation_field = new Phase2_RNS_Field(*_phase2_rns_computation_rep);
-        _phase2_rns_rep = new Phase2_RNS_Rep{*level_2_moduli};
-        _phase2_rns_field = new Phase2_RNS_Field(*_phase2_rns_rep);
-        _phase1_field = new Phase1_Field(level_2_moduli->product());
+        m_phase2_rns_computation_rep = new Phase2_RNS_Rep{tmp};
+        m_phase2_rns_computation_field = new Phase2_RNS_Field(*m_phase2_rns_computation_rep);
+        m_phase2_rns_rep = new Phase2_RNS_Rep{*level_2_moduli};
+        m_phase2_rns_field = new Phase2_RNS_Field(*m_phase2_rns_rep);
+        m_phase1_field = new Phase1_Field(level_2_moduli->product());
 #if DEBUG_MMC
-        cerr << " - _phase2_rns_field: " << _phase2_rns_field->rns()._basis << endl;
-        cerr << " - _phase2_rns_computation_field: " << _phase2_rns_computation_field->rns()._basis << endl;
+        cerr << " - m_phase2_rns_field: " << m_phase2_rns_field->rns()._basis << endl;
+        cerr << " - m_phase2_rns_computation_field: " << m_phase2_rns_computation_field->rns()._basis << endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "########## TwoPhaseAlgo constructor ends ##########" << endl;
@@ -95,11 +96,11 @@ class TwoPhaseAbstract
 
     virtual ~TwoPhaseAbstract()
     {
-        delete _phase1_field;
-        delete _phase2_rns_rep;
-        delete _phase2_rns_field;
-        delete _phase2_rns_computation_rep;
-        delete _phase2_rns_computation_field;
+        delete m_phase1_field;
+        delete m_phase2_rns_rep;
+        delete m_phase2_rns_field;
+        delete m_phase2_rns_computation_rep;
+        delete m_phase2_rns_computation_field;
     };
     TwoPhaseAbstract(const TwoPhaseAbstract &) = delete;
     TwoPhaseAbstract &operator=(const TwoPhaseAbstract &) = delete;
@@ -122,7 +123,7 @@ class TwoPhaseAbstract
         Phase2_Matrix() = default;
 
         Phase2_Matrix(const TwoPhaseAbstract &f, size_t dim_m, size_t dim_n)
-            : _data(make_shared<FFLAS_Mem<Phase2_RNS_Field>>(FFLAS::fflas_new(*(f._phase2_rns_computation_field), dim_m, dim_n))),
+            : _data(make_shared<FFLAS_Mem<Phase2_RNS_Field>>(FFLAS::fflas_new(*(f.m_phase2_rns_computation_field), dim_m, dim_n))),
               dim_m(dim_m),
               dim_n(dim_n),
               count(dim_n * dim_m),
@@ -220,19 +221,32 @@ class TwoPhaseAbstract
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 reduce ....." << endl;
 #endif
+#if TIME_MMC
+        Givaro::Timer timer;
+        timer.start();
+#endif
         vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(inputs);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC
         cerr << "phase 1 reduced: " << endl
              << p1_reduced << endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 reduce ends ....." << endl;
-#endif
-#if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 2 reduce ....." << endl;
 #endif
-        // phase 2 begins
-        Phase2_RNS_Int_Ptr phase2_outputs = SIM_RNS::fflas_new_sim_reduce(*_phase1_field, p1_reduced, *_phase2_rns_field);
+#if TIME_MMC
+        timer.clear();
+        timer.start();
+#endif
+        Phase2_RNS_Int_Ptr phase2_outputs = SIM_RNS::fflas_new_sim_reduce(*m_phase1_field, p1_reduced, *m_phase2_rns_field);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 2 reduce ends ....." << endl;
 #endif
@@ -293,7 +307,15 @@ class TwoPhaseAbstract
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 reduce ....." << endl;
 #endif
+#if TIME_MMC
+        Givaro::Timer timer;
+        timer.start();
+#endif
         const vector<Phase1_Int> p1_reduced = matrix_reduce_phase_1(matrices);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 reduce ends ....." << endl;
 #endif
@@ -304,8 +326,15 @@ class TwoPhaseAbstract
 #if DEBUG_MMC
         cerr << "..... phase 2 reduce ....." << endl;
 #endif
-        // phase 2 begins
-        Phase2_RNS_Int_Ptr phase2_outputs = SIM_RNS::fflas_new_sim_reduce(*_phase1_field, p1_reduced, *_phase2_rns_field);
+#if TIME_MMC
+        timer.clear();
+        timer.start();
+#endif
+        Phase2_RNS_Int_Ptr phase2_outputs = SIM_RNS::fflas_new_sim_reduce(*m_phase1_field, p1_reduced, *m_phase2_rns_field);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 2 reduce ends ....." << endl;
 #endif
@@ -348,7 +377,7 @@ class TwoPhaseAbstract
     */
     virtual vector<Phase1_Int> matrix_recover_phase_2(const Phase2_Matrix &mat) const
     {
-        Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*_phase2_rns_field, level_1_moduli_count * mat.count);
+        Phase2_RNS_Int_Ptr phase2_inputs = FFLAS::fflas_new(*m_phase2_rns_field, level_1_moduli_count * mat.count);
         for (size_t r = 0; r < mat.dim_m; r++)
         {
             for (size_t c = 0; c < mat.dim_n; c++)
@@ -369,7 +398,7 @@ class TwoPhaseAbstract
         cerr << ".......... fflas_new_sim_recover .........." << endl;
 #endif
         // phase 2 recovery begins
-        auto result = SIM_RNS::fflas_new_sim_recover(*_phase2_rns_field, phase2_inputs, mat.count * level_1_moduli_count, *_phase1_field);
+        auto result = SIM_RNS::fflas_new_sim_recover(*m_phase2_rns_field, phase2_inputs, mat.count * level_1_moduli_count, *m_phase1_field);
 #if DEBUG_MMC || TIME_MMC
         cerr << ".......... fflas_new_sim_recover ends .........." << endl;
 #endif
@@ -392,7 +421,15 @@ class TwoPhaseAbstract
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 2 recovery ....." << endl;
 #endif
+#if TIME_MMC
+        Givaro::Timer timer;
+        timer.start();
+#endif
         const vector<Phase1_Int> phase2_recovered = matrix_recover_phase_2(mat);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC
         cerr << phase2_recovered << endl;
 #endif
@@ -400,7 +437,15 @@ class TwoPhaseAbstract
         cerr << "..... phase 2 recovery ends ....." << endl;
         cerr << "..... phase 1 recovery ....." << endl;
 #endif
+#if TIME_MMC
+        timer.clear();
+        timer.start();
+#endif
         const vector<Givaro::Integer> phase1_recovered = matrix_recover_phase_1(phase2_recovered);
+#if TIME_MMC
+        timer.stop();
+        cerr << "Timer: " << timer << endl;
+#endif
 #if DEBUG_MMC || TIME_MMC
         cerr << "..... phase 1 recovery ends ....." << endl;
 #endif
@@ -456,9 +501,9 @@ class TwoPhaseAbstract
 
         assert(dim_m && dim_n && dim_k);
         // create matrix_c to return
-        Phase2_RNS_Int_Ptr matrix_c = FFLAS::fflas_new(*_phase2_rns_computation_field, dim_m, dim_k);
+        Phase2_RNS_Int_Ptr matrix_c = FFLAS::fflas_new(*m_phase2_rns_computation_field, dim_m, dim_k);
 
-        assert(_phase2_rns_computation_field->size() == level_2_moduli_count * level_1_moduli_count);
+        assert(m_phase2_rns_computation_field->size() == level_2_moduli_count * level_1_moduli_count);
         assert(matrix_a._stride == dim_m * dim_n);
         assert(matrix_b._stride == dim_n * dim_k);
         assert(matrix_c._stride == dim_m * dim_k);
@@ -472,16 +517,16 @@ class TwoPhaseAbstract
                         FFLAS::ParSeqHelper::Sequential>
             tag;
         FFLAS::fgemm<Phase2_RNS_Rep>(
-            (Phase2_RNS_Field)*_phase2_rns_computation_field, // field
-            FFLAS::FflasNoTrans,                              // transpose matrix_a?
-            FFLAS::FflasNoTrans,                              // transpose matrix_b?
+            (Phase2_RNS_Field)*m_phase2_rns_computation_field, // field
+            FFLAS::FflasNoTrans,                               // transpose matrix_a?
+            FFLAS::FflasNoTrans,                               // transpose matrix_b?
             dim_m, dim_n, dim_k,
-            _phase2_rns_computation_field->one, // coefficient before matrix_a*matrix_b
+            m_phase2_rns_computation_field->one, // coefficient before matrix_a*matrix_b
             matrix_a,
             dim_n, // row length of matrix_a
             matrix_b,
-            dim_k,                               // row length of matrix_b
-            _phase2_rns_computation_field->zero, // constant matrix to add
+            dim_k,                                // row length of matrix_b
+            m_phase2_rns_computation_field->zero, // constant matrix to add
             matrix_c,
             dim_k, // row length of matrix_c
             tag);

@@ -32,7 +32,7 @@ ostream &operator<<(ostream &out, vector<T> arr)
 {
     size_t N = arr.size();
     out << " [";
-    for (size_t i = 0; i < 16 && i < N; i++)
+    for (size_t i = 0; i < 32 && i < N; i++)
     {
         out << arr[i];
         if (i != N - 1)
@@ -40,7 +40,7 @@ ostream &operator<<(ostream &out, vector<T> arr)
             out << " , ";
         }
     }
-    if (N > 16)
+    if (N > 32)
     {
         out << " ... ";
     }
