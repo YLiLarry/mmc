@@ -67,8 +67,13 @@ vector<typename Int_Field::Element> fflas_new_sim_recover(
 #if TIME_MMC
     cerr << ".......... fconvert_rns .........." << endl;
 #endif
-    FFLAS::fconvert_rns(rns_field, num_integers, 1, Givaro::Integer(0),
-                        output_A, 1, input_A);
+    FFLAS::fconvert_rns(rns_field,
+                        num_integers,       // #rows
+                        1,                  // #cols
+                        Givaro::Integer(1), // sign
+                        output_A,
+                        1, // #cols
+                        input_A);
 #if TIME_MMC
     cerr << ".......... fconvert_rns ends .........." << endl;
 #endif

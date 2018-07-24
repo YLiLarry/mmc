@@ -33,20 +33,24 @@ class TwoPhaseAbstract
     Phase1_Field *m_phase1_field;
     const GenCoprimeAbstract<Givaro::Integer> *m_level_1_moduli;
     const GenCoprimeAbstract<double> *m_level_2_moduli;
-    const size_t m_level_1_moduli_count;
-    const size_t m_level_2_moduli_count;
+    size_t m_level_1_moduli_count;
+    size_t m_level_2_moduli_count;
 
   public:
     TwoPhaseAbstract(const GenCoprimeAbstract<Givaro::Integer> *m_level_1_moduli,
                      const GenCoprimeAbstract<double> *m_level_2_moduli)
         : m_level_1_moduli(m_level_1_moduli),
           m_level_2_moduli(m_level_2_moduli),
-          m_level_1_moduli_count(m_level_1_moduli->count()),
-          m_level_2_moduli_count(m_level_2_moduli->count())
+          m_level_1_moduli_count(m_level_1_moduli->count())
     {
 #if DEBUG_MMC || TIME_MMC
         cerr << "########## TwoPhaseAlgo constructor ##########" << endl;
 #endif
+        if (!m_level_2_moduli)
+        {
+            m_level_2_moduli = new GenPrimeMost<double>(2 * m_level_1_moduli->max_bitsize() + 7, 21);
+        }
+        m_level_2_moduli_count = m_level_2_moduli->count();
 #if DEBUG_MMC || TIME_MMC
         cerr << " - m_level_1_moduli: " << *m_level_1_moduli << endl;
         cerr << " - m_level_2_moduli: " << *m_level_2_moduli << endl;
@@ -90,9 +94,10 @@ class TwoPhaseAbstract
         delete m_phase1_field;
         delete m_phase2_rns_rep;
         delete m_phase2_rns_field;
-        // delete m_phase2_rns_computation_rep;
-        // delete m_phase2_rns_computation_field;
-    };
+        delete m_level_1_moduli;
+        delete m_level_2_moduli;
+    }
+
     TwoPhaseAbstract(const TwoPhaseAbstract &) = delete;
     TwoPhaseAbstract &operator=(const TwoPhaseAbstract &) = delete;
 
@@ -575,7 +580,8 @@ class TwoPhaseAbstract
         t.stop();
 
         std::cerr << "==========================================" << std::endl
-                  << "Pointwise fgemm : " << t.realtime() << " (" << F.size() << ") moduli " << std::endl
+                  << "Pointwise fgemm : " << t.realtime()
+                  << " (" << m_level_1_moduli_count * m_level_2_moduli_count << ") moduli " << std::endl
                   << "==========================================" << std::endl;
 #endif
         return Cd;

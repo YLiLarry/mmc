@@ -29,18 +29,9 @@ class TwoPhaseMargeMost : public TwoPhaseMargeAbstract
 {
   public:
     TwoPhaseMargeMost(uint_fast64_t level_1_product_bitsize,
-                      uint_fast64_t level_1_moduli_bitsize,
-                      uint_fast64_t level_2_product_bitsize,
-                      uint_fast64_t level_2_moduli_bitsize)
-        : TwoPhaseMargeAbstract(new GenMargeMost(level_1_product_bitsize, level_1_moduli_bitsize),
-                                new GenPrimeMost<double>(level_2_product_bitsize, level_2_moduli_bitsize))
+                      uint_fast64_t level_1_moduli_bitsize)
+        : TwoPhaseMargeAbstract(new GenMargeMost(level_1_product_bitsize, level_1_moduli_bitsize), NULL)
     {
-    }
-
-    ~TwoPhaseMargeMost()
-    {
-        delete this->m_level_1_moduli;
-        delete this->m_level_2_moduli;
     }
 
     TwoPhaseMargeMost(const TwoPhaseMargeMost &) = delete;

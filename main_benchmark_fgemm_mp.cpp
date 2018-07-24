@@ -58,6 +58,7 @@ using namespace std;
 
 #include "containers.h"
 #include "sim_rns.h"
+#include <algorithm>
 
 #ifdef BENCH_FLINT
 #define __GMP_BITS_PER_MP_LIMB 64
@@ -71,12 +72,16 @@ extern "C"
 }
 #endif
 
+#define BENCH_TWO_PHASE_PARGE_BLOCK 0
+#define BENCH_TWO_PHASE_MARGE_LEAST 1
+#define BENCH_TWO_PHASE_MARGE_MOST 1
+
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 18);
-static size_t m = 32;
-static size_t k = 32;
-static size_t n = 32;
+static unsigned long b = (1 << 19);
+static size_t m = 64;
+static size_t k = 64;
+static size_t n = 64;
 static int nbw = -1;
 static size_t seed = time(NULL);
 static Argument as[] = {
@@ -89,10 +94,6 @@ static Argument as[] = {
     {'i', "-i R", "Set number of repetitions.", TYPE_INT, &iters},
     {'s', "-s S", "Sets seed.", TYPE_INT, &seed},
     END_OF_ARGUMENTS};
-
-#define BENCH_TWO_PHASE_PARGE_BLOCK 1
-#define BENCH_TWO_PHASE_MARGE_LEAST 0
-#define BENCH_TWO_PHASE_MARGE_MOST 1
 
 template <typename Ints>
 int tmain()
@@ -119,15 +120,14 @@ int tmain()
     {
         Givaro::Integer::random_exact_2exp(p, b);
 
-        Givaro::IntPrimeDom IPD;
+        // Givaro::IntPrimeDom IPD;
         // IPD.prevprimein(p);
-        Ints ip;
+        // Ints ip;
         // Givaro::Caster<Ints, Givaro::Integer>(ip, p);
         // Givaro::Caster<Givaro::Integer, Ints>(p, ip); // to check consistency
 
         Field F;
         ModularField MF(p);
-        cerr << "benchmarking with random inputs in Givaro::Modular<Ints>(integer of " << p.bitsize() << " bits)" << endl;
         size_t lda, ldb, ldc;
         lda = k;
         ldb = n;
@@ -159,6 +159,9 @@ int tmain()
 
         vector<Givaro::Integer> A_(A, A + m * k);
         vector<Givaro::Integer> B_(B, B + k * n);
+
+        uint_fast64_t input_bitsize = max(max_element(A_.begin(), A_.end()), max_element(B_.begin(), B_.end()))->bitsize();
+        cerr << "benchmarking with random inputs in Givaro::Modular<Ints>(integer of " << input_bitsize << " bits)" << endl;
 
         // cerr << A_ << endl;
         // cerr << B_ << endl;
@@ -222,10 +225,7 @@ int tmain()
             cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
-            TwoPhaseMargeLeast algo(2 * b,
-                                    0,
-                                    2 * 3906 + 5,
-                                    21);
+            TwoPhaseMargeLeast algo(2 * input_bitsize, 1 << 10);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -244,10 +244,7 @@ int tmain()
             cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
-            TwoPhaseMargeMost algo(2 * b,
-                                   b / 20,
-                                   2 * b / 20 + 5,
-                                   21);
+            TwoPhaseMargeMost algo(2 * input_bitsize, input_bitsize >> 5);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -266,10 +263,7 @@ int tmain()
             cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
-            TwoPhasePargeBlock algo(2 * b,
-                                    b / 4,
-                                    2 * b / 4 + 5,
-                                    21);
+            TwoPhasePargeBlock algo(2 * input_bitsize, input_bitsize / 2, 7);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);

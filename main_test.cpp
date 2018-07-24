@@ -79,10 +79,7 @@ end_test_marge:
     cerr << "======= Testing TwoPhasePargeBlock ========" << endl;
     cerr << "===========================================" << endl;
     {
-        TwoPhasePargeBlock algo_parge_block(2 * input_bitsize,
-                                            input_bitsize / 2,
-                                            input_bitsize,
-                                            21);
+        TwoPhasePargeBlock algo_parge_block(2 * input_bitsize, input_bitsize / 2, 6);
 
         auto r = algo_parge_block.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo_parge_block.matrix_recover(r);
@@ -150,6 +147,6 @@ int main()
 {
     for (int i = 0; i < 100; i++)
     {
-        test(true, false, false);
+        test(true, true, false);
     }
 }

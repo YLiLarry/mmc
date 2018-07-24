@@ -37,8 +37,14 @@ void precompute_Mi_parge_block(mpz_t Mi[], const mpz_t m[], const size_t N)
 #endif
 }
 
-// Mi: precomputed array
-void garner_parge_block(mpz_t a, int N, const mpz_t r[], const uint64_t expo[], const mpz_t m[], const mpz_t Mi[])
+
+void garner_parge_block(mpz_t a,               // output
+                  int N,                 // size of r[], expo[], m[], Mi[], work[]
+                  const mpz_t r[],       // remainders
+                  const uint64_t expo[], // workay of exponents n as in moduli 2^n - 1
+                  const mpz_t m[],       // moduli of the form 2^n - 1
+                  const mpz_t Mi[],      // precomputed Mi (see paper)
+                  mpz_t work[])          // a work workay, caller is responsible for initializing and freeing this for efficiency reason
 {
 #if DEBUG_MMC
     gmp_fprintf(stderr, "########## garner_parge_block ##########\n");
@@ -59,9 +65,7 @@ void garner_parge_block(mpz_t a, int N, const mpz_t r[], const uint64_t expo[], 
         return;
     }
     mpz_set_ui(a, 0);
-    // initialize array
-    mpz_t arr[N];
-    mpz_init_set(arr[0], r[0]);
+    mpz_set(work[0], r[0]);
     // initialize temporary vars
     mpz_t t;
     mpz_init(t);
@@ -71,27 +75,26 @@ void garner_parge_block(mpz_t a, int N, const mpz_t r[], const uint64_t expo[], 
     // starting from line 7 in Eugene's paper
     for (int i = 1; i < N; i++)
     {
-        mpz_init(arr[i]);
-        mpz_set(t, arr[i - 1]); // line 8
+        mpz_init(work[i]);
+        mpz_set(t, work[i - 1]); // line 8
         for (int j = i - 2; j >= 0; j--)
         { // for loop line 9
             // mpz_mul(t, t, m[j]);
             // line 10
-            mpz_mul_2exp(temp, t, expo[j]);
-            mpz_add(temp, temp, t);
-            mpz_add(t, temp, arr[j]); // line 11
-        }                             // end for
-        mpz_sub(t, r[i], t);          // line 13
-        mpz_mul(temp, t, Mi[i]);      // line 14
-        mpz_mod(arr[i], temp, m[i]);
+            mpz_add(temp, t, work[j]);
+            mpz_mul_2exp(t, t, expo[j]);
+            mpz_add(t, t, temp); // line 11
+        }                        // end for
+        mpz_sub(t, r[i], t);     // line 13
+        mpz_mul(temp, t, Mi[i]); // line 14
+        mpz_mod(work[i], temp, m[i]);
     }                       // end for line 15
-    mpz_set(a, arr[N - 1]); // line 16
+    mpz_set(a, work[N - 1]); // line 16
     for (int i = N - 1; i >= 0; i--)
     { // line 17
-        mpz_mul_2exp(temp, a, expo[i]);
-        mpz_add(a, temp, a);
-        mpz_add(a, a, arr[i]);
-        mpz_clear(arr[i]);
+        mpz_add(temp, a, work[i]);
+        mpz_mul_2exp(a, a, expo[i]);
+        mpz_add(a, a, temp);
     } // line for line 20
     // free used temporary vars
     mpz_clear(t);
@@ -105,7 +108,6 @@ void garner_parge_block(mpz_t a, int N, const mpz_t r[], const uint64_t expo[], 
 #endif
 }
 
-// Mi: precomputed array
 void garner_simple_parge_block(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
 {
 #if DEBUG_MMC

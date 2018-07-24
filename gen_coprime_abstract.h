@@ -31,22 +31,22 @@ class GenCoprimeAbstract : public std::vector<T>
                 out << " , ";
             }
         }
-        out << "]" << endl;
+        out << "]" << std::endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
-        cerr << " - count: " << arr.count() << endl;
+        std::cerr << " - count: " << arr.count() << std::endl;
 #endif
 #if DEBUG_MMC
-        cerr << " - max: " << Givaro::Integer(arr.max()) << endl;
+        std::cerr << " - max: " << Givaro::Integer(arr.max()) << std::endl;
 #endif
 #if DEBUG_MMC || TIME_MMC
-        cerr << " - max bit length: " << arr.max_bitsize() << endl;
-        cerr << " - product bit length: " << arr.product_bitsize() << endl;
+        std::cerr << " - max bit length: " << arr.max_bitsize() << std::endl;
+        std::cerr << " - product bit length: " << arr.product_bitsize() << std::endl;
 #endif
 #if DEBUG_MMC
         if (arr.product_bitsize() < 1024)
         {
-            out << " - product: " << arr.product() << endl;
+            out << " - product: " << arr.product() << std::endl;
         }
 #endif
         return out;

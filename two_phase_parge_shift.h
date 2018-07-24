@@ -28,12 +28,6 @@ class TwoPhasePargeShift : public TwoPhasePargeAbstract
     {
     }
 
-    ~TwoPhasePargeShift()
-    {
-        delete this->m_level_1_moduli;
-        delete this->m_level_2_moduli;
-    }
-
   protected:
     /* 
         use this method to recover from a single reduced matrix to phase 1 representations
@@ -59,11 +53,6 @@ class TwoPhasePargeShift : public TwoPhasePargeAbstract
             for (size_t f = 0; f < m_level_1_moduli_count; f++)
             {
                 const Phase1_Int &in = phase2_recovered[i * m_level_1_moduli_count + f];
-                if (in >= m_level_1_moduli->product())
-                {
-                    cerr << "Computation overflows. Recovered an integer that is greater than the product of level 1 moduli." << endl;
-                }
-                assert(in < m_level_1_moduli->product());
                 mpz_mod(_r[f], in.get_mpz(), m_level_1_moduli->val(f).get_mpz());
             }
             CNMA::garner_parge_shift(t.get_mpz(), m_level_1_moduli_count, _r, _f, m_level_1_moduli_bitsize_coefficient);
