@@ -1,8 +1,10 @@
 #include "matrix.h"
-#include "reconstruct_marge.h"
+#include "reconstruct_parge_block.h"
 #include <assert.h>
 
-void precompute_Mi_parge_block(mpz_t Mi[], const mpz_t m[], const size_t N)
+using namespace CNMA;
+
+void CNMA::precompute_Mi_parge_block(mpz_t Mi[], const mpz_t m[], const size_t N)
 {
 #if DEBUG_MMC || TIME_MMC
     gmp_fprintf(stderr, ".......... precompute_Mi_parge_block ..........\n");
@@ -38,13 +40,13 @@ void precompute_Mi_parge_block(mpz_t Mi[], const mpz_t m[], const size_t N)
 }
 
 
-void garner_parge_block(mpz_t a,               // output
-                  int N,                 // size of r[], expo[], m[], Mi[], work[]
-                  const mpz_t r[],       // remainders
-                  const uint64_t expo[], // workay of exponents n as in moduli 2^n - 1
-                  const mpz_t m[],       // moduli of the form 2^n - 1
-                  const mpz_t Mi[],      // precomputed Mi (see paper)
-                  mpz_t work[])          // a work workay, caller is responsible for initializing and freeing this for efficiency reason
+void CNMA::garner_parge_block(mpz_t a,               // output
+                              int N,                 // size of r[], expo[], m[], Mi[], work[]
+                              const mpz_t r[],       // remainders
+                              const uint64_t expo[], // workarray of exponents n as in moduli 2^n + 1
+                              const mpz_t m[],       // moduli of the form 2^n + 1
+                              const mpz_t Mi[],      // precomputed Mi (see paper)
+                              mpz_t work[])          // a work workarray, caller is responsible for initializing and freeing this for efficiency reason
 {
 #if DEBUG_MMC
     gmp_fprintf(stderr, "########## garner_parge_block ##########\n");
@@ -75,7 +77,6 @@ void garner_parge_block(mpz_t a,               // output
     // starting from line 7 in Eugene's paper
     for (int i = 1; i < N; i++)
     {
-        mpz_init(work[i]);
         mpz_set(t, work[i - 1]); // line 8
         for (int j = i - 2; j >= 0; j--)
         { // for loop line 9

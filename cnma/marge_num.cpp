@@ -7,32 +7,29 @@
  */
 
 #include "matrix.h"
+#include "marge_num.h"
 
-void dc_reduce_minus(mpz_t a, unsigned long int n);
-void minadd(mpz_t res, mpz_t a, mpz_t b, int n);
-void minsub(mpz_t res, mpz_t a, mpz_t b, int n);
-void minmul(mpz_t res, mpz_t a, mpz_t b, int n);
-void get_mod(mpz_t m, int n);
-void bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b);
+using namespace CNMA;
 
-void dc_reduce_minus(mpz_t a, unsigned long int n)
+void CNMA::dc_reduce_minus(mpz_t a, unsigned long int n)
 {
     mpz_t t, p;
     int s;
     int b;
+    uint64_t k;
     mpz_init(t);
-    mpz_init(p);
-
-    mpz_ui_pow_ui(p, 2, n);
+    mpz_init_set_ui(p, 1);
+    mpz_mul_2exp(p, p, n);
     int cmp_val = mpz_cmp(a, p);
 
-    while (cmp_val > 0 || cmp_val == 0)
+    while (cmp_val >= 0)
     {
         s = mpz_sizeinbase(a, 2);
         b = (s - 1) / n + 1;
-        b = b / 2;
-        mpz_tdiv_q_2exp(t, a, b * n);
-        mpz_tdiv_r_2exp(a, a, b * n);
+        b >>= 1;
+        k = b * n;
+        mpz_tdiv_q_2exp(t, a, k);
+        mpz_tdiv_r_2exp(a, a, k);
         mpz_add(a, a, t);
         cmp_val = mpz_cmp(a, p);
     }
@@ -40,7 +37,7 @@ void dc_reduce_minus(mpz_t a, unsigned long int n)
     mpz_clear(p);
 }
 
-void minadd(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::minadd(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     int szm, szres;
     mpz_t m;
@@ -61,7 +58,7 @@ void minadd(mpz_t res, mpz_t a, mpz_t b, int n)
     dc_reduce_minus(res, n);
 }
 
-void minsub(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::minsub(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     int sza, szb;
     sza = mpz_sizeinbase(a, 2);
@@ -79,7 +76,7 @@ void minsub(mpz_t res, mpz_t a, mpz_t b, int n)
     dc_reduce_minus(res, n);
 }
 
-void minmul(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::minmul(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     mpz_t mod;
     mpz_init(mod);
@@ -98,7 +95,7 @@ void minmul(mpz_t res, mpz_t a, mpz_t b, int n)
     }
 }
 
-void get_mod(mpz_t m, int n)
+void CNMA::get_mod(mpz_t m, int n)
 {
     mpz_ui_pow_ui(m, 2, n);
     mpz_sub_ui(m, m, 1);

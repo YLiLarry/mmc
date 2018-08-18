@@ -4,23 +4,19 @@
 #include "two_phase_parge_abstract.h"
 #include "gen_parge_block.h"
 
-namespace CNMA
-{
-extern "C"
-{
 #include "cnma/parge_num.h"
 #include "cnma/reconstruct_parge_block.h"
-}
-} // namespace CNMA
+
 
 class TwoPhasePargeBlock : public TwoPhasePargeAbstract
 {
   public:
     TwoPhasePargeBlock(uint_fast64_t level_1_product_bitsize,
-                       uint_fast64_t level_1_max_bitsize,
+                       uint_fast64_t level_1_moduli_bitsize,
                        uint_fast64_t block_size)
-        : TwoPhasePargeAbstract(new GenPargeBlock(level_1_product_bitsize, level_1_max_bitsize, block_size), NULL)
+        : TwoPhasePargeAbstract(new GenPargeBlock(level_1_product_bitsize, level_1_moduli_bitsize, block_size), NULL)
     {
+        assert(level_1_product_bitsize > level_1_moduli_bitsize * 2 && "Level 1 moduli size cannot be too large for the two-phase algorithm to be beneficial.");
     }
 
   protected:

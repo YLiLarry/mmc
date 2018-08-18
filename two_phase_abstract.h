@@ -48,12 +48,16 @@ class TwoPhaseAbstract
 #endif
         if (!m_level_2_moduli)
         {
-            m_level_2_moduli = new GenPrimeMost<double>(2 * m_level_1_moduli->max_bitsize() + 7, 21);
+            // The reason for having level 2 product bitsize > 2 * level 1 moduli bitsize is that
+            // during multiplication, all remainders have bit size of level 1 moduli, after
+            // multiplication, the result is 2 times larger. For a successful level 2 recovery (before
+            // taking modulo each level 1 moduli), having this product bitsize is necessary.
+            m_level_2_moduli = new GenPrimeMost<double>(2 * m_level_1_moduli->max_bitsize() + 10, 21);
         }
         m_level_2_moduli_count = m_level_2_moduli->count();
 #if DEBUG_MMC || TIME_MMC
-        cerr << " - m_level_1_moduli: " << *m_level_1_moduli << endl;
-        cerr << " - m_level_2_moduli: " << *m_level_2_moduli << endl;
+        cerr << "m_level_1_moduli:" << endl << *m_level_1_moduli << endl;
+        cerr << "m_level_2_moduli:" << endl << *m_level_2_moduli;
 #endif
         assert(m_level_1_moduli->product() > m_level_2_moduli->product() && "chosen RNS size must make sense.");
         // m_level_2_moduli repeats m_level_1_moduli_count times

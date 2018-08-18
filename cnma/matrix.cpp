@@ -7,6 +7,7 @@
 
 #include "matrix.h"
 
+/*
 void init_matrix(int n, mpz_t (*m)[n]);
 void build_matrix(int n, mpz_t (*m)[n]);
 void mul(int n, mpz_t (*m)[n], mpz_t (*x)[n], mpz_t (*c)[n]);
@@ -99,8 +100,9 @@ int compare(int n, mpz_t (*a)[n], mpz_t (*b)[n])
     }
     return 1;
 }
+*/
 
-void bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b)
+void CNMA::bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b)
 {
     mpz_tdiv_r_2exp(r, a, b);
     mpz_tdiv_q_2exp(r, r, n);

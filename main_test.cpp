@@ -43,10 +43,7 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
     cerr << "======== Testing TwoPhaseMargeMost ========" << endl;
     cerr << "===========================================" << endl;
     {
-        TwoPhaseMargeMost algo(2 * input_bitsize,
-                               input_bitsize / 2,
-                               input_bitsize,
-                               21);
+        TwoPhaseMargeMost algo(2 * input_bitsize, input_bitsize / 2);
 
         auto r = algo.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo.matrix_recover(r);
@@ -79,7 +76,7 @@ end_test_marge:
     cerr << "======= Testing TwoPhasePargeBlock ========" << endl;
     cerr << "===========================================" << endl;
     {
-        TwoPhasePargeBlock algo_parge_block(2 * input_bitsize, input_bitsize / 2, 6);
+        TwoPhasePargeBlock algo_parge_block(2 * input_bitsize, input_bitsize / 2, 4);
 
         auto r = algo_parge_block.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo_parge_block.matrix_recover(r);
@@ -112,10 +109,7 @@ end_test_parge:
     cerr << "======= Testing TwoPhasePargeShift ========" << endl;
     cerr << "===========================================" << endl;
     {
-        TwoPhasePargeShift algo_parge_shift(2 * input_bitsize,
-                                            input_bitsize,
-                                            1,
-                                            21);
+        TwoPhasePargeShift algo_parge_shift(2 * input_bitsize, input_bitsize / 2, 1);
 
         auto r = algo_parge_shift.matrix_reduce(a, 2, 2);
         vector<Givaro::Integer> a_ = algo_parge_shift.matrix_recover(r);
@@ -147,6 +141,6 @@ int main()
 {
     for (int i = 0; i < 100; i++)
     {
-        test(true, true, false);
+        test(true, true, true);
     }
 }

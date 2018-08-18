@@ -10,14 +10,10 @@
 #include <fflas-ffpack/field/rns-double.h>
 #include "two_phase_marge_abstract.h"
 
-namespace CNMA
-{
-extern "C"
-{
 #include "cnma/marge_num.h"
 #include "cnma/reconstruct_marge.h"
-}
-} // namespace CNMA
+
+
 // Phase 1:
 // m_level_1_moduli_count is the number of co-primes moduli, each of bit length 2^B_F.
 // co-primes are stored as T_F type in memory.
@@ -32,6 +28,7 @@ class TwoPhaseMargeMost : public TwoPhaseMargeAbstract
                       uint_fast64_t level_1_moduli_bitsize)
         : TwoPhaseMargeAbstract(new GenMargeMost(level_1_product_bitsize, level_1_moduli_bitsize), NULL)
     {
+      assert(level_1_product_bitsize > level_1_moduli_bitsize * 2 && "Level 1 moduli size cannot be too large for the two-phase algorithm to be beneficial.");
     }
 
     TwoPhaseMargeMost(const TwoPhaseMargeMost &) = delete;

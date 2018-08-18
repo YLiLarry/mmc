@@ -29,4 +29,8 @@ struct time_convert{
 	float seconds;
 };
 
+namespace CNMA {
+void bits(mpz_t r, mpz_t a, unsigned long int n, mp_bitcnt_t b);
+};
+
 #endif /* MATRIX_H_ */

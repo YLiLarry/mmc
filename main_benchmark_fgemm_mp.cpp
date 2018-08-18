@@ -54,6 +54,7 @@ using namespace std;
 #include "two_phase_marge_least.h"
 #include "two_phase_marge_most.h"
 #include "two_phase_parge_block.h"
+#include "two_phase_parge_shift.h"
 #include <ostream>
 
 #include "containers.h"
@@ -72,13 +73,14 @@ extern "C"
 }
 #endif
 
+#define BENCH_TWO_PHASE_PARGE_SHIFT 1
 #define BENCH_TWO_PHASE_PARGE_BLOCK 0
-#define BENCH_TWO_PHASE_MARGE_LEAST 1
+#define BENCH_TWO_PHASE_MARGE_LEAST 0
 #define BENCH_TWO_PHASE_MARGE_MOST 1
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 19);
+static unsigned long b = (1 << 16);
 static size_t m = 64;
 static size_t k = 64;
 static size_t n = 64;
@@ -110,10 +112,11 @@ int tmain()
 #ifdef BENCH_FLINT
     double timeFlint = 0.;
 #endif
-#if BENCH_TWO_PHASE_MARGE_LEAST || BENCH_TWO_PHASE_MARGE_MOST || BENCH_TWO_PHASE_PARGE_BLOCK
+#if BENCH_TWO_PHASE_MARGE_LEAST || BENCH_TWO_PHASE_MARGE_MOST || BENCH_TWO_PHASE_PARGE_BLOCK || BENCH_TWO_PHASE_PARGE_SHIFT
     double time_two_phase_marge_least = 0.;
     double time_two_phase_marge_most = 0.;
     double time_two_phase_parge_block = 0.;
+    double time_two_phase_parge_shift = 0.;
 #endif
     double time_naive = 0.;
     for (size_t loop = 0; loop < iters; loop++)
@@ -218,6 +221,29 @@ int tmain()
         chrono.stop();
         time_naive += chrono.usertime();
 
+#if BENCH_TWO_PHASE_PARGE_SHIFT
+        {
+            cerr << "===========================================" << endl;
+            cerr << "======= Benchmark TwoPhasePargeShift =======" << endl;
+            cerr << "===========================================" << endl;
+            chrono.clear();
+            chrono.start();
+            TwoPhasePargeShift algo(2 * input_bitsize, input_bitsize / 2, 1);
+            auto a = algo.matrix_reduce(A_, m, k);
+            auto b = algo.matrix_reduce(B_, k, n);
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_parge_shift += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            }
+        }
+#endif
+
 #if BENCH_TWO_PHASE_MARGE_LEAST
         {
             cerr << "===========================================" << endl;
@@ -233,7 +259,11 @@ int tmain()
             chrono.stop();
             time_two_phase_marge_least += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
-            assert(equals(C_, C__));
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            }
         }
 #endif
 
@@ -252,7 +282,11 @@ int tmain()
             chrono.stop();
             time_two_phase_marge_most += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
-            assert(equals(C_, C__));
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            }
         }
 #endif
 
@@ -263,7 +297,7 @@ int tmain()
             cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
-            TwoPhasePargeBlock algo(2 * input_bitsize, input_bitsize / 2, 7);
+            TwoPhasePargeBlock algo(2 * input_bitsize, input_bitsize / 2, 4);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -271,7 +305,11 @@ int tmain()
             chrono.stop();
             time_two_phase_parge_block += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
-            assert(equals(C_, C__));
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            };
         }
 #endif
         //END FLINT CODE //
@@ -332,8 +370,9 @@ int tmain()
     cout << "Time TwoPhaseMargeLeast: " << time_two_phase_marge_least << endl;
     cout << "Time TwoPhaseMargeMost: " << time_two_phase_marge_most << endl;
     cout << "Time TwoPhasePargeBlock: " << time_two_phase_parge_block << endl;
+    cout << "Time TwoPhasePargeShift: " << time_two_phase_parge_shift << endl;
 #endif
-    cout << "Time Naive: " << time_naive << endl;
+    cout << "Time FFLAS-PPACK: " << time_naive << endl;
 
     return 0;
 }

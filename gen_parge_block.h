@@ -43,7 +43,18 @@ class GenPargeBlock : public GenCoprimeAbstract<Givaro::Integer>
                     std::cerr << "Currently generated: " << std::endl
                               << " - max_bound: " << max_bound << std::endl
                               << *this << std::endl;
-                    abort();
+                    //abort();
+                    // reset 
+                    block_size++;
+                    mask = (1 << block_size) - 1;
+                    n = -1;
+                    i_block = 1;
+                    last_block = false;
+                    _product = 1;
+                    _max = -1;
+                    this->clear();
+                    std::cerr << "Trying block size " << block_size << std::endl;
+                    continue;
                 }
                 i_block++;
                 mask = (1 << i_block * block_size) - 1;

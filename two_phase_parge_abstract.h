@@ -5,13 +5,7 @@
 #include <vector>
 #include <gmp++/gmp++.h>
 
-namespace CNMA
-{
-extern "C"
-{
 #include "cnma/parge_num.h"
-}
-} // namespace CNMA
 
 class TwoPhasePargeAbstract : public TwoPhaseAbstract
 {

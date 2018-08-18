@@ -10,7 +10,9 @@
 #include "parge_num.h"
 #include "marge_num.h"
 
-void dc_reduce_plus(mpz_t a, long unsigned int n)
+using namespace CNMA;
+
+void CNMA::dc_reduce_plus(mpz_t a, long unsigned int n)
 {
     mpz_t t;
     mpz_init(t);
@@ -30,7 +32,7 @@ void dc_reduce_plus(mpz_t a, long unsigned int n)
     mpz_clear(t);
 }
 
-void plusadd(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::plusadd(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     int szm, szres;
     mpz_t m;
@@ -52,7 +54,7 @@ void plusadd(mpz_t res, mpz_t a, mpz_t b, int n)
     dc_reduce_plus(res, n);
 }
 
-void plussub(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::plussub(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     int sza, szb;
     sza = mpz_sizeinbase(a, 2);
@@ -70,7 +72,7 @@ void plussub(mpz_t res, mpz_t a, mpz_t b, int n)
     dc_reduce_plus(res, n);
 }
 
-void plusmul(mpz_t res, mpz_t a, mpz_t b, int n)
+void CNMA::plusmul(mpz_t res, mpz_t a, mpz_t b, int n)
 {
     mpz_t mod;
     mpz_init(mod);
@@ -90,7 +92,7 @@ void plusmul(mpz_t res, mpz_t a, mpz_t b, int n)
     }
 }
 
-void get_mod_plus(mpz_t m, int n)
+void CNMA::get_mod_plus(mpz_t m, int n)
 {
     mpz_ui_pow_ui(m, 2, n);
     mpz_add_ui(m, m, 1);

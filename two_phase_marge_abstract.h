@@ -9,14 +9,9 @@
 #include <fflas-ffpack/field/rns-double.h>
 #include "two_phase_abstract.h"
 
-namespace CNMA
-{
-extern "C"
-{
 #include "cnma/marge_num.h"
 #include "cnma/reconstruct_marge.h"
-}
-} // namespace CNMA
+
 // Phase 1:
 // m_level_1_moduli_count is the number of co-primes moduli, each of bit length 2^B_F.
 // co-primes are stored as T_F type in memory.
@@ -95,15 +90,14 @@ class TwoPhaseMargeAbstract : public TwoPhaseAbstract
         // recover
         for (size_t i = 0; i < out_len; i++)
         {
-            Givaro::Integer &t = phase1_recovered[i];
             for (size_t f = 0; f < m_level_1_moduli_count; f++)
             {
                 const Phase1_Int &in = phase2_recovered[i * m_level_1_moduli_count + f];
-                // mpz_mod(input_r[f], in.get_mpz(), m_level_1_moduli->val(f).get_mpz());
+                mpz_mod(input_r[f], in.get_mpz(), m_level_1_moduli->val(f).get_mpz());
                 // mpz_set(input_r[f], in.get_mpz());
-                mpz_set(input_r[f], in.get_mpz());
-                CNMA::dc_reduce_minus(input_r[f], (m_level_1_moduli->val(f) + 1).bitsize() - 1);
+                // CNMA::dc_reduce_minus(input_r[f], (m_level_1_moduli->val(f) + 1).bitsize() - 1);
             }
+            Givaro::Integer &t = phase1_recovered[i];
             CNMA::garner_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f_expo, input_f, input_Mi, input_work);
             // CNMA::garner_simple_marge(t.get_mpz(), m_level_1_moduli_count, input_r, input_f, input_Mi);
             mpz_mod(t.get_mpz(), t.get_mpz(), m_level_1_moduli->product().get_mpz());
