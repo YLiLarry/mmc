@@ -11,10 +11,15 @@ using namespace std;
 #include <ostream>
 #include <time.h>
 
+#define TEST_MARGE_MOST 1
+#define TEST_MARGE_LEAST 0
+#define TEST_PARGE_BLOCK 0
+#define TEST_PARGE_SHIFT 0
+
 using namespace LinBox;
 using namespace SIM_RNS;
 
-void test(bool test_marge, bool test_parge, bool test_fermat)
+void test()
 {
     const uint_fast64_t input_bitsize = (1 << 6);
 
@@ -34,11 +39,7 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
     clock_t _time;
     vector<Givaro::Integer> expect = SIM_RNS::fflas_mult_integer(a, b, 2, 2, 2);
 
-    if (!test_marge)
-    {
-        goto end_test_marge;
-    }
-
+#if TEST_MARGE_MOST
     cerr << "===========================================" << endl;
     cerr << "======== Testing TwoPhaseMargeMost ========" << endl;
     cerr << "===========================================" << endl;
@@ -53,6 +54,22 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
         vector<Givaro::Integer> s_ = algo.matrix_recover(s);
         assert(equals(b, s_));
 
+        vector<Givaro::Integer> mm;
+        mm.insert(mm.end(), a.begin(), a.end());
+        mm.insert(mm.end(), b.begin(), b.end());
+        assert(mm.size() == 8);
+        vector<size_t> ss;
+        ss.push_back(2);
+        ss.push_back(2);
+        ss.push_back(2);
+        auto matrices = algo.matrix_reduce(mm, ss);
+        cerr << matrices[0] << endl;
+        cerr << r << endl;
+        auto mm1 = algo.matrix_recover(matrices[0]);
+        auto mm2 = algo.matrix_recover(matrices[1]);
+        assert(equals(mm1, a));
+        assert(equals(mm2, b));
+
         auto t = algo.phase2_mult(r, s);
         auto got = algo.matrix_recover(t);
 
@@ -65,13 +82,9 @@ void test(bool test_marge, bool test_parge, bool test_fermat)
         }
         cerr << "TwoPhaseMargeMost passed!" << endl;
     }
+#endif
 
-end_test_marge:
-
-    if (!test_parge)
-    {
-        goto end_test_parge;
-    }
+#if TEST_PARGE_BLOCK
     cerr << "===========================================" << endl;
     cerr << "======= Testing TwoPhasePargeBlock ========" << endl;
     cerr << "===========================================" << endl;
@@ -98,13 +111,9 @@ end_test_marge:
         }
         cerr << "TwoPhasePargeBlock passed!" << endl;
     }
+#endif
 
-end_test_parge:
-
-    if (!test_fermat)
-    {
-        goto end_test_fermat;
-    }
+#if TEST_PARGE_SHIFT
     cerr << "===========================================" << endl;
     cerr << "======= Testing TwoPhasePargeShift ========" << endl;
     cerr << "===========================================" << endl;
@@ -131,8 +140,7 @@ end_test_parge:
         }
         cerr << "TwoPhasePargeShift passed!" << endl;
     }
-
-end_test_fermat:
+#endif
 
     cerr << "All tests passed!" << endl;
 }
@@ -141,6 +149,6 @@ int main()
 {
     for (int i = 0; i < 100; i++)
     {
-        test(true, true, true);
+        test();
     }
 }

@@ -104,35 +104,32 @@ typename RNS_Field::Element_ptr fflas_new_sim_reduce(
 #endif
     size_t len_inputs = inputs.size();
     assert(len_inputs > 0);
-    typename Int_Field::Element_ptr fflas_inputs =
-        FFLAS::fflas_new(int_field, len_inputs);
-    typename Int_Field::Element max_input = inputs[0];
+    // typename Int_Field::Element_ptr fflas_inputs =
+    //     FFLAS::fflas_new(int_field, len_inputs);
+    const typename Int_Field::Element* max_input = inputs.data();
     for (size_t i = 0; i < len_inputs; i++)
     {
 #if CHECK_MMC
-        assert(inputs[i] < rns_field.rns()._M &&
-               "At least of one the input integers is too large.");
+        assert(inputs[i] < rns_field.rns()._M && "At least of one the input integers is too large.");
 #endif
-        if (inputs[i] > max_input)
+        if (inputs[i] > *max_input)
         {
-            max_input = inputs[i];
+            max_input = inputs.data() + i;
         }
-        fflas_inputs[i] = inputs[i];
+        // fflas_inputs[i] = inputs[i];
     }
-    size_t input_max_bitsize = max_input.bitsize();
-    size_t n_16bits_chunks =
-        (input_max_bitsize / 16) + ((input_max_bitsize % 16) ? 1 : 0);
-    typename RNS_Field::Element_ptr output_A =
-        FFLAS::fflas_new(rns_field, len_inputs);
+    size_t input_max_bitsize = max_input->bitsize();
+    size_t n_16bits_chunks = (input_max_bitsize / 16) + ((input_max_bitsize % 16) ? 1 : 0);
+    typename RNS_Field::Element_ptr output_A = FFLAS::fflas_new(rns_field, len_inputs);
 #if TIME_MMC
     cerr << ".......... finit_rns .........." << endl;
 #endif
-    FFLAS::finit_rns(rns_field, len_inputs, 1, n_16bits_chunks, fflas_inputs, 1,
+    FFLAS::finit_rns(rns_field, len_inputs, 1, n_16bits_chunks, inputs.data(), 1,
                      output_A);
 #if TIME_MMC
     cerr << ".......... finit_rns ends .........." << endl;
 #endif
-    FFLAS::fflas_delete(fflas_inputs);
+    // FFLAS::fflas_delete(fflas_inputs);
 #if DEBUG_MMC
     for (size_t i = 0; i < len_inputs; i++)
     {

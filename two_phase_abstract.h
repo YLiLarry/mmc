@@ -184,6 +184,34 @@ class TwoPhaseAbstract
             }
             return out;
         }
+
+        // friend bool equals(const Phase2_Matrix& m1, const Phase2_Matrix& m2)
+        // {
+        //     if (m1.dim_m != m2.dim_m) {
+        //         return false;
+        //     }
+        //     if (m1.dim_n != m2.dim_n) {
+        //         return false;
+        //     }
+        //     for (size_t r = 0; r < m1.dim_m; r++)
+        //     {
+        //         for (size_t f = 0; f < m1.m_level_1_moduli_count; f++)
+        //         {
+        //             for (size_t m = 0; m < m1.m_level_2_moduli_count; m++)
+        //             {
+        //                 for (size_t c = 0; c < m1.dim_n; c++)
+        //                 {
+        //                     if (m1.ref(r, c, f, m) != m2.ref(r, c, f, m))
+        //                     {
+        //                         cerr << m1.ref(r, c, f, m)._ptr << " differs " << m2.ref(r, c, f, m)._ptr << endl;
+        //                         return false;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     return true;
+        // }
     };
 
   protected:
@@ -287,21 +315,21 @@ class TwoPhaseAbstract
     const std::vector<Phase2_Matrix> matrix_reduce(const std::vector<Givaro::Integer> &matrices, const std::vector<size_t> &dimensions)
     {
         size_t len_inputs = matrices.size();
-        size_t num_matrices = dimensions.size();
+        size_t num_matrices = dimensions.size() - 1;
 #if DEBUG_MMC || TIME_MMC
-        cerr << "########## matrix_reduce ##########" << endl;
+        cerr << "########## matrix_reduce (" << num_matrices << ") ##########" << endl;
 #endif
 #if DEBUG_MMC
-        cerr << "reducing " << len_inputs << " matrices" << endl;
+        cerr << "inputs: " << matrices << endl;
 #endif
-        assert(len_inputs > 0 && num_matrices > 2 && "need at least 2 matrices");
+        assert(len_inputs > 0 && num_matrices >= 2 && "need at least 2 matrices");
 
-#if CHECK_MMCC
+#if CHECK_MMC
         size_t len_ints = 0;
-        for (size_t i = 1; i < num_matrices; i++)
+        for (size_t i = 0; i < num_matrices; i++)
         {
-            size_t m = dimensions[i - 1];
-            size_t n = dimensions[i];
+            size_t m = dimensions[i];
+            size_t n = dimensions[i + 1];
             len_ints += m * n;
         }
         assert(len_inputs == len_ints && "supplied inputs and dimensions don't match");
@@ -342,10 +370,10 @@ class TwoPhaseAbstract
         cerr << "..... phase 2 reduce ends ....." << endl;
 #endif
         std::vector<Phase2_Matrix> outputs(num_matrices);
-        for (size_t o = 1; o < num_matrices; o++)
+        for (size_t o = 0; o < num_matrices; o++)
         {
-            size_t dim_m = dimensions[o - 1];
-            size_t dim_n = dimensions[o];
+            size_t dim_m = dimensions[o];
+            size_t dim_n = dimensions[o + 1];
             Phase2_Matrix mat(*this, dim_m, dim_n);
             for (size_t r = 0; r < dim_m; r++)
             {
@@ -356,7 +384,7 @@ class TwoPhaseAbstract
                     {
                         for (size_t m = 0; m < m_level_2_moduli_count; m++)
                         {
-                            mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * (mat.count * m_level_1_moduli_count) + (i * m_level_1_moduli_count) + f]._ptr[0];
+                            mat.ref(r, c, f, m)._ptr[0] = phase2_outputs[m * num_matrices * mat.count * m_level_1_moduli_count + o * mat.count * m_level_1_moduli_count + i * m_level_1_moduli_count + f]._ptr[0];
                         }
                     }
                 }

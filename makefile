@@ -22,14 +22,15 @@ export LD_LIBRARY_PATH := $(GIVARO_LIB):$(BLAS_LIB):$(LINBOX_LIB)
 
 # export fflas: PRECOMPILE_LIBS := -lgivaro $(PRECOMPILE_LIBS)
 
-DEBUG_FLAGS := -DPROFILE_FGEMM_MP=1 -DTIME_MMC=1 -DPSEUDO_RANDOM_MMC=0 -DDEBUG_MMC=0 -DCHECK_MMC=1
+DEBUG_FLAGS := -DPSEUDO_RANDOM_MMC=1 -DPROFILE_FGEMM_MP=1 -DTIME_MMC=1 -DTIME_CNMA=0 -DDEBUG_MMC=1 -DDEBUG_CNMA=0 -DCHECK_MMC=1 -DCHECK_CNMA=1
+bench: DEBUG_FLAGS = -DPROFILE_FGEMM_MP=1 -DTIME_MMC=1 
 
 CC := gcc
 CXX := g++
-C_FLAGS := -std=c11 -O2 -c -Wall 
+C_FLAGS := -std=c11 -O2 -c -static -Wall 
 C_FILES := ./cnma/*.c 
 C_OBJECTS := *.o 
-CPP_FLAGS := -O2 -Wall --std=c++11 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmp -fopenmp 
+CPP_FLAGS := -O2 -Wall -static --std=c++11 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmpxx -lgmp -fopenmp 
 CPP_FILES := ./cnma/*.cpp
 
 init:
@@ -104,7 +105,6 @@ test:
 	make run
 
 .PHONY: bench
-bench: DEBUG_FLAGS = -DPROFILE_FGEMM_MP=1 -DTIME_MMC=1 -DPSEUDO_RANDOM_MMC=0 -DDEBUG_MMC=0 -DCHECK_MMC=0
 bench:
 	# $(CC) $(C_FILES) $(DEBUG_FLAGS) $(C_FLAGS)
 	$(CXX) main_benchmark_fgemm_mp.cpp $(CPP_FILES) $(DEBUG_FLAGS) $(CPP_FLAGS)

@@ -1,8 +1,11 @@
 #include "matrix.h"
 #include "reconstruct_parge_shift.h"
 #include <assert.h>
+#include <givaro/givtimer.h>
+#include <ostream>
 
 using namespace CNMA;
+using namespace std;
 
 // Mi: precomputed array
 void CNMA::garner_parge_shift(mpz_t a,         // output
@@ -11,15 +14,20 @@ void CNMA::garner_parge_shift(mpz_t a,         // output
                               const mpz_t m[], // moduli
                               uint64_t coef)   // coefficient used to generate parge numbers
 {
-#if DEBUG_MMC
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, "########## garner_parge ##########\n");
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    Givaro::Timer timer;
+    timer.clear();
+    timer.start();
+#endif
+#if DEBUG_CNMA
     fprintf(stderr, " - coef: %lu\n", coef);
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
-#if CHECK_MMC
+#if CHECK_CNMA
         assert(mpz_cmp(r[i], m[i]) < 0);
 #endif
     }
@@ -78,10 +86,14 @@ void CNMA::garner_parge_shift(mpz_t a,         // output
     mpz_clear(t);
     mpz_clear(temp);
     // outputs in a
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, " - recovered: %Zd\n", a);
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    timer.stop();
+    cerr << "Timer: " << timer << endl;
+#endif
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, "########## garner_parge ends ##########\n");
 #endif
 }
@@ -96,14 +108,19 @@ void CNMA::garner_parge_shift_mixed(mpz_t a,
                                     uint64_t coef,            
                                     mpz_t work[])             
 {
-#if DEBUG_MMC
+#if DEBUG_CNMA || TIME_MMA
     gmp_fprintf(stderr, "########## garner_parge_shift_mixed ##########\n");
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    Givaro::Timer timer;
+    timer.clear();
+    timer.start();
+#endif
+#if DEBUG_CNMA
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd - bitsize[%d] = %d\n", i, r[i], i, m[i], i, bitsize[i]);
-#if CHECK_MMC
+#if CHECK_CNMA
         assert(mpz_cmp(r[i], m[i]) < 0);
 #endif
     }
@@ -191,10 +208,14 @@ void CNMA::garner_parge_shift_mixed(mpz_t a,
     mpz_clear(t);
     mpz_clear(temp);
     // outputs in a
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, " - a: %Zd\n", a);
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    timer.stop();
+    cerr << "Timer: " << timer << endl;
+#endif
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, "########## garner_parge_shift_mixed ends ##########\n");
 #endif
 }

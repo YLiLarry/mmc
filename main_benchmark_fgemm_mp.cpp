@@ -73,22 +73,26 @@ extern "C"
 }
 #endif
 
-#define BENCH_TWO_PHASE_PARGE_SHIFT 1
+
+#define BENCH_FFLAS_PPACK 1
+#define BENCH_TWO_PHASE_PARGE_SHIFT 0
 #define BENCH_TWO_PHASE_PARGE_BLOCK 0
 #define BENCH_TWO_PHASE_MARGE_LEAST 0
 #define BENCH_TWO_PHASE_MARGE_MOST 1
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
-static unsigned long b = (1 << 16);
+static unsigned long b = 17;
 static size_t m = 64;
 static size_t k = 64;
 static size_t n = 64;
+static size_t e = 13;
 static int nbw = -1;
 static size_t seed = time(NULL);
 static Argument as[] = {
     {'q', "-q Q", "Set the field characteristic (-1 for random).", TYPE_INTEGER, &q},
     {'b', "-b B", "Set the bitsize of the random characteristic.", TYPE_INT, &b},
+    {'e', "-e E", "Set the bitsize of the level 1 moduli.", TYPE_INT, &e},
     {'m', "-m M", "Set the dimension m of the matrix.", TYPE_INT, &m},
     {'k', "-k K", "Set the dimension k of the matrix.", TYPE_INT, &k},
     {'n', "-n N", "Set the dimension n of the matrix.", TYPE_INT, &n},
@@ -106,7 +110,8 @@ int tmain()
 
     typedef Givaro::ZRing<Ints> Field;
     typedef Givaro::Modular<Ints> ModularField;
-    Givaro::Integer p;
+    Givaro::Integer p = 1;
+    p <<= (1 << b);
     FFLAS::Timer chrono, TimFreivalds;
     double time = 0., timev = 0.;
 #ifdef BENCH_FLINT
@@ -118,10 +123,10 @@ int tmain()
     double time_two_phase_parge_block = 0.;
     double time_two_phase_parge_shift = 0.;
 #endif
-    double time_naive = 0.;
+    double time_fflas_ppack = 0.;
     for (size_t loop = 0; loop < iters; loop++)
     {
-        Givaro::Integer::random_exact_2exp(p, b);
+        // Givaro::Integer::random_exact_2exp(p, 1 << b);
 
         // Givaro::IntPrimeDom IPD;
         // IPD.prevprimein(p);
@@ -163,8 +168,17 @@ int tmain()
         vector<Givaro::Integer> A_(A, A + m * k);
         vector<Givaro::Integer> B_(B, B + k * n);
 
-        uint_fast64_t input_bitsize = max(max_element(A_.begin(), A_.end()), max_element(B_.begin(), B_.end()))->bitsize();
-        cerr << "benchmarking with random inputs in Givaro::Modular<Ints>(integer of " << input_bitsize << " bits)" << endl;
+        vector<Givaro::Integer> M_;
+        M_.insert(M_.end(), A_.begin(), A_.end());
+        M_.insert(M_.end(), B_.begin(), B_.end());
+        
+        vector<size_t> M_s;
+        M_s.push_back(m);
+        M_s.push_back(k);
+        M_s.push_back(n);
+
+        Givaro::Integer input_bitsize = max(max_element(A_.begin(), A_.end()), max_element(B_.begin(), B_.end()))->bitsize();
+        cerr << "benchmarking with random inputs in Givaro::Modular<Ints>(integers of 2^" << input_bitsize.bitsize() - 1<< " bits)" << endl;
 
         // cerr << A_ << endl;
         // cerr << B_ << endl;
@@ -212,14 +226,16 @@ int tmain()
         fmpz_mat_clear(BB);
 #endif
 
+#if BENCH_FFLAS_PPACK
         cerr << "===========================================" << endl;
-        cerr << "============= Benchmark Naive =============" << endl;
+        cerr << "========== Benchmark FFLAS-PPACK ==========" << endl;
         cerr << "===========================================" << endl;
         chrono.clear();
         chrono.start();
         auto C__ = SIM_RNS::fflas_mult_integer(A_, B_, m, k, n);
         chrono.stop();
-        time_naive += chrono.usertime();
+        time_fflas_ppack += chrono.usertime();
+#endif
 
 #if BENCH_TWO_PHASE_PARGE_SHIFT
         {
@@ -236,57 +252,13 @@ int tmain()
             chrono.stop();
             time_two_phase_parge_shift += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
+            #if BENCH_FFLAS_PPACK
             if (! equals(C_, C__)) {
                 cerr << "ERROR! RESULT IS INCORRECT" << endl
                      << " - expected: " << C__ << endl
                      << " - got: " << C_ << endl;
             }
-        }
-#endif
-
-#if BENCH_TWO_PHASE_MARGE_LEAST
-        {
-            cerr << "===========================================" << endl;
-            cerr << "======= Benchmark TwoPhaseMargeLeast ======" << endl;
-            cerr << "===========================================" << endl;
-            chrono.clear();
-            chrono.start();
-            TwoPhaseMargeLeast algo(2 * input_bitsize, 1 << 10);
-            auto a = algo.matrix_reduce(A_, m, k);
-            auto b = algo.matrix_reduce(B_, k, n);
-            auto c = algo.phase2_mult(a, b);
-            auto C_ = algo.matrix_recover(c);
-            chrono.stop();
-            time_two_phase_marge_least += chrono.usertime();
-            // this line asserts our result is the same as FFLAS::fgemm
-            if (! equals(C_, C__)) {
-                cerr << "ERROR! RESULT IS INCORRECT" << endl
-                     << " - expected: " << C__ << endl
-                     << " - got: " << C_ << endl;
-            }
-        }
-#endif
-
-#if BENCH_TWO_PHASE_MARGE_MOST
-        {
-            cerr << "===========================================" << endl;
-            cerr << "======= Benchmark TwoPhaseMargeMost =======" << endl;
-            cerr << "===========================================" << endl;
-            chrono.clear();
-            chrono.start();
-            TwoPhaseMargeMost algo(2 * input_bitsize, input_bitsize >> 5);
-            auto a = algo.matrix_reduce(A_, m, k);
-            auto b = algo.matrix_reduce(B_, k, n);
-            auto c = algo.phase2_mult(a, b);
-            auto C_ = algo.matrix_recover(c);
-            chrono.stop();
-            time_two_phase_marge_most += chrono.usertime();
-            // this line asserts our result is the same as FFLAS::fgemm
-            if (! equals(C_, C__)) {
-                cerr << "ERROR! RESULT IS INCORRECT" << endl
-                     << " - expected: " << C__ << endl
-                     << " - got: " << C_ << endl;
-            }
+            #endif
         }
 #endif
 
@@ -297,7 +269,7 @@ int tmain()
             cerr << "===========================================" << endl;
             chrono.clear();
             chrono.start();
-            TwoPhasePargeBlock algo(2 * input_bitsize, input_bitsize / 2, 4);
+            TwoPhasePargeBlock algo(2 * input_bitsize, 1 << e, 4);
             auto a = algo.matrix_reduce(A_, m, k);
             auto b = algo.matrix_reduce(B_, k, n);
             auto c = algo.phase2_mult(a, b);
@@ -305,13 +277,69 @@ int tmain()
             chrono.stop();
             time_two_phase_parge_block += chrono.usertime();
             // this line asserts our result is the same as FFLAS::fgemm
+            #if BENCH_FFLAS_PPACK
             if (! equals(C_, C__)) {
                 cerr << "ERROR! RESULT IS INCORRECT" << endl
                      << " - expected: " << C__ << endl
                      << " - got: " << C_ << endl;
             };
+            #endif
         }
 #endif
+
+#if BENCH_TWO_PHASE_MARGE_LEAST
+        {
+            cerr << "===========================================" << endl;
+            cerr << "======= Benchmark TwoPhaseMargeLeast ======" << endl;
+            cerr << "===========================================" << endl;
+            chrono.clear();
+            chrono.start();
+            TwoPhaseMargeLeast algo(2 * input_bitsize, 1 << e);
+            auto matrices = algo.matrix_reduce(M_, M_s);
+            auto a = matrices[0];
+            auto b = matrices[1];
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_marge_least += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            #if BENCH_FFLAS_PPACK
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            }
+            #endif
+        }
+#endif
+
+#if BENCH_TWO_PHASE_MARGE_MOST
+        {
+            cerr << "===========================================" << endl;
+            cerr << "======= Benchmark TwoPhaseMargeMost =======" << endl;
+            cerr << "===========================================" << endl;
+            chrono.clear();
+            chrono.start();
+            TwoPhaseMargeMost algo(input_bitsize << 1, 1 << e);
+            auto a = algo.matrix_reduce(A_, m, k);
+            auto b = algo.matrix_reduce(B_, k, n);
+            auto c = algo.phase2_mult(a, b);
+            auto C_ = algo.matrix_recover(c);
+            chrono.stop();
+            time_two_phase_marge_most += chrono.usertime();
+            // this line asserts our result is the same as FFLAS::fgemm
+            #if BENCH_FFLAS_PPACK
+            if (! equals(C_, C__)) {
+                cerr << "ERROR! RESULT IS INCORRECT" << endl
+                     << " - expected: " << C__ << endl
+                     << " - got: " << C_ << endl;
+            }
+            #endif
+        }
+#endif
+
+
+/*
         //END FLINT CODE //
         using FFLAS::CuttingStrategy::Recursive;
         using FFLAS::StrategyParameter::TwoDAdaptive;
@@ -348,8 +376,8 @@ int tmain()
         FFLAS::fflas_delete(A);
         FFLAS::fflas_delete(B);
         FFLAS::fflas_delete(C);
+*/
     }
-
     double Gflops = (2. * double(m) / 1000. * double(n) / 1000. * double(k) / 1000.0) / time * double(iters);
     // 	Gflops*=p.bitsize()/16.;
     cout << "Time fgemm: " << (time / double(iters))
@@ -366,13 +394,14 @@ int tmain()
 #ifdef BENCH_FLINT
     cout << "Time FLINT: " << timeFlint << endl;
 #endif
+
 #if BENCH_TWO_PHASE_MARGE_LEAST || BENCH_TWO_PHASE_MARGE_MOST || BENCH_TWO_PHASE_PARGE_BLOCK
     cout << "Time TwoPhaseMargeLeast: " << time_two_phase_marge_least << endl;
     cout << "Time TwoPhaseMargeMost: " << time_two_phase_marge_most << endl;
     cout << "Time TwoPhasePargeBlock: " << time_two_phase_parge_block << endl;
     cout << "Time TwoPhasePargeShift: " << time_two_phase_parge_shift << endl;
 #endif
-    cout << "Time FFLAS-PPACK: " << time_naive << endl;
+    cout << "Time FFLAS-PPACK: " << time_fflas_ppack << endl;
 
     return 0;
 }

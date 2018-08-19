@@ -2,12 +2,14 @@
 #include "reconstruct_marge.h"
 #include "marge_num.h"
 #include <assert.h>
+#include <givaro/givtimer.h>
 
 using namespace CNMA;
+using namespace std;
 
 void CNMA::precompute_Mi_marge(mpz_t Mi[], const mpz_t m[], const size_t N)
 {
-#if DEBUG_MMC || TIME_MMC
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, ".......... precompute_Mi_marge ..........\n");
 #endif
     // line 1
@@ -19,10 +21,10 @@ void CNMA::precompute_Mi_marge(mpz_t Mi[], const mpz_t m[], const size_t N)
     {
         mpz_mul(M, M, m[i - 1]);    // line 3
         mpz_invert(Mi[i], M, m[i]); // line 4
-#if DEBUG_MMC
+#if DEBUG_CNMA
         gmp_fprintf(stderr, "precompute_Mi_marge iteration#%d: M=%Zd, Mi[%d]=%Zd\n", i, M, i, Mi[i]);
 #endif
-#if DEBUG_MMC
+#if DEBUG_CNMA
         gmp_fprintf(stderr, " - M: %Zd\n", M);
         gmp_fprintf(stderr, " - Mi: [");
         gmp_fprintf(stderr, " %Zd ", Mi[1]);
@@ -35,7 +37,7 @@ void CNMA::precompute_Mi_marge(mpz_t Mi[], const mpz_t m[], const size_t N)
     }
     mpz_clear(M);
     // outputs Mi[]
-#if DEBUG_MMC || TIME_MMC
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, ".......... precompute_Mi_marge ends ..........\n");
 #endif
 }
@@ -48,14 +50,19 @@ void CNMA::garner_marge(mpz_t a,               // output
                         const mpz_t Mi[],      // precomputed Mi (see paper)
                         mpz_t work[])          // a work array, caller is responsible for initializing and freeing this for efficiency reason
 {
-#if DEBUG_MMC
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, "########## garner_marge ##########\n");
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    Givaro::Timer timer;
+    timer.clear();
+    timer.start();
+#endif
+#if DEBUG_CNMA
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
-#if CHECK_MMC
+#if CHECK_CNMA
         assert(mpz_cmp(r[i], m[i]) < 0);
 #endif
     }
@@ -103,10 +110,14 @@ void CNMA::garner_marge(mpz_t a,               // output
     mpz_clear(t);
     mpz_clear(temp);
     // outputs in a
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, " - a: %Zd\n", a);
 #endif
-#if DEBUG_MMC
+#if TIME_CNMA
+    timer.stop();
+    cerr << "Timer: " << timer << endl;
+#endif
+#if DEBUG_CNMA || TIME_CNMA
     gmp_fprintf(stderr, "########## garner_marge ends ##########\n");
 #endif
 }
@@ -114,14 +125,14 @@ void CNMA::garner_marge(mpz_t a,               // output
 // Mi: precomputed array
 void garner_simple_marge(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const mpz_t Mi[])
 {
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, "########## garner_simple_marge ##########\n");
 #endif
-#if DEBUG_MMC
+#if DEBUG_CNMA
     for (size_t i = 0; i < N; i++)
     {
         gmp_fprintf(stderr, " - r[%d] = %Zd - m[%d] = %Zd\n", i, r[i], i, m[i]);
-#if CHECK_MMC
+#if CHECK_CNMA
         assert(mpz_cmp(r[i], m[i]) < 0);
 #endif
     }
@@ -149,10 +160,10 @@ void garner_simple_marge(mpz_t a, int N, const mpz_t r[], const mpz_t m[], const
     mpz_clear(t);
     mpz_clear(M);
     // outputs in a
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, " - a: %Zd\n", a);
 #endif
-#if DEBUG_MMC
+#if DEBUG_CNMA
     gmp_fprintf(stderr, "########## garner_simple_marge ends ##########\n");
 #endif
 }
