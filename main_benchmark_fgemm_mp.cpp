@@ -74,18 +74,16 @@ extern "C"
 #endif
 
 
-#define BENCH_FFLAS_PPACK 1
+#define BENCH_FFLAS_PPACK 0
 #define BENCH_TWO_PHASE_PARGE_SHIFT 0
 #define BENCH_TWO_PHASE_PARGE_BLOCK 0
-#define BENCH_TWO_PHASE_MARGE_LEAST 0
+#define BENCH_TWO_PHASE_MARGE_LEAST 1
 #define BENCH_TWO_PHASE_MARGE_MOST 1
 
 static size_t iters = 1;
 static Givaro::Integer q = -1;
 static unsigned long b = 17;
-static size_t m = 64;
-static size_t k = 64;
-static size_t n = 64;
+static size_t d = 64;
 static size_t e = 13;
 static int nbw = -1;
 static size_t seed = time(NULL);
@@ -93,9 +91,10 @@ static Argument as[] = {
     {'q', "-q Q", "Set the field characteristic (-1 for random).", TYPE_INTEGER, &q},
     {'b', "-b B", "Set the bitsize of the random characteristic.", TYPE_INT, &b},
     {'e', "-e E", "Set the bitsize of the level 1 moduli.", TYPE_INT, &e},
-    {'m', "-m M", "Set the dimension m of the matrix.", TYPE_INT, &m},
-    {'k', "-k K", "Set the dimension k of the matrix.", TYPE_INT, &k},
-    {'n', "-n N", "Set the dimension n of the matrix.", TYPE_INT, &n},
+    {'d', "-d D", "Set the dimension of matrices.", TYPE_INT, &d},
+    // {'m', "-m M", "Set the dimension m of the matrix.", TYPE_INT, &m},
+    // {'k', "-k K", "Set the dimension k of the matrix.", TYPE_INT, &k},
+    // {'n', "-n N", "Set the dimension n of the matrix.", TYPE_INT, &n},
     {'w', "-w N", "Set the number of winograd levels (-1 for random).", TYPE_INT, &nbw},
     {'i', "-i R", "Set number of repetitions.", TYPE_INT, &iters},
     {'s', "-s S", "Sets seed.", TYPE_INT, &seed},
@@ -104,6 +103,11 @@ static Argument as[] = {
 template <typename Ints>
 int tmain()
 {
+
+    static size_t m = d;
+    static size_t k = d;
+    static size_t n = d;
+
     srand((int)seed);
     srand48(seed);
     Givaro::Integer::seeding(seed);

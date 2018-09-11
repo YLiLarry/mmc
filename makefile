@@ -30,6 +30,7 @@ CXX := g++
 C_FLAGS := -std=c11 -O2 -c -static -Wall 
 C_FILES := ./cnma/*.c 
 C_OBJECTS := *.o 
+BINARY_NAME := eugene-eric-larry-research-do-not-kill
 CPP_FLAGS := -O2 -Wall -static --std=c++11 -I"$(LINBOX_INCLUDE)" -I"$(GIVARO_INCLUDE)" -I"$(FFLAS_INCLUDE)" -L"$(LINBOX_LIB)" -L"$(GIVARO_LIB)" -L"$(BLAS_LIB)" -L"$(FFLAS_LIB)" -lgivaro -lopenblas -llinbox -lgmpxx -lgmp -fopenmp 
 CPP_FILES := ./cnma/*.cpp
 
@@ -101,18 +102,18 @@ clean:
 .PHONY: test
 test:
 	# $(CC) $(C_FILES) $(DEBUG_FLAGS) $(C_FLAGS)
-	$(CXX) main_test.cpp $(CPP_FILES) $(DEBUG_FLAGS) $(CPP_FLAGS)
+	$(CXX) -o $(BINARY_NAME) main_test.cpp $(CPP_FILES) $(DEBUG_FLAGS) $(CPP_FLAGS)
 	make run
 
 .PHONY: bench
 bench:
 	# $(CC) $(C_FILES) $(DEBUG_FLAGS) $(C_FLAGS)
-	$(CXX) main_benchmark_fgemm_mp.cpp $(CPP_FILES) $(DEBUG_FLAGS) $(CPP_FLAGS)
+	$(CXX) -o $(BINARY_NAME) main_benchmark_fgemm_mp.cpp $(CPP_FILES) $(DEBUG_FLAGS) $(CPP_FLAGS)
 	make run
 
 check:
 	cd submodule/linbox && make check
 
 run:
-	chmod u+x ./a.out
-	./a.out
+	chmod u+x ./$(BINARY_NAME)
+	./$(BINARY_NAME)
